@@ -1,0 +1,121 @@
+/* « Calcul express » */
+.calc__work {
+  width: min(420px, 100%);
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 16px;
+  border-radius: var(--radius-l);
+  background: #ffffffdd;
+}
+
+.calc__mine {
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.calc__question {
+  font-size: clamp(2.4rem, 11vw, 3.6rem);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.calc__answer {
+  min-width: 5em;
+  padding: 2px 16px;
+  border-radius: var(--radius-s);
+  background: var(--paper);
+  border: 3px solid var(--line);
+  font-size: 2.2rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.calc__answer.is-empty {
+  color: var(--line);
+}
+
+.calc__verdict {
+  min-height: 1.5em;
+  font-weight: 650;
+}
+
+.calc__verdict.is-juste {
+  color: var(--go-deep);
+}
+
+.calc__verdict.is-faux {
+  color: var(--danger-deep);
+}
+
+.calc__race {
+  width: min(900px, 100%);
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.calc__lane {
+  display: grid;
+  grid-template-columns: auto 8em 1fr 2.5em;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 12px 4px 6px;
+  border-radius: var(--radius-s);
+  background: var(--paper);
+}
+
+.calc__lane.is-me {
+  outline: 3px solid var(--sun);
+}
+
+.calc__name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calc__track {
+  height: 18px;
+  border-radius: 999px;
+  background: var(--cloud);
+  overflow: hidden;
+}
+
+.calc__fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  transition: width 300ms ease;
+}
+
+.calc__score {
+  font-size: 1.3rem;
+  text-align: right;
+}
+
+.calc--tv .calc__lane {
+  font-size: 1.3rem;
+}
+
+.calc--tv .calc__track {
+  height: 26px;
+}
+
+.calc--solo {
+  grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+  align-items: start;
+}
+
+.calc--solo .timebar {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 760px) {
+  .calc--solo {
+    grid-template-columns: 1fr;
+  }
+}

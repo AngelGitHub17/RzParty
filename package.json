@@ -1,0 +1,29 @@
+{
+  "name": "rzparty",
+  "version": "0.1.0",
+  "private": true,
+  "description": "RzParty — party game multijoueur dans le navigateur, servi en réseau local",
+  "type": "module",
+  "workspaces": [
+    "packages/shared",
+    "packages/minigames",
+    "packages/server",
+    "packages/client"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "npm run build && npm run serve",
+    "build": "npm run build -w @rzparty/client",
+    "serve": "npm run start -w @rzparty/server",
+    "dev": "concurrently -k -n serveur,client -c blue,magenta \"npm run dev -w @rzparty/server\" \"npm run dev -w @rzparty/client\"",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p packages/server && tsc --noEmit -p packages/client && tsc --noEmit -p packages/minigames"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.5"
+  }
+}

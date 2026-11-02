@@ -1,0 +1,176 @@
+/* « Patate explosive » */
+.bomb__headline {
+  font-size: clamp(1.2rem, 3.4vw, 1.8rem);
+  font-weight: 700;
+  text-align: center;
+}
+
+.bomb__ring {
+  position: relative;
+  width: min(640px, 94vw);
+  aspect-ratio: 16 / 11;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff8e6 0 55%, transparent 56%);
+}
+
+.bomb--solo .bomb__ring {
+  width: min(480px, 94vw);
+}
+
+.bomb__seat {
+  position: absolute;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  transform: translate(-50%, -50%);
+  transition: transform 200ms ease;
+}
+
+.bomb__seat.is-out {
+  opacity: 0.3;
+  filter: grayscale(1);
+}
+
+.bomb__seat.is-me .bomb__name {
+  outline: 3px solid var(--sun);
+}
+
+.bomb__seat.is-target .bomb__name {
+  background: #ffe08a;
+}
+
+.bomb__name {
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--paper);
+  font-weight: 700;
+  max-width: 8em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bomb__bomb {
+  position: absolute;
+  top: -18px;
+  right: -22px;
+  font-size: 2.2rem;
+  animation: bomb-wobble 600ms ease-in-out infinite;
+}
+
+.heat-1 .bomb__bomb {
+  animation-duration: 330ms;
+}
+
+.heat-2 .bomb__bomb {
+  animation-duration: 160ms;
+  filter: drop-shadow(0 0 8px #f0483e);
+}
+
+.bomb__seat.is-holding {
+  transform: translate(-50%, -50%) scale(1.15);
+}
+
+.bomb__boom {
+  position: absolute;
+  top: -10px;
+  padding: 2px 12px;
+  border-radius: 999px;
+  background: #f0483e;
+  color: #fff;
+  font-weight: 800;
+  animation: pop 420ms cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+@keyframes bomb-wobble {
+  0%,
+  100% {
+    transform: rotate(-12deg);
+  }
+  50% {
+    transform: rotate(12deg) scale(1.08);
+  }
+}
+
+.bomb__work {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  width: min(440px, 100%);
+}
+
+.bomb__word {
+  display: flex;
+  gap: 6px;
+  font-size: clamp(2.2rem, 10vw, 3.4rem);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.bomb__word span {
+  color: #1e2a4a55;
+}
+
+.bomb__word .is-done {
+  color: var(--go-deep, #1f8f4e);
+}
+
+.bomb__word .is-next {
+  color: var(--ink);
+  text-decoration: underline 4px var(--sun);
+  text-underline-offset: 6px;
+}
+
+.bomb__keys {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  width: 100%;
+  touch-action: manipulation;
+}
+
+.bomb__key {
+  height: 68px;
+  border: 0;
+  border-radius: var(--radius-s);
+  background: var(--paper);
+  box-shadow: 0 5px 0 #1e2a4a33;
+  font-size: 1.9rem;
+  font-weight: 800;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.bomb__key:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 #1e2a4a33;
+}
+
+.bomb.is-mine {
+  background: radial-gradient(circle, #ffe3df 0, transparent 70%);
+}
+
+.bomb__seat.is-blasted {
+  opacity: 1;
+  filter: none;
+  animation: bomb-shake 300ms ease-in-out 3;
+}
+
+.bomb__boom {
+  white-space: nowrap;
+  top: -28px;
+  font-size: 1.1rem;
+}
+
+@keyframes bomb-shake {
+  0%,
+  100% {
+    margin-left: 0;
+  }
+  25% {
+    margin-left: -6px;
+  }
+  75% {
+    margin-left: 6px;
+  }
+}

@@ -1,0 +1,71 @@
+/* « Coup d'œil » */
+.eye__title {
+  font-size: clamp(1.3rem, 4vw, 2rem);
+  font-weight: 800;
+  text-align: center;
+}
+
+.eye__field {
+  width: min(560px, 92vw, 52vh);
+  aspect-ratio: 1;
+  border-radius: var(--radius-l);
+  background: #fff8e6;
+  box-shadow: inset 0 0 0 4px #1e2a4a14;
+}
+
+.eye__field.is-hidden {
+  display: none;
+}
+
+.eye--pad .eye__field {
+  width: min(92vw, 44vh);
+}
+
+.eye__work {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  width: min(360px, 100%);
+}
+
+.eye__question {
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+.eye__answer {
+  min-width: 3.5em;
+  padding: 2px 16px;
+  border-radius: var(--radius-s);
+  background: var(--paper);
+  border: 3px solid var(--line);
+  font-size: 2.2rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.eye__answers {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.eye__chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 12px 2px 4px;
+  border-radius: 999px;
+  background: var(--paper);
+  border: 3px solid var(--player);
+  font-weight: 800;
+  font-size: 1.2rem;
+}
+
+.eye__chip.is-exact {
+  background: #e3f7ea;
+}

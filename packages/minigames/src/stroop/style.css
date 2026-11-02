@@ -1,0 +1,81 @@
+/* « Couleurs piégées » */
+.stroop__work {
+  width: min(440px, 100%);
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 16px;
+  border-radius: var(--radius-l);
+  background: #ffffffee;
+}
+
+.stroop__mine {
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.stroop__word {
+  font-size: clamp(2.8rem, 13vw, 4.4rem);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+}
+
+.stroop__verdict {
+  min-height: 1.5em;
+  font-weight: 650;
+}
+
+.stroop__verdict.is-juste {
+  color: var(--go-deep);
+}
+
+.stroop__verdict.is-faux {
+  color: var(--danger-deep);
+}
+
+.stroop__buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  width: 100%;
+  touch-action: manipulation;
+}
+
+.stroop__btn {
+  height: 84px;
+  border: 0;
+  border-radius: var(--radius-m, 16px);
+  box-shadow: inset 0 -6px 0 #0003;
+  color: #fff;
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-shadow: 0 1px 2px #0006;
+  cursor: pointer;
+}
+
+.stroop__btn:active {
+  transform: translateY(3px);
+}
+
+.stroop__buttons.is-locked {
+  opacity: 0.35;
+  filter: grayscale(0.6);
+}
+
+.stroop--solo {
+  grid-template-columns: minmax(0, 440px) minmax(0, 1fr);
+  align-items: start;
+}
+
+.stroop--solo .timebar {
+  grid-column: 1 / -1;
+  justify-self: center;
+}
+
+@media (max-width: 760px) {
+  .stroop--solo {
+    grid-template-columns: 1fr;
+  }
+}

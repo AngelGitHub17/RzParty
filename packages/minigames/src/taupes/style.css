@@ -1,0 +1,109 @@
+/* « Tape-taupe » */
+.mole__stage {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 20px;
+  width: 100%;
+}
+
+.mole__mine {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.mole__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  width: min(420px, 92vw);
+  padding: 14px;
+  border-radius: var(--radius-l);
+  background: #7ed957;
+  box-shadow: inset 0 -8px 0 #5fb63e;
+  touch-action: manipulation;
+}
+
+.mole__hole {
+  position: relative;
+  aspect-ratio: 1;
+  border: 0;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 70%, #3b2615 0 55%, #6b4423 56% 70%, transparent 71%);
+  overflow: hidden;
+  cursor: pointer;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mole__critter {
+  position: absolute;
+  left: 22%;
+  width: 56%;
+  height: 62%;
+  bottom: -70%;
+  border-radius: 50% 50% 40% 40%;
+  background: #a0673a;
+  box-shadow: inset 0 -6px 0 #7d4c27;
+  transition: bottom 90ms ease-out;
+}
+
+.mole__hole.is-golden .mole__critter {
+  background: #ffc83d;
+  box-shadow: inset 0 -6px 0 #d99a0b, 0 0 14px #ffe58a;
+}
+
+.mole__hole.is-up .mole__critter {
+  bottom: 18%;
+}
+
+.mole__eyes {
+  position: absolute;
+  top: 28%;
+  left: 22%;
+  right: 22%;
+  height: 16%;
+  background: radial-gradient(circle at 20% 50%, #1e2a4a 0 30%, transparent 32%), radial-gradient(circle at 80% 50%, #1e2a4a 0 30%, transparent 32%);
+}
+
+.mole__nose {
+  position: absolute;
+  top: 48%;
+  left: 40%;
+  width: 20%;
+  height: 14%;
+  border-radius: 50%;
+  background: #f28aa8;
+}
+
+.mole__hole.is-bonk {
+  animation: mole-bonk 220ms ease;
+}
+
+.mole__hole.is-miss {
+  animation: mole-miss 260ms ease;
+}
+
+@keyframes mole-bonk {
+  50% {
+    transform: scale(0.9);
+  }
+}
+
+@keyframes mole-miss {
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
+}
+
+.mole--tv .mole__grid {
+  width: min(380px, 40vw);
+}
+
+.mole__stage .lanes {
+  flex: 1 1 360px;
+}

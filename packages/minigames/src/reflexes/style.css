@@ -1,0 +1,107 @@
+/* « Dégaine ! » */
+.rx__turn {
+  font-weight: 650;
+  color: #fff;
+  text-shadow: 0 2px 0 #2c6aa0;
+  font-size: 1.2rem;
+}
+
+.rx__panel {
+  width: min(720px, 100%);
+  min-height: 260px;
+  display: grid;
+  place-content: center;
+  gap: 6px;
+  border: 0;
+  border-radius: 40px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  text-align: center;
+  box-shadow: 0 10px 0 #a8d3f2;
+  user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 60ms linear;
+}
+
+button.rx__panel {
+  cursor: pointer;
+}
+
+.rx--pad .rx__panel,
+.rx--solo .rx__panel {
+  min-height: 46dvh;
+}
+
+.rx__text {
+  font-size: clamp(2.4rem, 9vw, 5.5rem);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.rx__sub {
+  font-size: 1.15rem;
+  font-weight: 500;
+}
+
+.rx__panel.is-wait {
+  background: #ff9b45;
+  box-shadow: 0 10px 0 #c86512;
+  color: #fff;
+}
+
+.rx__panel.is-go {
+  background: var(--go);
+  box-shadow: 0 10px 0 var(--go-deep);
+  color: #fff;
+}
+
+.rx__panel.is-done {
+  background: var(--paper);
+}
+
+.rx__board {
+  width: min(720px, 100%);
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rx__row {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 3px 14px 3px 6px;
+  border-radius: var(--radius-s);
+  background: var(--paper);
+}
+
+.rx__row.is-me {
+  outline: 3px solid var(--sun);
+}
+
+.rx__row.is-bad .rx__now {
+  color: var(--danger-deep);
+}
+
+.rx__name {
+  font-weight: 600;
+}
+
+.rx__now {
+  font-weight: 650;
+}
+
+.rx__total {
+  min-width: 6em;
+  text-align: right;
+  color: var(--ink-soft);
+}
+
+.rx--tv .rx__row {
+  font-size: 1.3rem;
+}

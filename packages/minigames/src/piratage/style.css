@@ -1,0 +1,199 @@
+/* « Piratage » */
+.hack__work {
+  width: min(420px, 100%);
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 14px;
+  border-radius: var(--radius-l);
+  background: #ffffffdd;
+}
+
+.hack__info {
+  font-weight: 600;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+.hack__history {
+  width: 100%;
+  max-height: 190px;
+  overflow-y: auto;
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hack__try {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: var(--radius-s);
+  background: var(--paper);
+}
+
+.hack__try.is-win {
+  outline: 3px solid var(--go);
+}
+
+.hack__digits {
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.hack__pegs {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.hack__peg {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--cloud);
+  box-shadow: inset 0 0 0 2px #1e2a4a22;
+}
+
+.hack__peg--exact {
+  background: #2db866;
+}
+
+.hack__peg--near {
+  background: #ff8a1f;
+}
+
+.hack__slots {
+  display: flex;
+  gap: 10px;
+}
+
+.hack__slot {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 64px;
+  border-radius: var(--radius-s);
+  border: 3px dashed var(--line);
+  background: var(--paper);
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.hack__slot.is-full {
+  border-style: solid;
+  border-color: var(--sky, #2f7bef);
+}
+
+.hack .keypad {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.hack__reveal {
+  padding: 8px 20px;
+  border-radius: 999px;
+  background: var(--sun);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.hack__lanes {
+  width: min(900px, 100%);
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hack__lane {
+  display: grid;
+  grid-template-columns: auto 8em 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 12px 4px 6px;
+  border-radius: var(--radius-s);
+  background: var(--paper);
+  border-left: 6px solid var(--player);
+}
+
+.hack__lane.is-me {
+  outline: 3px solid var(--sun);
+}
+
+.hack__lane.is-cracked {
+  background: #e3f7ea;
+}
+
+.hack__name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hack__trail {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.hack--tv .hack__lane {
+  font-size: 1.3rem;
+}
+
+.hack--solo {
+  grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+  align-items: start;
+}
+
+.hack--solo .timebar,
+.hack--solo .hack__reveal {
+  grid-column: 1 / -1;
+  justify-self: center;
+}
+
+@media (max-width: 760px) {
+  .hack--solo {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hack .keypad__key:disabled {
+  opacity: 0.35;
+}
+
+.hack__digits {
+  display: flex;
+  gap: 6px;
+}
+
+.hack__digit {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.hack__digit--exact {
+  background: #2db866;
+}
+
+.hack__digit--near {
+  background: #ff8a1f;
+}
+
+.hack__digit--none {
+  background: #9aa5b8;
+}
+
+.hack__try {
+  justify-content: center;
+}

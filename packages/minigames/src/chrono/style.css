@@ -1,0 +1,70 @@
+/* « Chrono à l'aveugle » */
+.chrono__title {
+  font-weight: 700;
+  font-size: clamp(1.1rem, 3.4vw, 1.6rem);
+  text-align: center;
+}
+
+.chrono__clock {
+  min-width: 6em;
+  padding: 10px 28px;
+  border-radius: var(--radius-l);
+  background: #1e2a4a;
+  color: #7dffb2;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: clamp(2.6rem, 12vw, 5rem);
+  font-weight: 700;
+  text-align: center;
+}
+
+.chrono__clock.is-hidden {
+  color: #7dffb244;
+}
+
+.chrono__stop {
+  width: min(320px, 80vw);
+  height: 120px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--danger);
+  box-shadow: 0 8px 0 var(--danger-deep);
+  color: #fff;
+  font: inherit;
+  font-size: 2.6rem;
+  font-weight: 800;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.chrono__stop:disabled {
+  opacity: 0.45;
+}
+
+.chrono__results {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chrono__results li {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  column-gap: 6px;
+  padding: 4px 12px 4px 4px;
+  border-radius: var(--radius-s);
+  background: var(--paper);
+  border: 3px solid var(--player);
+}
+
+.chrono__results svg {
+  grid-row: span 2;
+}
+
+.chrono__results small {
+  color: var(--ink-soft);
+}

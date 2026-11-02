@@ -1,0 +1,64 @@
+/* « Paires de fruits » */
+.pairs__work {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  width: min(440px, 100%);
+}
+
+.pairs__info {
+  font-weight: 700;
+}
+
+.pairs__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  width: 100%;
+  perspective: 600px;
+  touch-action: manipulation;
+}
+
+.pairs__card {
+  aspect-ratio: 1;
+  border: 0;
+  border-radius: var(--radius-s);
+  background: linear-gradient(135deg, #5d9bff, #2f7bef);
+  box-shadow: 0 4px 0 #1f5cc0;
+  font-size: clamp(1.8rem, 9vw, 2.6rem);
+  cursor: pointer;
+  transition: transform 160ms ease, background 160ms;
+}
+
+.pairs__card.is-open {
+  background: var(--paper);
+  transform: rotateY(180deg);
+  box-shadow: 0 4px 0 #a8d3f2;
+}
+
+.pairs__card.is-open span {
+  display: inline-block;
+  transform: rotateY(180deg);
+}
+
+.pairs__card.is-found {
+  background: #e3f7ea;
+  box-shadow: none;
+  opacity: 0.85;
+}
+
+.pairs--solo {
+  grid-template-columns: minmax(0, 440px) minmax(0, 1fr);
+  align-items: start;
+}
+
+.pairs--solo .timebar {
+  grid-column: 1 / -1;
+  justify-self: center;
+}
+
+@media (max-width: 760px) {
+  .pairs--solo {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "@rzparty/shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Types, protocole réseau et règles pures partagés entre le client et le serveur",
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}

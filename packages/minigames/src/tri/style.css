@@ -1,0 +1,66 @@
+/* « Tri éclair » */
+.tri__work {
+  width: min(440px, 100%);
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--radius-l);
+  background: #ffffffee;
+}
+
+.tri__info {
+  font-weight: 700;
+  text-align: center;
+}
+
+.tri__info.is-faux {
+  color: var(--danger-deep);
+}
+
+.tri__grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 3), 1fr);
+  gap: 10px;
+  width: 100%;
+  touch-action: manipulation;
+}
+
+.tri__num {
+  height: 72px;
+  border: 0;
+  border-radius: var(--radius-m, 16px);
+  background: var(--paper);
+  box-shadow: 0 5px 0 #a8d3f2, inset 0 0 0 3px var(--line);
+  font: inherit;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.tri__num.is-done {
+  background: #e3f7ea;
+  color: var(--go-deep);
+  box-shadow: none;
+}
+
+.tri__grid.is-locked {
+  opacity: 0.4;
+}
+
+.tri--solo {
+  grid-template-columns: minmax(0, 440px) minmax(0, 1fr);
+  align-items: start;
+}
+
+.tri--solo .timebar {
+  grid-column: 1 / -1;
+  justify-self: center;
+}
+
+@media (max-width: 760px) {
+  .tri--solo {
+    grid-template-columns: 1fr;
+  }
+}

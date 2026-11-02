@@ -1,0 +1,6 @@
+# Caddy : HTTPS automatique (Let's Encrypt) pour RzParty.
+# Les ports 80 et 443 de la box doivent être redirigés vers ce conteneur.
+rzparty.fr, www.rzparty.fr {
+	encode gzip
+	reverse_proxy localhost:5555
+}

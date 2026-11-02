@@ -1,0 +1,113 @@
+/* « Labyrinthe » */
+.laby__stage {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.laby__board {
+  width: min(560px, 92vw, 62vh);
+  aspect-ratio: 1;
+  touch-action: none;
+  user-select: none;
+}
+
+.laby--pad .laby__board {
+  width: min(92vw, 48vh);
+}
+
+.laby__floor {
+  fill: #fff8e6;
+}
+
+.laby__start {
+  fill: #cdeefe;
+}
+
+.laby__exit {
+  fill: #ffe08a;
+}
+
+.laby__flag {
+  fill: #d99a0b;
+  font-size: 7.5px;
+  font-weight: 700;
+}
+
+.laby__walls {
+  fill: none;
+  stroke: #1e2a4a;
+  stroke-width: 1.3;
+  stroke-linecap: round;
+}
+
+.laby__token {
+  transition: transform 110ms linear;
+}
+
+.laby__status {
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+.laby__pad {
+  display: grid;
+  grid-template-columns: repeat(3, 64px);
+  grid-template-rows: repeat(3, 64px);
+  grid-template-areas: ". up ." "left . right" ". down .";
+  gap: 6px;
+  touch-action: manipulation;
+}
+
+.laby__key {
+  border: 0;
+  border-radius: var(--radius-s);
+  background: var(--paper);
+  box-shadow: 0 5px 0 #1e2a4a33;
+  font-size: 1.6rem;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.laby__key:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 #1e2a4a33;
+}
+
+.laby__key--haut {
+  grid-area: up;
+}
+
+.laby__key--bas {
+  grid-area: down;
+}
+
+.laby__key--gauche {
+  grid-area: left;
+}
+
+.laby__key--droite {
+  grid-area: right;
+}
+
+.laby__arrived {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.laby__arrived li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 12px 2px 4px;
+  border-radius: 999px;
+  background: var(--paper);
+}
