@@ -19,6 +19,7 @@ busy() {
   [ -n "$games" ] && [ "$games" -gt 0 ]
 }
 
+chown -R rzparty:rzparty "$APP_DIR"
 run git fetch --quiet origin
 if [ -n "$(run git log --oneline HEAD..@{u} 2>/dev/null)" ]; then
   if busy; then echo "Nouvelle version disponible, mais une partie est en cours : nouvel essai dans une heure."; exit 0; fi

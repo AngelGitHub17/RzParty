@@ -12,6 +12,9 @@ trap 'rm -f "$RZ_MAJ_COPY"' EXIT
 cd "$APP_DIR"
 run() { if [ "$(id -u)" = 0 ]; then runuser -u rzparty -- env HOME="$APP_DIR" npm_config_cache=/var/cache/rzparty "$@"; else "$@"; fi; }
 
+# Les fichiers doivent appartenir au compte du jeu (un « git » lancé en root peut en laisser à root).
+if [ "$(id -u)" = 0 ] && id rzparty >/dev/null 2>&1; then chown -R rzparty:rzparty "$APP_DIR"; fi
+
 echo "==> Récupération des nouveautés…"
 before="$(git rev-parse HEAD)"
 run git pull --ff-only
