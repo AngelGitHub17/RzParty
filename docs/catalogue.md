@@ -12,7 +12,7 @@ rester **équitable** entre un téléphone et un PC.
 | Idée d'origine | Nom RzParty | Adaptation | État |
 | --- | --- | --- | --- |
 | Board Game Island | **Plateau** | Course au sommet, mini-jeu qui fixe l'ordre, dés bonus, cases spéciales | ✅ |
-| Spin-Off | **Grande Roue** | Roue à médailles, banqueroute, vol, cagnotte remise en jeu par mini-jeu | ✅ |
+| Spin-Off | **Grande Roue** | 500 médailles chacun et pour la banque, roue de 22 cases qui change 3 fois, Bataille / 1 contre tous / Duel / Chance, prolongations | ✅ |
 | Mode Libre / Bataille / Solo | **Mini-jeux au choix** + **Survie** | Le chef coche les mini-jeux (ou un seul) ; Survie en score = bataille ; bots pour jouer seul | ✅ |
 | Bingo | **Loto des copains** | Grille de personnages, tirages, une boule « Mini-jeu » laisse le gagnant cocher | ✅ |
 | Globe Trot | **Tour du monde** | Carte, cartes de déplacement, photos de destinations achetées avec les pièces | 🟡 |
@@ -50,11 +50,11 @@ rester **équitable** entre un téléphone et un PC.
 | 15 | Goal Getters | **Tirs au but** | Jauge de puissance + direction, gardien imprévisible, 5 tirs | ✅ |
 | 36 | Lucky Launch | **Feu d'artifice** | Viser des cibles avec une jauge | 🟡 |
 | 41 | Risky Railroad | **Aiguillages** | Régler 3 aiguillages pour mener le train à la gare demandée | ✅ |
-| 2 | Shifty Gifts | **Tour de cadeaux** | Lâcher les paquets au bon moment pour empiler | 🟡 |
+| 2 | Shifty Gifts | **Tour de cadeaux** | Lâcher le cadeau au-dessus de la pile, ce qui dépasse tombe | ✅ |
 | 9 | Zombie Tag | **Chat contaminé** | Fuir sur une grille (tour par tour rapide) | 🟡 |
 | 13, 21, 25, 33, 37, 40 | Ram Jam, Space Brawl, Ball Brawl, Spotlight Fight, Back Attack, Balloon Buggies | **Arène à bousculade** | Jeu d'arène simplifié en temps réel (plus tard) | 🟡 |
 | 1, 3, 17, 26, 29, 35, 38 | Derby Dash, Chop Chops, Quicker Chipper, Tropical Punch, Hammer Heads, Cry Babies, Chin-Up Champ | — | Reposent sur les secousses de la manette ; remplacés par des jeux de rythme si besoin | ⛔ |
-| 28 | Pearl Plunder | **Chasse aux perles** | Ouvrir les huîtres au bon moment | 🟡 |
+| 28 | Pearl Plunder | **Chasse aux perles** | Huîtres qui s'ouvrent : perle +1, dorée +3, crabe −1, pincé à la fermeture | ✅ |
 
 ## Mini-jeux 1 contre 3 (format « un contre tous »)
 

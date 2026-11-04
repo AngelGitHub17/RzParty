@@ -103,8 +103,8 @@ export abstract class BaseGame implements GameSession {
 
   // ───────────── Manche de mini-jeu ─────────────
 
-  /** Lance un mini-jeu pour ces joueurs. Renvoie false si aucun mini-jeu ne convient. */
-  protected startMiniGame(players: string[], purpose: MiniGamePurpose): boolean {
+  /** Mini-jeux jouables par ces joueurs (en tenant compte du choix du chef). */
+  protected miniGameCandidates(players: string[]): MiniGameServerModule[] {
     const candidates = MINI_GAMES.filter(
       (m) =>
         m.definition.players.min <= players.length &&
@@ -114,8 +114,18 @@ export abstract class BaseGame implements GameSession {
     // Choix du chef (mode « mini-jeux au choix ») : s'il ne reste rien de jouable, on prend tout.
     const chosen = this.host.room.settings.miniGames ?? [];
     const allowed = candidates.filter((m) => chosen.includes(m.definition.id));
-    if (chosen.length && allowed.length) candidates.splice(0, candidates.length, ...allowed);
-    const pool = candidates.length > 1 ? candidates.filter((m) => m.definition.id !== this.lastModuleId) : candidates;
+    if (chosen.length && allowed.length) return allowed;
+    return candidates;
+  }
+
+  /**
+   * Lance un mini-jeu pour ces joueurs (au hasard, ou celui demandé).
+   * Renvoie false si aucun mini-jeu ne convient.
+   */
+  protected startMiniGame(players: string[], purpose: MiniGamePurpose, moduleId?: string): boolean {
+    const candidates = this.miniGameCandidates(players);
+    const forced = moduleId ? candidates.find((m) => m.definition.id === moduleId) : undefined;
+    const pool = forced ? [forced] : candidates.length > 1 ? candidates.filter((m) => m.definition.id !== this.lastModuleId) : candidates;
     if (!pool.length) return false;
     this.module = pool[Math.floor(this.host.random() * pool.length)]!;
     this.lastModuleId = this.module.definition.id;

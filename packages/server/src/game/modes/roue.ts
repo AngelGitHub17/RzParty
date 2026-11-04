@@ -1,45 +1,76 @@
-import { ERRORS, WHEEL_SEGMENTS, WHEEL_START_POT, type GameSnapshot, type RoundResult, type Standing, type WheelTurn } from "@rzparty/shared";
+import {
+  ERRORS, LUCKY_OUTCOMES, WHEEL_BANK_MAX, WHEEL_PHASES, WHEEL_START_BANK, WHEEL_START_MEDALS, wheelPhase,
+  type GameSnapshot, type RoundResult, type Standing, type WheelBattle, type WheelTurn,
+} from "@rzparty/shared";
 import { RoomError } from "../../rooms/RoomManager.ts";
 import { BaseGame } from "../BaseGame.ts";
 import type { GameHost, GameModeModule } from "../types.ts";
 
 export const WHEEL_TIMINGS = {
   /** Annonce du tour. */
-  roundIntro: 2000,
+  roundIntro: 2200,
+  /** Annonce d'une nouvelle roue (le temps de la regarder). */
+  newWheel: 4500,
   /** La roue tourne (le navigateur anime pendant ce temps). */
   spinning: 3800,
+  /** La petite roue « Chance ». */
+  lucky: 3200,
   /** Affichage du résultat. */
-  result: 2400,
-  /** Un humain qui ne lance pas : lancer automatique. */
+  result: 2600,
+  /** Un humain qui ne joue pas : choix automatique. */
   spinTimeout: 20_000,
+  chooseTimeout: 15_000,
   botThink: 1200,
 };
 
+/** Prolongations : au plus autant de tours qu'il y en avait dans la partie (10 au maximum). */
+const MAX_OVERTIME = 10;
+
 /**
- * Mode « Grande Roue » : chacun fait tourner la roue à son tour pour gagner des médailles.
- * Les pertes alimentent une cagnotte ; une case « Mini-jeu » la met en jeu pour tout le monde.
- * Au bout du nombre de tours choisi, le plus riche en médailles gagne.
+ * Mode « Grande Roue » : 10 tours (5 ou 15 au choix), chacun lance la roue à son tour.
+ * Joueurs et banque partent avec 500 médailles. Les cases donnent des médailles, en prennent
+ * (qui vont à la banque), gonflent la banque ou déclenchent un mini-jeu :
+ *   - Bataille : tout le monde joue, le gagnant rafle la banque (partagée en cas d'égalité) ;
+ *   - 1 contre tous : le lanceur seul contre les autres, la banque au vainqueur ou partagée par l'équipe ;
+ *   - Duel : le lanceur défie un joueur ; s'il gagne, il lui prend la moitié de ses médailles ;
+ *   - Chance : une petite roue donne rien, la moitié ou toute la banque.
+ * La roue change trois fois (vers 40 % et 70 % de la partie, puis en prolongations).
+ * Prolongations : la partie se termine après la première « Bataille ».
  */
 export class WheelGame extends BaseGame {
   protected readonly mode = "roue" as const;
   private medals = new Map<string, number>();
-  private pot = WHEEL_START_POT;
+  private bank = WHEEL_START_BANK;
   private order: string[];
   private wheelRound = 0;
+  private overtime = 0;
   private turnIndex = -1;
   private turn: WheelTurn | null = null;
+  private battle: WheelBattle | null = null;
   private spinId = 0;
   private readonly rounds: number;
+  /** Mini-jeu choisi par le dernier, pour la prochaine bataille. */
+  private pickedGame: string | null = null;
+  private finishing = false;
 
   constructor(host: GameHost) {
     super(host);
     this.rounds = host.room.settings.wheel.rounds;
-    for (const p of host.room.players) this.medals.set(p.id, 0);
-    this.order = [...this.medals.keys()].sort(() => host.random() - 0.5);
+    // Ordre de passage : l'ordre des joueurs dans le salon (J1, J2, J3, J4…).
+    for (const p of host.room.players) this.medals.set(p.id, WHEEL_START_MEDALS);
+    this.order = [...this.medals.keys()];
   }
 
   start(): void {
     this.beginRound();
+  }
+
+  private get phase(): number {
+    return wheelPhase(this.wheelRound, this.rounds);
+  }
+
+  private get segments() {
+    return WHEEL_PHASES[this.phase]!;
   }
 
   protected standings(): Standing[] {
@@ -49,13 +80,16 @@ export class WheelGame extends BaseGame {
   protected extraSnapshot(): Partial<GameSnapshot> {
     return {
       wheel: {
-        segments: WHEEL_SEGMENTS,
+        segments: this.segments,
+        phase: this.phase,
         medals: Object.fromEntries(this.medals),
-        pot: this.pot,
+        pot: this.bank,
         order: [...this.order],
-        turn: this.turn ? { ...this.turn } : null,
+        turn: this.turn ? { ...this.turn, options: this.turn.options?.map((o) => ({ ...o })) } : null,
         round: this.wheelRound,
         rounds: this.rounds,
+        overtime: this.overtime,
+        battle: this.battle ? { ...this.battle } : null,
       },
     };
   }
@@ -71,26 +105,54 @@ export class WheelGame extends BaseGame {
     return this.order.filter((id) => this.host.room.findPlayer(id));
   }
 
+  private get(id: string): number {
+    return this.medals.get(id) ?? 0;
+  }
+
+  private add(id: string, n: number): void {
+    this.medals.set(id, Math.max(0, this.get(id) + n));
+  }
+
+  private setBank(n: number): void {
+    this.bank = Math.max(0, Math.min(WHEEL_BANK_MAX, Math.round(n)));
+  }
+
+  private name(id: string): string {
+    return this.host.room.findPlayer(id)?.name ?? "?";
+  }
+
+  // ───────────── Tours ─────────────
+
   private beginRound(): void {
     if (this.disposed) return;
+    const before = this.phase;
     this.wheelRound++;
     if (this.wheelRound > this.rounds) {
-      this.wheelRound = this.rounds;
-      const best = Math.max(...this.players().map((id) => this.medals.get(id) ?? 0));
-      return this.podium(this.players().filter((id) => this.medals.get(id) === best));
+      this.overtime++;
+      // Personne n'est tombé sur une Bataille : on la joue d'office.
+      if (this.overtime > Math.min(MAX_OVERTIME, this.rounds)) {
+        this.overtime--;
+        this.wheelRound--;
+        this.finishing = true;
+        return this.launchBattle("bataille4", this.players()[0]!);
+      }
     }
     this.turnIndex = -1;
     this.turn = null;
+    this.battle = null;
     this.module = null;
     this.participants = [];
-    this.setStage("wheel", WHEEL_TIMINGS.roundIntro);
-    this.goTo(WHEEL_TIMINGS.roundIntro, () => this.nextTurn());
+    const changed = this.phase !== before && this.wheelRound > 1;
+    const wait = changed ? WHEEL_TIMINGS.newWheel : WHEEL_TIMINGS.roundIntro;
+    this.setStage("wheel", wait);
+    this.goTo(wait, () => this.nextTurn());
   }
 
   private nextTurn(): void {
     if (this.disposed) return;
     this.module = null;
     this.participants = [];
+    this.battle = null;
     const players = this.players();
     this.turnIndex++;
     if (this.turnIndex >= players.length) return this.beginRound();
@@ -102,91 +164,229 @@ export class WheelGame extends BaseGame {
   }
 
   action(playerId: string, raw: unknown): void {
-    const action = raw as { type?: unknown } | null;
-    if (this.stage !== "wheel" || !this.turn || this.turn.playerId !== playerId) throw new RoomError(ERRORS.notYourTurn);
-    if (action?.type === "spin" && this.turn.phase === "spin") return this.spin();
-    throw new RoomError(ERRORS.badRequest);
+    const action = raw as { type?: unknown; target?: unknown; game?: unknown } | null;
+    const t = this.turn;
+    if (this.stage !== "wheel" || !t) throw new RoomError(ERRORS.notYourTurn);
+    if (t.phase === "spin" && t.playerId === playerId && action?.type === "spin") return this.spin();
+    if (t.phase === "choose" && t.chooser === playerId && action?.type === "duel" && t.options?.some((o) => o.id === action.target)) {
+      return this.startDuel(action.target as string);
+    }
+    if (t.phase === "pickgame" && t.chooser === playerId && action?.type === "pick" && t.options?.some((o) => o.id === action.game)) {
+      this.pickedGame = action.game as string;
+      return this.launchPicked();
+    }
+    throw new RoomError(t.playerId === playerId || t.chooser === playerId ? ERRORS.badRequest : ERRORS.notYourTurn);
   }
 
   private spin(): void {
     const turn = this.turn;
     if (!turn || turn.phase !== "spin") return;
     turn.phase = "spinning";
-    turn.segment = Math.floor(this.host.random() * WHEEL_SEGMENTS.length);
+    turn.segment = Math.floor(this.host.random() * this.segments.length);
     turn.spinId = ++this.spinId;
     turn.endsAt = null;
     this.host.changed();
     this.goTo(WHEEL_TIMINGS.spinning, () => this.resolve());
   }
 
+  private show(text: string, next: () => void = () => this.nextTurn()): void {
+    const turn = this.turn!;
+    turn.phase = "result";
+    turn.text = text;
+    turn.endsAt = null;
+    this.setStage("wheel", WHEEL_TIMINGS.result);
+    this.goTo(WHEEL_TIMINGS.result, next);
+  }
+
   private resolve(): void {
     const turn = this.turn!;
-    const seg = WHEEL_SEGMENTS[turn.segment!]!;
+    const seg = this.segments[turn.segment!]!;
     const id = turn.playerId;
-    const mine = this.medals.get(id) ?? 0;
     const plural = (n: number) => `${n} médaille${n > 1 ? "s" : ""}`;
-    turn.phase = "result";
     switch (seg.kind) {
-      case "gain":
-        this.medals.set(id, mine + seg.value);
-        turn.text = `gagne ${plural(seg.value)} !`;
-        break;
-      case "double": {
-        const gain = Math.max(10, mine);
-        this.medals.set(id, mine + gain);
-        turn.text = `double la mise : +${plural(gain)} !`;
-        break;
+      case "gain": {
+        // La banque paie ce qu'elle peut.
+        const paid = Math.min(seg.value, this.bank);
+        this.add(id, paid);
+        this.setBank(this.bank - paid);
+        return this.show(paid ? `gagne ${plural(paid)} de la banque !` : "devait gagner des médailles… mais la banque est vide !");
       }
       case "perte": {
-        const lost = Math.min(mine, seg.value);
-        this.medals.set(id, mine - lost);
-        this.pot += lost;
-        turn.text = lost ? `perd ${plural(lost)}, qui partent dans la cagnotte.` : "n'a rien à perdre… ouf !";
-        break;
+        const lost = Math.min(this.get(id), seg.value);
+        this.add(id, -lost);
+        this.setBank(this.bank + lost);
+        return this.show(lost ? `perd ${plural(lost)}, qui partent à la banque.` : "n'a rien à perdre… ouf !");
       }
-      case "banqueroute":
-        this.medals.set(id, 0);
-        this.pot += mine;
-        turn.text = mine ? `fait banqueroute ! ${plural(mine)} partent dans la cagnotte.` : "fait banqueroute… mais n'avait rien !";
-        break;
-      case "vol": {
-        const victims = this.players().filter((p) => p !== id).sort((a, b) => (this.medals.get(b) ?? 0) - (this.medals.get(a) ?? 0));
-        const victim = victims[0];
-        const taken = victim ? Math.min(this.medals.get(victim) ?? 0, seg.value) : 0;
-        if (victim && taken) {
-          this.medals.set(victim, (this.medals.get(victim) ?? 0) - taken);
-          this.medals.set(id, mine + taken);
-          turn.text = `vole ${plural(taken)} à ${this.host.room.findPlayer(victim)?.name ?? "?"} !`;
-        } else turn.text = "veut voler… mais personne n'a de médailles !";
-        break;
+      case "moitie": {
+        const lost = Math.floor(this.get(id) / 2);
+        this.add(id, -lost);
+        this.setBank(this.bank + lost);
+        return this.show(lost ? `perd la moitié de ses médailles : ${plural(lost)} à la banque !` : "n'a plus rien à perdre…");
       }
-      case "minijeu":
-        turn.text = `déclenche un mini-jeu ! La cagnotte de ${plural(this.pot)} est en jeu.`;
-        this.setStage("wheel", WHEEL_TIMINGS.result);
-        this.goTo(WHEEL_TIMINGS.result, () => {
-          if (!this.startMiniGame(this.players(), "cagnotte")) this.nextTurn();
+      case "banque":
+        this.setBank(this.bank + seg.value);
+        return this.show(`ajoute ${plural(seg.value)} à la banque !`);
+      case "multi":
+        this.setBank(this.bank * seg.value);
+        return this.show(`multiplie la banque par ${seg.value} : elle contient ${plural(this.bank)} !`);
+      case "chance": {
+        turn.phase = "lucky";
+        turn.lucky = Math.floor(this.host.random() * LUCKY_OUTCOMES.length);
+        turn.text = null;
+        this.setStage("wheel", WHEEL_TIMINGS.lucky);
+        this.goTo(WHEEL_TIMINGS.lucky, () => {
+          const outcome = LUCKY_OUTCOMES[turn.lucky!]!;
+          const won = Math.floor(this.bank * outcome.share);
+          this.add(id, won);
+          this.setBank(this.bank - won);
+          this.show(won ? `tente sa chance… et remporte ${plural(won)} !` : "tente sa chance… mais ne gagne rien !");
         });
         return;
-      default:
-        turn.text = null;
+      }
+      case "duel":
+        return this.askOpponent(id);
+      case "bataille4":
+      case "bataille13":
+        if (this.wheelRound > this.rounds && seg.kind === "bataille4") this.finishing = true;
+        return this.launchBattle(seg.kind, id);
     }
+  }
+
+  // ───────────── Mini-jeux ─────────────
+
+  /** Duel : le lanceur choisit son adversaire (un bot vise le plus riche). */
+  private askOpponent(id: string): void {
+    const others = this.players().filter((p) => p !== id);
+    if (!others.length) return this.show("voudrait un duel… mais il n'y a personne !");
+    const turn = this.turn!;
+    turn.phase = "choose";
+    turn.chooser = id;
+    turn.options = others.map((o) => ({ id: o, label: `${this.name(o)} (${this.get(o)})` }));
+    turn.text = "défie un joueur en duel ! S'il gagne, il lui prend la moitié de ses médailles.";
+    const bot = this.isBotOrAway(id);
+    turn.endsAt = this.host.now() + (bot ? WHEEL_TIMINGS.botThink * 2 : WHEEL_TIMINGS.chooseTimeout);
+    this.setStage("wheel", null);
+    this.goTo(turn.endsAt - this.host.now(), () => {
+      const richest = [...others].sort((a, b) => this.get(b) - this.get(a))[0]!;
+      this.startDuel(richest);
+    });
+  }
+
+  private startDuel(opponent: string): void {
+    const turn = this.turn!;
+    this.battle = { kind: "duel", solo: turn.playerId, opponent, bank: this.bank };
+    turn.phase = "result";
+    turn.options = undefined;
+    turn.text = `défie ${this.name(opponent)} en duel !`;
     this.setStage("wheel", WHEEL_TIMINGS.result);
-    this.goTo(WHEEL_TIMINGS.result, () => this.nextTurn());
+    this.goTo(WHEEL_TIMINGS.result, () => {
+      if (!this.startMiniGame([turn.playerId, opponent], "duelroue")) this.nextTurn();
+    });
+  }
+
+  /**
+   * Bataille (tout le monde) ou 1 contre tous. À partir de la fin de partie, le dernier au
+   * classement choisit le mini-jeu des batailles parmi trois.
+   */
+  private launchBattle(kind: "bataille4" | "bataille13", spinner: string): void {
+    const players = this.players();
+    this.battle = { kind, solo: kind === "bataille13" ? spinner : undefined, bank: this.bank };
+    if (!this.turn) this.turn = { playerId: spinner, phase: "result", segment: null, spinId: this.spinId, text: null, endsAt: null };
+    const turn = this.turn;
+    const plural = `${this.bank} médaille${this.bank > 1 ? "s" : ""}`;
+    turn.text =
+      kind === "bataille13"
+        ? `joue seul contre tous ! La banque (${plural}) est en jeu.`
+        : this.finishing
+          ? `déclenche la Bataille finale ! La banque (${plural}) est en jeu.`
+          : `déclenche une Bataille ! La banque (${plural}) est en jeu.`;
+    this.pickedGame = null;
+    if (kind === "bataille4" && this.phase >= 2 && players.length > 2) {
+      const last = [...players].sort((a, b) => this.get(a) - this.get(b))[0]!;
+      const pool = this.miniGameCandidates(players);
+      const options = [...pool].sort(() => this.host.random() - 0.5).slice(0, 3);
+      if (options.length > 1) {
+        turn.phase = "pickgame";
+        turn.chooser = last;
+        turn.options = options.map((m) => ({ id: m.definition.id, label: m.definition.name }));
+        const bot = this.isBotOrAway(last);
+        turn.endsAt = this.host.now() + (bot ? WHEEL_TIMINGS.botThink * 2 : WHEEL_TIMINGS.chooseTimeout);
+        this.setStage("wheel", null);
+        this.goTo(turn.endsAt - this.host.now(), () => {
+          this.pickedGame = options[Math.floor(this.host.random() * options.length)]!.definition.id;
+          this.launchPicked();
+        });
+        return;
+      }
+    }
+    turn.phase = "result";
+    this.setStage("wheel", WHEEL_TIMINGS.result);
+    this.goTo(WHEEL_TIMINGS.result, () => this.launchPicked());
+  }
+
+  private launchPicked(): void {
+    const turn = this.turn;
+    if (turn) {
+      turn.phase = "result";
+      turn.options = undefined;
+      turn.endsAt = null;
+    }
+    const game = this.pickedGame ?? undefined;
+    if (!this.startMiniGame(this.players(), "cagnotte", game)) {
+      this.battle = null;
+      if (this.finishing) return this.end();
+      this.nextTurn();
+    }
   }
 
   protected onMiniGameDone(ranking: string[][]): void {
-    // Le (ou les) gagnant(s) du mini-jeu se partagent la cagnotte.
-    const winners = ranking[0] ?? [];
-    const share = winners.length ? Math.floor(this.pot / winners.length) : 0;
-    const changes: RoundResult["changes"] = winners.map((id) => {
-      this.medals.set(id, (this.medals.get(id) ?? 0) + share);
-      return { playerId: id, points: share };
-    });
-    this.pot = WHEEL_START_POT;
+    const battle = this.battle;
+    const changes: RoundResult["changes"] = [];
+    const pay = (ids: string[], total: number) => {
+      const share = ids.length ? Math.floor(total / ids.length) : 0;
+      for (const id of ids) {
+        this.add(id, share);
+        changes.push({ playerId: id, points: share });
+      }
+      this.setBank(this.bank - share * ids.length);
+    };
+    const place = new Map<string, number>();
+    ranking.forEach((group, i) => group.forEach((id) => place.set(id, i)));
+
+    if (battle?.kind === "duel" && battle.solo && battle.opponent) {
+      // Le lanceur gagne seul : il prend la moitié des médailles de l'adversaire.
+      if ((place.get(battle.solo) ?? 9) < (place.get(battle.opponent) ?? 9)) {
+        const taken = Math.floor(this.get(battle.opponent) / 2);
+        this.add(battle.opponent, -taken);
+        this.add(battle.solo, taken);
+        changes.push({ playerId: battle.solo, points: taken }, { playerId: battle.opponent, points: -taken });
+      }
+    } else if (battle?.kind === "bataille13" && battle.solo) {
+      // Le joueur seul contre la place moyenne de l'équipe.
+      const team = [...place.keys()].filter((id) => id !== battle.solo);
+      const mean = team.reduce((s, id) => s + place.get(id)!, 0) / Math.max(1, team.length);
+      const solo = place.get(battle.solo) ?? 9;
+      if (solo < mean) pay([battle.solo], this.bank);
+      else if (solo > mean) pay(team, this.bank);
+    } else {
+      // Bataille : le (ou les) gagnant(s) se partagent la banque ; égalité générale = rien.
+      const winners = ranking[0] ?? [];
+      if (winners.length && winners.length < this.players().length) pay(winners, this.bank);
+    }
     this.showResults(ranking, changes, () => {
+      this.battle = null;
+      if (this.finishing) return this.end();
       this.turn = null;
       this.nextTurn();
     });
+  }
+
+  private end(): void {
+    const players = this.players();
+    const best = Math.max(...players.map((id) => this.get(id)));
+    this.battle = null;
+    this.turn = null;
+    this.podium(players.filter((id) => this.get(id) === best));
   }
 }
 

@@ -24,7 +24,7 @@ export const GAME_MODES: Record<GameModeId, { label: string; description: string
   },
   roue: {
     label: "Grande Roue",
-    description: "Chacun fait tourner la roue pour gagner des médailles. Gare à la banqueroute ! Les cases Mini-jeu mettent la cagnotte en jeu.",
+    description: "Joueurs et banque partent avec 500 médailles. La roue donne ou prend des médailles, gonfle la banque, ou lance une Bataille, un 1 contre tous ou un Duel. Elle change trois fois, et les prolongations durent jusqu'à la Bataille finale !",
   },
 };
 

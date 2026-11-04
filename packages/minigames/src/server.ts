@@ -31,6 +31,8 @@ import ressort from "./ressort/server.ts";
 import puzzle from "./puzzle/server.ts";
 import haies from "./haies/server.ts";
 import aiguillages from "./aiguillages/server.ts";
+import perles from "./perles/server.ts";
+import cadeaux from "./cadeaux/server.ts";
 
 export const MINI_GAMES: MiniGameServerModule[] = [
   reflexes as MiniGameServerModule,
@@ -61,6 +63,8 @@ export const MINI_GAMES: MiniGameServerModule[] = [
   puzzle as MiniGameServerModule,
   haies as MiniGameServerModule,
   aiguillages as MiniGameServerModule,
+  perles as MiniGameServerModule,
+  cadeaux as MiniGameServerModule,
 ];
 
 export function getMiniGame(id: string): MiniGameServerModule | undefined {

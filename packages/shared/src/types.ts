@@ -71,7 +71,7 @@ export type RoomPhase = "salon" | "partie";
 export type GameStage = "intro" | "countdown" | "play" | "results" | "board" | "wheel" | "loto" | "quiz" | "mots" | "podium";
 
 /** Pourquoi on joue ce mini-jeu : départager l'ordre de jeu, gagner des pièces, survivre. */
-export type MiniGamePurpose = "survie" | "ordre" | "pieces" | "duel" | "cagnotte" | "loto";
+export type MiniGamePurpose = "survie" | "ordre" | "pieces" | "duel" | "cagnotte" | "loto" | "duelroue";
 
 /** Fiche publique d'un mini-jeu (affichée avant la manche). */
 export interface MiniGameInfo {

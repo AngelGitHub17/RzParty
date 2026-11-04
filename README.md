@@ -110,10 +110,20 @@ gagne), dés bonus, doubles et variété des cases.
 
 ### Mode Grande Roue
 
-Chacun à son tour fait tourner la roue (3, 5 ou 8 tours) : médailles à gagner, ×2, vol au
-premier, perte et **banqueroute** (les médailles perdues remplissent la cagnotte). Une case
-« Mini-jeu » lance un mini-jeu pour tous : le gagnant rafle la cagnotte. À la fin, le plus riche
-en médailles gagne.
+Fidèle au principe du mode « Spin-Off » : tout le monde **et la banque** part avec 500 médailles.
+Chacun lance la roue à son tour, pendant 10 tours (5 ou 15 au choix). La roue a 22 cases :
+
+- **+300** (payées par la banque), **−300** et **½** (la moitié de tes médailles part à la banque) ;
+- **Banque +500 / +600 / +800**, **Banque ×2 / ×3** : la banque grossit ;
+- **Bataille** : mini-jeu à tous, le gagnant rafle la banque (partagée en cas d'égalité, rien si tout le monde est à égalité) ;
+- **1 contre tous** : le lanceur seul contre les autres ; s'il fait mieux que la place moyenne de l'équipe il prend la banque, sinon l'équipe se la partage ;
+- **Duel** : le lanceur choisit un adversaire ; s'il gagne le mini-jeu, il lui prend la moitié de ses médailles ;
+- **Chance** : une petite roue donne rien, la moitié ou toute la banque.
+
+La roue **change trois fois** : au début beaucoup de cases Banque, puis arrivent ½, Chance, Duel
+et 1 contre tous, et en fin de partie le dernier au classement choisit le mini-jeu des Batailles
+parmi trois. Après le dernier tour viennent les **prolongations** : la partie se termine après la
+première Bataille (jouée d'office au bout de 10 tours de prolongation). Le plus riche gagne.
 
 ### Loto des copains
 
@@ -146,7 +156,7 @@ sur « Je suis prêt ».
 - **Vies** (3, 5 ou 7) : le ou les derniers de chaque manche perdent une vie. Le dernier survivant gagne.
 - **Score** (5, 10 ou 15 points) : 3 points pour le premier, 1 pour le deuxième. Le premier au score gagne.
 
-Mini-jeux disponibles : **Dégaine !** (réflexes), **Calcul express** (calcul mental), **Mémo-flash** (mémoire : couleurs, formes, chiffres ou objet disparu, une variante par niveau), **Piratage** (code secret à deviner avec des indices), **Labyrinthe** (le même labyrinthe pour tous, premier sorti), **Patate explosive** (une bombe à se passer en tapant un mot avant qu'elle n'explose), **Tape-taupe** (les mêmes taupes pour tous, tape-les vite), **Couleurs piégées** (toucher la couleur de l'encre, pas du mot), **Coup d'œil** (compter des formes vues quelques secondes), **Tri éclair** (toucher les nombres dans l'ordre croissant), **Escalier secret** (1, 2 ou 3 marches en secret, même choix = bloqués), **Chrono à l'aveugle** (arrêter un chrono invisible pile au bon temps), **Va-et-vient** (compter qui entre et sort de la maison), **Ruée vers l'Ouest** (bandits oui, habitants non), **Paires de fruits** (memory), **Où est-il ?** (retrouver un personnage parmi ses sosies), **Grand tremplin** (sauter au dernier moment), **Liane folle** (lâcher la liane au bon moment), **Pas comptés** (compter ses pas de tête), **Photo souvenir** (déclencher au plus grand sourire), **Zappeur fou** (appuyer sur la bonne chaîne), **Tirs au but** (jauge de puissance et direction), **Alunissage** (freiner pour se poser en douceur), **Ballons volants** (éclater la bonne couleur), **Ressort** (sauter au sommet, l'élan grandit), **Puzzle express** (compléter l'image), **Course de haies** (sauter au bon moment), **Aiguillages** (mener le train à la bonne gare).
+Mini-jeux disponibles : **Dégaine !** (réflexes), **Calcul express** (calcul mental), **Mémo-flash** (mémoire : couleurs, formes, chiffres ou objet disparu, une variante par niveau), **Piratage** (code secret à deviner avec des indices), **Labyrinthe** (le même labyrinthe pour tous, premier sorti), **Patate explosive** (une bombe à se passer en tapant un mot avant qu'elle n'explose), **Tape-taupe** (les mêmes taupes pour tous, tape-les vite), **Couleurs piégées** (toucher la couleur de l'encre, pas du mot), **Coup d'œil** (compter des formes vues quelques secondes), **Tri éclair** (toucher les nombres dans l'ordre croissant), **Escalier secret** (1, 2 ou 3 marches en secret, même choix = bloqués), **Chrono à l'aveugle** (arrêter un chrono invisible pile au bon temps), **Va-et-vient** (compter qui entre et sort de la maison), **Ruée vers l'Ouest** (bandits oui, habitants non), **Paires de fruits** (memory), **Où est-il ?** (retrouver un personnage parmi ses sosies), **Grand tremplin** (sauter au dernier moment), **Liane folle** (lâcher la liane au bon moment), **Pas comptés** (compter ses pas de tête), **Photo souvenir** (déclencher au plus grand sourire), **Zappeur fou** (appuyer sur la bonne chaîne), **Tirs au but** (jauge de puissance et direction), **Alunissage** (freiner pour se poser en douceur), **Ballons volants** (éclater la bonne couleur), **Ressort** (sauter au sommet, l'élan grandit), **Puzzle express** (compléter l'image), **Course de haies** (sauter au bon moment), **Aiguillages** (mener le train à la bonne gare), **Chasse aux perles** (attraper la perle avant que l'huître se referme), **Tour de cadeaux** (empiler les cadeaux au millimètre).
 
 Le fichier [docs/catalogue.md](docs/catalogue.md) liste toutes les idées de mini-jeux et de modes
 reprises de Wii Party, avec leur nom RzParty, leur adaptation aux boutons et leur état.

@@ -1,0 +1,36 @@
+/* « Tour de cadeaux » */
+.gift__grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+}
+.gift__col {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  justify-items: center;
+}
+.gift__tower {
+  display: block;
+  height: min(220px, 30vh);
+  width: auto;
+  aspect-ratio: 100 / 220;
+  border-radius: var(--radius-m);
+  box-shadow: 0 4px 0 #1e2a4a1a;
+}
+.gift__col.is-me .gift__tower {
+  height: min(340px, 46vh);
+  outline: 4px solid var(--sun);
+}
+.gift--pad .gift__col.is-me .gift__tower {
+  height: min(440px, 54vh);
+}
+.gift__col figcaption {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}

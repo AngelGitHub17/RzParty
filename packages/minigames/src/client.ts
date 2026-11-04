@@ -33,6 +33,8 @@ import { ressortView } from "./ressort/view.ts";
 import { puzzleView } from "./puzzle/view.ts";
 import { haiesView } from "./haies/view.ts";
 import { aiguillagesView } from "./aiguillages/view.ts";
+import { perlesView } from "./perles/view.ts";
+import { cadeauxView } from "./cadeaux/view.ts";
 
 import type { Avatar } from "@rzparty/shared";
 
@@ -97,4 +99,6 @@ export const MINI_GAME_VIEWS: Record<string, MiniGameViewFactory> = {
   puzzle: puzzleView,
   haies: haiesView,
   aiguillages: aiguillagesView,
+  perles: perlesView,
+  cadeaux: cadeauxView,
 };

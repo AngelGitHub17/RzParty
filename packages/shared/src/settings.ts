@@ -11,7 +11,7 @@ export function defaultSettings(): RoomSettings {
     mode: "survie",
     botDifficulty: "moyen",
     teams: 0,
-    wheel: { rounds: 5 },
+    wheel: { rounds: 10 },
     quiz: { rounds: 8 },
     mots: { bombs: 5 },
     miniGames: [],

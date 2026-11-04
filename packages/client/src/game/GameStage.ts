@@ -219,7 +219,11 @@ export class GameStage {
               : game.purpose === "loto"
                 ? `Boule Mini-jeu ! Le gagnant coche la case de son choix · ${CATEGORY_LABELS[mg.category] ?? mg.category}`
                 : game.purpose === "cagnotte"
-                ? `La cagnotte de ${game.wheel?.pot ?? 0} médailles est en jeu ! · ${CATEGORY_LABELS[mg.category] ?? mg.category}`
+                ? game.wheel?.battle?.kind === "bataille13"
+                  ? `${room.players.find((p) => p.id === game.wheel?.battle?.solo)?.name ?? "?"} seul contre tous ! La banque de ${game.wheel?.pot ?? 0} médailles est en jeu · ${CATEGORY_LABELS[mg.category] ?? mg.category}`
+                  : `Bataille ! Le gagnant rafle la banque de ${game.wheel?.pot ?? 0} médailles · ${CATEGORY_LABELS[mg.category] ?? mg.category}`
+                : game.purpose === "duelroue"
+                ? `Duel ! ${game.participants.map((id) => room.players.find((p) => p.id === id)?.name ?? "?").join(" contre ")} : si ${room.players.find((p) => p.id === game.wheel?.battle?.solo)?.name ?? "le lanceur"} gagne, il prend la moitié des médailles de l'autre · ${CATEGORY_LABELS[mg.category] ?? mg.category}`
                 : game.purpose === "duel"
                 ? `Duel ! ${game.participants.map((id) => room.players.find((p) => p.id === id)?.name ?? "?").join(" contre ")} · ${CATEGORY_LABELS[mg.category] ?? mg.category}`
                 : game.purpose === "pieces"
@@ -334,9 +338,9 @@ export class GameStage {
               ? change?.points
                 ? "coche une case !"
                 : ""
-              : game.purpose === "cagnotte"
+              : game.purpose === "cagnotte" || game.purpose === "duelroue"
               ? change?.points
-                ? `+${change.points} médailles`
+                ? `${change.points > 0 ? "+" : "−"}${Math.abs(change.points)} médaille${Math.abs(change.points) > 1 ? "s" : ""}`
                 : ""
               : game.purpose === "duel"
               ? change?.points

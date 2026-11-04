@@ -3,6 +3,13 @@
 Chaque version commence par « ## numéro — date ». La page de présentation et les serveurs
 locaux lisent ce fichier : pense à augmenter la version dans package.json à chaque publication.
 
+## 0.5.0 — 4 novembre 2026
+- Grande Roue refaite comme le mode d'origine : 500 médailles pour chacun et pour la banque, roue de 22 cases, 10 tours.
+- Nouvelles cases : +300, −300, ½, Banque +500/+600/+800, Banque ×2/×3, Bataille, 1 contre tous, Duel et Chance (petite roue).
+- La roue change trois fois au cours de la partie ; en fin de partie, le dernier choisit le mini-jeu des Batailles.
+- Prolongations : la partie se termine sur la première Bataille.
+- 2 nouveaux mini-jeux, 30 en tout : Chasse aux perles et Tour de cadeaux.
+
 ## 0.4.0 — 4 novembre 2026
 - 4 nouveaux mini-jeux, 28 en tout.
 - Ressort : la jauge rebondit de plus en plus vite et l'élan grandit ; saute au sommet, mais attendre est risqué.

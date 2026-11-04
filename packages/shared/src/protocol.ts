@@ -27,7 +27,8 @@ export type BoardAction =
   | { type: "mark"; cell: number }
   | { type: "answer"; option: number }
   | { type: "word"; word: string | null }
-  | { type: "vote"; ok: boolean };
+  | { type: "vote"; ok: boolean }
+  | { type: "pick"; game: string };
 
 /** Qui rejoint : un profil (par son jeton) ou un invité (par un pseudo). */
 export interface JoinIdentity {

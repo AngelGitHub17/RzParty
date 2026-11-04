@@ -31,7 +31,9 @@ import { definition as ressort } from "./ressort/definition.ts";
 import { definition as puzzle } from "./puzzle/definition.ts";
 import { definition as haies } from "./haies/definition.ts";
 import { definition as aiguillages } from "./aiguillages/definition.ts";
+import { definition as perles } from "./perles/definition.ts";
+import { definition as cadeaux } from "./cadeaux/definition.ts";
 
-export const MINI_GAME_DEFINITIONS: MiniGameDefinition[] = [reflexes, calcul, memoire, piratage, labyrinthe, bombe, taupes, stroop, coupdoeil, tri, escalier, chrono, vaetvient, bandits, paires, visage, tremplin, liane, pas, photo, zappeur, penalty, alunissage, ballons, ressort, puzzle, haies, aiguillages];
+export const MINI_GAME_DEFINITIONS: MiniGameDefinition[] = [reflexes, calcul, memoire, piratage, labyrinthe, bombe, taupes, stroop, coupdoeil, tri, escalier, chrono, vaetvient, bandits, paires, visage, tremplin, liane, pas, photo, zappeur, penalty, alunissage, ballons, ressort, puzzle, haies, aiguillages, perles, cadeaux];
 
 export type { MiniGameDefinition, MiniGameRecord } from "./contract.ts";
