@@ -8,7 +8,7 @@ set -euo pipefail
 
 CTID="${CTID:-$(pvesh get /cluster/nextid)}"
 CT_HOSTNAME="${CT_HOSTNAME:-rzparty}"
-CT_STORAGE="${CT_STORAGE:-local-lvm}"
+CT_STORAGE="${CT_STORAGE:-}"
 CT_BRIDGE="${CT_BRIDGE:-vmbr0}"
 CT_IP="${CT_IP:-dhcp}"
 CT_GW="${CT_GW:-}"
@@ -19,6 +19,19 @@ RZ_REPO="${RZ_REPO:-https://github.com/AngelGitHub17/RzParty.git}"
 RZ_BRANCH="${RZ_BRANCH:-main}"
 
 command -v pct >/dev/null || { echo "Ce script se lance sur l'hôte Proxmox (commande pct introuvable)."; exit 1; }
+
+# Stockage du disque : celui demandé, sinon local-lvm, sinon le premier qui accepte les conteneurs.
+if [ -z "$CT_STORAGE" ]; then
+  STORAGES="$(pvesm status --content rootdir 2>/dev/null | awk 'NR>1 && $3=="active" {print $1}')"
+  if echo "$STORAGES" | grep -qx "local-lvm"; then CT_STORAGE="local-lvm"; else CT_STORAGE="$(echo "$STORAGES" | head -n1)"; fi
+fi
+if [ -z "$CT_STORAGE" ] || ! pvesm status --content rootdir 2>/dev/null | awk 'NR>1 {print $1}' | grep -qx "$CT_STORAGE"; then
+  echo "Stockage « ${CT_STORAGE:-aucun} » introuvable pour un conteneur. Stockages possibles :"
+  pvesm status --content rootdir
+  echo "Relance avec CT_STORAGE=<nom>."
+  exit 1
+fi
+echo "==> Disque du conteneur sur le stockage « $CT_STORAGE »."
 
 echo "==> Recherche du modèle Debian 12…"
 pveam update >/dev/null

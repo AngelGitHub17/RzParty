@@ -24,7 +24,7 @@ RZ_PUBLIC_URL=https://rzparty.fr CT_IP=192.168.1.50/24 CT_GW=192.168.1.254 bash 
 ```
 
 - `CT_IP` / `CT_GW` : une IP fixe est conseillée (sinon `dhcp`). Adapte-les à ton réseau.
-- Autres réglages possibles : `CTID`, `CT_STORAGE` (défaut `local-lvm`), `CT_MEMORY` (1024 Mo), `CT_CORES` (2), `CT_DISK` (8 Go).
+- Autres réglages possibles : `CTID`, `CT_STORAGE` (par défaut `local-lvm`, sinon le premier stockage qui accepte les conteneurs), `CT_MEMORY` (1024 Mo), `CT_CORES` (2), `CT_DISK` (8 Go).
 
 À la fin, le jeu répond sur `http://192.168.1.50:5555` depuis le réseau local.
 
