@@ -50,8 +50,15 @@ Journal : `journalctl -u rzparty -f`.
 
 ## 3. Le nom de domaine rzparty.fr
 
-1. **DNS** (chez le registraire, par ex. OVH) : un enregistrement `A` pour `rzparty.fr` (et `www`)
-   vers l'IP publique de la Freebox. Si cette IP change, utilise un DynHost OVH.
+1. **DNS chez OVH** (*Web Cloud → Noms de domaine → rzparty.fr → Zone DNS*) :
+   - modifie les enregistrements `A` de `rzparty.fr` et `www.rzparty.fr` : cible = IP publique de la Freebox ;
+   - **supprime** les enregistrements `AAAA` qui pointent vers l'hébergement mutualisé
+     (sinon les appareils en IPv6, souvent les téléphones en 4G, arrivent encore chez OVH) ;
+   - dans *Hébergements → Multisite*, retire `rzparty.fr` / `www.rzparty.fr` s'ils y sont attachés
+     (OVH remettrait sinon ses propres enregistrements) ;
+   - la propagation prend de quelques minutes à quelques heures ; vérifie avec `nslookup rzparty.fr`.
+   Garder le site sur le mutualisé ? Utilise un sous-domaine (`jeu.rzparty.fr` → Freebox) et
+   `RZ_PUBLIC_URL=https://jeu.rzparty.fr`.
 2. **Un proxy HTTPS** devant le jeu :
 
 ### a) NGINX (ton NGINX existant)
