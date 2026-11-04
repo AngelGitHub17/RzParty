@@ -27,7 +27,11 @@ import { definition as zappeur } from "./zappeur/definition.ts";
 import { definition as penalty } from "./penalty/definition.ts";
 import { definition as alunissage } from "./alunissage/definition.ts";
 import { definition as ballons } from "./ballons/definition.ts";
+import { definition as ressort } from "./ressort/definition.ts";
+import { definition as puzzle } from "./puzzle/definition.ts";
+import { definition as haies } from "./haies/definition.ts";
+import { definition as aiguillages } from "./aiguillages/definition.ts";
 
-export const MINI_GAME_DEFINITIONS: MiniGameDefinition[] = [reflexes, calcul, memoire, piratage, labyrinthe, bombe, taupes, stroop, coupdoeil, tri, escalier, chrono, vaetvient, bandits, paires, visage, tremplin, liane, pas, photo, zappeur, penalty, alunissage, ballons];
+export const MINI_GAME_DEFINITIONS: MiniGameDefinition[] = [reflexes, calcul, memoire, piratage, labyrinthe, bombe, taupes, stroop, coupdoeil, tri, escalier, chrono, vaetvient, bandits, paires, visage, tremplin, liane, pas, photo, zappeur, penalty, alunissage, ballons, ressort, puzzle, haies, aiguillages];
 
 export type { MiniGameDefinition, MiniGameRecord } from "./contract.ts";

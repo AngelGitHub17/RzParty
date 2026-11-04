@@ -29,6 +29,10 @@ import { zappeurView } from "./zappeur/view.ts";
 import { penaltyView } from "./penalty/view.ts";
 import { alunissageView } from "./alunissage/view.ts";
 import { ballonsView } from "./ballons/view.ts";
+import { ressortView } from "./ressort/view.ts";
+import { puzzleView } from "./puzzle/view.ts";
+import { haiesView } from "./haies/view.ts";
+import { aiguillagesView } from "./aiguillages/view.ts";
 
 import type { Avatar } from "@rzparty/shared";
 
@@ -89,4 +93,8 @@ export const MINI_GAME_VIEWS: Record<string, MiniGameViewFactory> = {
   penalty: penaltyView,
   alunissage: alunissageView,
   ballons: ballonsView,
+  ressort: ressortView,
+  puzzle: puzzleView,
+  haies: haiesView,
+  aiguillages: aiguillagesView,
 };

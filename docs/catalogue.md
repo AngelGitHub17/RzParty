@@ -41,15 +41,15 @@ rester **équitable** entre un téléphone et un PC.
 | 31 | Rope Sling | **Liane folle** | Lâcher la liane au bon angle | ✅ |
 | 39 | Walk-Off | **Pas comptés** | Compter les pas de tête et s'arrêter pile | ✅ |
 | 11 | Smile Snap | **Photo souvenir** | Déclencher la photo au plus beau sourire | ✅ |
-| 7 | Puzzle Pick-Up | **Puzzle express** | Associer les deux moitiés d'images | 🟡 |
+| 7 | Puzzle Pick-Up | **Puzzle express** | Choisir la moitié droite qui complète l'image, erreur = main bloquée | ✅ |
 | 23 | Friendly Face-Off | **Portrait robot** | Recomposer un visage pièce par pièce | 🟡 |
 | 12, 24, 30 | Dicey Descent, Barrel Daredevil, Cosmic Capers | **Descente infernale** | Esquiver des obstacles à gauche/droite | 🟡 |
-| 6 | Hurdle Hover | **Course de haies** | Sauter au bon moment | 🟡 |
+| 6 | Hurdle Hover | **Course de haies** | Coureur automatique, sauter chaque haie (physique rejouée par le serveur) | ✅ |
 | 8 | Lunar Landers | **Alunissage** | Maintenir pour freiner et se poser en douceur, 2 essais | ✅ |
 | 14, 20 | Feathered Frenzy, Chopper Hoppers | **Pluie de plumes** | Déplacer son panier pour attraper | 🟡 |
 | 15 | Goal Getters | **Tirs au but** | Jauge de puissance + direction, gardien imprévisible, 5 tirs | ✅ |
 | 36 | Lucky Launch | **Feu d'artifice** | Viser des cibles avec une jauge | 🟡 |
-| 41 | Risky Railroad | **Aiguillages** | Choisir la bonne voie avant chaque bifurcation | 🟡 |
+| 41 | Risky Railroad | **Aiguillages** | Régler 3 aiguillages pour mener le train à la gare demandée | ✅ |
 | 2 | Shifty Gifts | **Tour de cadeaux** | Lâcher les paquets au bon moment pour empiler | 🟡 |
 | 9 | Zombie Tag | **Chat contaminé** | Fuir sur une grille (tour par tour rapide) | 🟡 |
 | 13, 21, 25, 33, 37, 40 | Ram Jam, Space Brawl, Ball Brawl, Spotlight Fight, Back Attack, Balloon Buggies | **Arène à bousculade** | Jeu d'arène simplifié en temps réel (plus tard) | 🟡 |
@@ -74,7 +74,7 @@ rester **équitable** entre un téléphone et un PC.
 | 57 | Fruit Focus | **Paires de fruits** | Memory | ✅ |
 | 51 | Channel Changers | **Zappeur fou** | Appuyer dès que la chaîne demandée apparaît, mauvaise chaîne = bloqué | ✅ |
 | 56 | Roll to the Goal | **Bille en boîte** | Labyrinthe à bille aux flèches | 🟡 |
-| 52 | Spring Time | **Ressort** | Sauter au sommet de la jauge | 🟡 |
+| 52 | Spring Time | **Ressort** | Jauge qui accélère, élan croissant : risque contre récompense | ✅ |
 | 54 | Poppin' Pilots | **Ballons volants** | Éclater les ballons de la couleur demandée (doré = 3) | ✅ |
 | 48, 49, 50 | Timber Topple, Delivery Duel, Shepherd Scramble | — | À repenser pour des boutons | 🟡 |
 

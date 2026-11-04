@@ -1,0 +1,18 @@
+/* « Course de haies » */
+.hai__close,
+.hai__lanes {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.hai__meters {
+  font: 800 22px var(--font);
+  fill: var(--ink);
+}
+.hai__lanes-box {
+  padding: 4px;
+  background: #7ed957;
+}
+.hai--solo .hai__lanes-box {
+  width: min(680px, 96vw);
+}

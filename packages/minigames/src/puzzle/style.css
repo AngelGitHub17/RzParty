@@ -1,0 +1,91 @@
+/* « Puzzle express » */
+.pz__board {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 14px;
+  border-radius: var(--radius-l);
+  background: var(--paper);
+  box-shadow: 0 6px 0 #1e2a4a1a;
+}
+.pz__board.is-locked {
+  opacity: 0.45;
+  filter: grayscale(0.6);
+}
+.pz__board.is-ok {
+  animation: pz-ok 300ms ease;
+}
+.pz__board.is-ko {
+  animation: pz-ko 300ms ease;
+}
+@keyframes pz-ok {
+  50% {
+    box-shadow: 0 0 0 6px var(--go);
+  }
+}
+@keyframes pz-ko {
+  25% {
+    transform: translateX(-6px);
+  }
+  75% {
+    transform: translateX(6px);
+  }
+}
+.pz__left {
+  position: relative;
+  display: flex;
+}
+.pz__half {
+  display: block;
+  width: 90px;
+  height: 180px;
+}
+.pz__half--left {
+  border-radius: 14px 0 0 14px;
+  border: 3px solid var(--line);
+  border-right: 0;
+}
+.pz__cut {
+  width: 4px;
+  background: repeating-linear-gradient(180deg, var(--ink) 0 8px, transparent 8px 14px);
+}
+.pz__choices {
+  display: grid;
+  grid-template-columns: repeat(4, auto);
+  gap: 10px;
+}
+.pz__choice {
+  position: relative;
+  padding: 0;
+  border: 3px solid var(--line);
+  border-left: 0;
+  border-radius: 0 14px 14px 0;
+  background: none;
+  cursor: pointer;
+  box-shadow: 0 4px 0 var(--line);
+  touch-action: manipulation;
+}
+.pz__choice:active {
+  transform: translateY(3px);
+}
+.pz__key {
+  position: absolute;
+  right: 4px;
+  bottom: 2px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+.pz--pad .pz__half {
+  width: 74px;
+  height: 148px;
+}
+.pz--pad .pz__choices {
+  grid-template-columns: repeat(2, auto);
+}
+.pz__help {
+  font-size: 1.2rem;
+  color: var(--ink-soft);
+}

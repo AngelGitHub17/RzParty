@@ -1,0 +1,28 @@
+/* « Aiguillages » */
+.rail__map {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.rail__target circle {
+  animation: rail-pulse 900ms ease-in-out infinite alternate;
+}
+@keyframes rail-pulse {
+  to {
+    stroke-width: 7;
+  }
+}
+.rail__pad {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: min(440px, 94vw);
+}
+.rail__tools {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.rail__status {
+  font-weight: 700;
+}

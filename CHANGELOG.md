@@ -3,6 +3,13 @@
 Chaque version commence par « ## numéro — date ». La page de présentation et les serveurs
 locaux lisent ce fichier : pense à augmenter la version dans package.json à chaque publication.
 
+## 0.4.0 — 4 novembre 2026
+- 4 nouveaux mini-jeux, 28 en tout.
+- Ressort : la jauge rebondit de plus en plus vite et l'élan grandit ; saute au sommet, mais attendre est risqué.
+- Puzzle express : retrouve la moitié droite qui complète l'image, une erreur bloque ta main un instant.
+- Course de haies : saute chaque haie au bon moment, une haie renversée te coupe dans ton élan.
+- Aiguillages : suis les rails des yeux et règle les 3 aiguillages pour mener le train à la bonne gare.
+
 ## 0.3.1 — 4 novembre 2026
 - Serveur sur Proxmox : il installe tout seul les nouvelles versions publiées (vérification chaque heure), jamais pendant une partie en cours.
 - Les mises à jour de sécurité de Debian et de Node.js s'installent aussi automatiquement dans le conteneur.

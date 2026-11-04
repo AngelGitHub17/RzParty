@@ -27,6 +27,10 @@ import zappeur from "./zappeur/server.ts";
 import penalty from "./penalty/server.ts";
 import alunissage from "./alunissage/server.ts";
 import ballons from "./ballons/server.ts";
+import ressort from "./ressort/server.ts";
+import puzzle from "./puzzle/server.ts";
+import haies from "./haies/server.ts";
+import aiguillages from "./aiguillages/server.ts";
 
 export const MINI_GAMES: MiniGameServerModule[] = [
   reflexes as MiniGameServerModule,
@@ -53,6 +57,10 @@ export const MINI_GAMES: MiniGameServerModule[] = [
   penalty as MiniGameServerModule,
   alunissage as MiniGameServerModule,
   ballons as MiniGameServerModule,
+  ressort as MiniGameServerModule,
+  puzzle as MiniGameServerModule,
+  haies as MiniGameServerModule,
+  aiguillages as MiniGameServerModule,
 ];
 
 export function getMiniGame(id: string): MiniGameServerModule | undefined {
