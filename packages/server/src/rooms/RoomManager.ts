@@ -83,6 +83,18 @@ export class RoomManager {
     return this.rooms.size;
   }
 
+  /** Parties en cours avec au moins un joueur humain connecté (la mise à jour automatique attend qu'il n'y en ait plus). */
+  activity(): { rooms: number; games: number; players: number } {
+    let games = 0;
+    let players = 0;
+    for (const room of this.rooms.values()) {
+      const online = room.humans.filter((p) => p.connected).length;
+      players += online;
+      if (room.game && online > 0 && room.game.snapshot().stage !== "podium") games++;
+    }
+    return { rooms: this.rooms.size, games, players };
+  }
+
   snapshot(code: string): RoomSnapshot | undefined {
     return this.rooms.get(code)?.snapshot(this.getAvailableModes());
   }

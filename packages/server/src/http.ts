@@ -81,6 +81,13 @@ export async function startServer(port: number, deps: { profiles: ProfileStore; 
 
   const { io, manager, detach } = attachSockets(app.server, { dev: config.dev, profiles: deps.profiles, admin: deps.admin });
 
+  // Activité du serveur, pour la mise à jour automatique : seulement depuis la machine elle-même.
+  app.get("/api/activite", async (req, reply) => {
+    const ip = req.socket.remoteAddress?.replace(/^::ffff:/, "") ?? "";
+    if ((ip !== "127.0.0.1" && ip !== "::1") || req.headers["x-forwarded-for"]) return reply.code(403).send({ error: "interdit" });
+    return manager.activity();
+  });
+
   try {
     await app.listen({ port, host: config.host });
   } catch (err) {

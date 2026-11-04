@@ -1,0 +1,11 @@
+[Unit]
+Description=Vérifie toutes les heures si une nouvelle version de RzParty est publiée
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=1h
+RandomizedDelaySec=5min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

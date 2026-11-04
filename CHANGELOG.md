@@ -3,6 +3,10 @@
 Chaque version commence par « ## numéro — date ». La page de présentation et les serveurs
 locaux lisent ce fichier : pense à augmenter la version dans package.json à chaque publication.
 
+## 0.3.1 — 4 novembre 2026
+- Serveur sur Proxmox : il installe tout seul les nouvelles versions publiées (vérification chaque heure), jamais pendant une partie en cours.
+- Les mises à jour de sécurité de Debian et de Node.js s'installent aussi automatiquement dans le conteneur.
+
 ## 0.3.0 — 4 novembre 2026
 - 4 nouveaux mini-jeux, 24 en tout.
 - Zappeur fou : appuie dès que la chaîne demandée apparaît à la télé, une mauvaise chaîne bloque ta télécommande.

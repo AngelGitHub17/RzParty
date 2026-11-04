@@ -57,15 +57,12 @@ RZ_SITE=${TRUST}
 RZ_TRUST_PROXY=${TRUST}
 # Page /hote : « lan » = depuis le réseau local (jamais Internet), « local » = depuis le conteneur seul.
 RZ_ADMIN_FROM=lan
+# 1 = installe tout seul les nouvelles versions publiées sur GitHub (vérifié chaque heure, hors parties en cours).
+RZ_AUTO_UPDATE=1
 CONF
 fi
 
-install -m 0644 "$APP_DIR/deploy/rzparty.service" /etc/systemd/system/rzparty.service
-sed -i "s|/opt/rzparty|${APP_DIR}|g" /etc/systemd/system/rzparty.service
-ln -sf "$APP_DIR/deploy/mettre-a-jour.sh" /usr/local/bin/rzparty-maj
-chmod +x "$APP_DIR"/deploy/*.sh "$APP_DIR"/deploy/proxmox/*.sh
-systemctl daemon-reload
-systemctl enable --now rzparty >/dev/null
+bash "$APP_DIR/deploy/units.sh"
 systemctl restart rzparty
 
 if [ -n "$RZ_CADDY_DOMAIN" ]; then
@@ -84,7 +81,7 @@ if systemctl is-active --quiet rzparty; then
   echo ""
   echo "  RzParty tourne : http://$(hostname -I | awk '{print $1}'):${RZ_PORT}"
   [ -n "$RZ_PUBLIC_URL" ] && echo "  Adresse publique : ${RZ_PUBLIC_URL}"
-  echo "  Journal : journalctl -u rzparty -f      Mise à jour : rzparty-maj"
+  echo "  Journal : journalctl -u rzparty -f      Mise à jour : rzparty-maj (automatique chaque heure)"
 else
   echo "  Le service n'a pas démarré. Regarde : journalctl -u rzparty -n 50"
   exit 1

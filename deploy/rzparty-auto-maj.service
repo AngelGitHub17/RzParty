@@ -1,0 +1,9 @@
+[Unit]
+Description=Mise à jour automatique de RzParty
+After=network-online.target rzparty.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/rzparty/deploy/auto-maj.sh
+Environment=npm_config_cache=/var/cache/rzparty
