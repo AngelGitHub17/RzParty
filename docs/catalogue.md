@@ -45,9 +45,9 @@ rester **équitable** entre un téléphone et un PC.
 | 23 | Friendly Face-Off | **Portrait robot** | Recomposer un visage pièce par pièce | 🟡 |
 | 12, 24, 30 | Dicey Descent, Barrel Daredevil, Cosmic Capers | **Descente infernale** | Esquiver des obstacles à gauche/droite | 🟡 |
 | 6 | Hurdle Hover | **Course de haies** | Sauter au bon moment | 🟡 |
-| 8 | Lunar Landers | **Alunissage** | Gérer la poussée pour se poser en douceur | 🟡 |
+| 8 | Lunar Landers | **Alunissage** | Maintenir pour freiner et se poser en douceur, 2 essais | ✅ |
 | 14, 20 | Feathered Frenzy, Chopper Hoppers | **Pluie de plumes** | Déplacer son panier pour attraper | 🟡 |
-| 15 | Goal Getters | **Tirs au but** | Viser un coin au bon moment | 🟡 |
+| 15 | Goal Getters | **Tirs au but** | Jauge de puissance + direction, gardien imprévisible, 5 tirs | ✅ |
 | 36 | Lucky Launch | **Feu d'artifice** | Viser des cibles avec une jauge | 🟡 |
 | 41 | Risky Railroad | **Aiguillages** | Choisir la bonne voie avant chaque bifurcation | 🟡 |
 | 2 | Shifty Gifts | **Tour de cadeaux** | Lâcher les paquets au bon moment pour empiler | 🟡 |
@@ -72,10 +72,10 @@ rester **équitable** entre un téléphone et un PC.
 | 47 | Commuter Count | **Va-et-vient** | Compter les entrées et sorties de la maison | ✅ |
 | 53 | Pop-Up Bandits | **Ruée vers l'Ouest** | Toucher les bandits, pas les habitants | ✅ |
 | 57 | Fruit Focus | **Paires de fruits** | Memory | ✅ |
-| 51 | Channel Changers | **Zappeur** | Zapper jusqu'à la bonne chaîne avant l'autre | 🟡 |
+| 51 | Channel Changers | **Zappeur fou** | Appuyer dès que la chaîne demandée apparaît, mauvaise chaîne = bloqué | ✅ |
 | 56 | Roll to the Goal | **Bille en boîte** | Labyrinthe à bille aux flèches | 🟡 |
 | 52 | Spring Time | **Ressort** | Sauter au sommet de la jauge | 🟡 |
-| 54 | Poppin' Pilots | **Ballons volants** | Éclater les ballons (rose 1, or 3) | 🟡 |
+| 54 | Poppin' Pilots | **Ballons volants** | Éclater les ballons de la couleur demandée (doré = 3) | ✅ |
 | 48, 49, 50 | Timber Topple, Delivery Duel, Shepherd Scramble | — | À repenser pour des boutons | 🟡 |
 
 ## Mini-jeux en duo / coopération

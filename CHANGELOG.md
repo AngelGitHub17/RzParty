@@ -3,6 +3,13 @@
 Chaque version commence par « ## numéro — date ». La page de présentation et les serveurs
 locaux lisent ce fichier : pense à augmenter la version dans package.json à chaque publication.
 
+## 0.3.0 — 4 novembre 2026
+- 4 nouveaux mini-jeux, 24 en tout.
+- Zappeur fou : appuie dès que la chaîne demandée apparaît à la télé, une mauvaise chaîne bloque ta télécommande.
+- Tirs au but : jauge de puissance et direction, la zone dorée est imparable, 5 tirs face à un gardien imprévisible.
+- Alunissage : maintiens le moteur pour freiner et pose ta capsule en douceur sans gaspiller le carburant.
+- Ballons volants : éclate les ballons de la couleur demandée, qui change en cours de partie.
+
 ## 0.2.0 — 4 novembre 2026
 - RzParty se joue en ligne : page de présentation, bouton « Jouer » et téléchargement du serveur pour jouer chez soi.
 - Les serveurs installés à la maison préviennent quand une nouvelle version sort ; mettre-a-jour.bat l'installe en gardant les profils.

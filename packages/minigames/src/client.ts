@@ -25,6 +25,10 @@ import { tremplinView } from "./tremplin/view.ts";
 import { lianeView } from "./liane/view.ts";
 import { pasView } from "./pas/view.ts";
 import { photoView } from "./photo/view.ts";
+import { zappeurView } from "./zappeur/view.ts";
+import { penaltyView } from "./penalty/view.ts";
+import { alunissageView } from "./alunissage/view.ts";
+import { ballonsView } from "./ballons/view.ts";
 
 import type { Avatar } from "@rzparty/shared";
 
@@ -81,4 +85,8 @@ export const MINI_GAME_VIEWS: Record<string, MiniGameViewFactory> = {
   liane: lianeView,
   pas: pasView,
   photo: photoView,
+  zappeur: zappeurView,
+  penalty: penaltyView,
+  alunissage: alunissageView,
+  ballons: ballonsView,
 };

@@ -1,0 +1,56 @@
+/* « Alunissage » */
+.land__flame {
+  opacity: 0;
+  transform-origin: 0 14px;
+}
+.is-thrust .land__flame {
+  opacity: 1;
+  animation: land-flame 90ms infinite alternate;
+}
+@keyframes land-flame {
+  to {
+    transform: scaleY(0.7);
+  }
+}
+.land__ships .is-me {
+  filter: drop-shadow(0 0 6px #fff);
+}
+.land__hud {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.land__hud .is-danger {
+  color: var(--danger);
+}
+.land__fuel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.land__fuel-track {
+  width: 110px;
+  height: 12px;
+  border-radius: 999px;
+  background: #1e2a4a22;
+  overflow: hidden;
+}
+.land__fuel-fill {
+  display: block;
+  height: 100%;
+  background: var(--sun);
+}
+.land__btn {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+.land__btn.is-on {
+  background: var(--sun);
+  box-shadow: 0 3px 0 var(--sun-deep);
+  color: var(--ink);
+  transform: translateY(5px);
+}

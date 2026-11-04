@@ -23,7 +23,11 @@ import { definition as tremplin } from "./tremplin/definition.ts";
 import { definition as liane } from "./liane/definition.ts";
 import { definition as pas } from "./pas/definition.ts";
 import { definition as photo } from "./photo/definition.ts";
+import { definition as zappeur } from "./zappeur/definition.ts";
+import { definition as penalty } from "./penalty/definition.ts";
+import { definition as alunissage } from "./alunissage/definition.ts";
+import { definition as ballons } from "./ballons/definition.ts";
 
-export const MINI_GAME_DEFINITIONS: MiniGameDefinition[] = [reflexes, calcul, memoire, piratage, labyrinthe, bombe, taupes, stroop, coupdoeil, tri, escalier, chrono, vaetvient, bandits, paires, visage, tremplin, liane, pas, photo];
+export const MINI_GAME_DEFINITIONS: MiniGameDefinition[] = [reflexes, calcul, memoire, piratage, labyrinthe, bombe, taupes, stroop, coupdoeil, tri, escalier, chrono, vaetvient, bandits, paires, visage, tremplin, liane, pas, photo, zappeur, penalty, alunissage, ballons];
 
 export type { MiniGameDefinition, MiniGameRecord } from "./contract.ts";

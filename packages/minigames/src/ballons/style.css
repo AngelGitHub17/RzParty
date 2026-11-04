@@ -1,0 +1,85 @@
+/* « Ballons volants » */
+.bal__wanted {
+  font-size: 1.3rem;
+  font-weight: 600;
+  text-align: center;
+}
+.bal__wanted strong {
+  padding: 2px 12px;
+  border-radius: 999px;
+  background: var(--c);
+  color: #fff;
+}
+.bal__wanted.is-new {
+  animation: bal-new 500ms ease;
+}
+@keyframes bal-new {
+  40% {
+    transform: scale(1.18);
+  }
+}
+.bal__stage {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 20px;
+  width: 100%;
+}
+.bal__stage .lanes {
+  flex: 1 1 320px;
+}
+.bal__sky {
+  position: relative;
+  width: min(560px, 94vw);
+  height: min(56vh, 440px);
+  border-radius: var(--radius-l);
+  background: linear-gradient(180deg, #5eb8f2, #cdebff 80%, #7ed957 80%);
+  overflow: hidden;
+  touch-action: manipulation;
+}
+.bal__balloon {
+  position: absolute;
+  top: 0;
+  width: 58px;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  pointer-events: none;
+  will-change: transform;
+}
+.bal__balloon::before {
+  content: "";
+  position: absolute;
+  left: calc(50% + var(--sway, 0px));
+  top: 0;
+  width: 54px;
+  height: 66px;
+  margin-left: -27px;
+  border-radius: 50% 50% 46% 46%;
+  background: radial-gradient(circle at 34% 28%, #ffffffaa 0 12%, transparent 13%), var(--c);
+  box-shadow: inset -6px -8px 0 #0002;
+  pointer-events: auto;
+  cursor: pointer;
+}
+button.bal__balloon::before {
+  pointer-events: auto;
+}
+.bal__balloon.is-gold::before {
+  box-shadow: inset -6px -8px 0 #d99a0b, 0 0 16px #ffe58a;
+}
+.bal__string {
+  position: absolute;
+  left: calc(50% + var(--sway, 0px));
+  top: 66px;
+  width: 2px;
+  height: 34px;
+  background: #1e2a4a55;
+}
+.bal__balloon.is-popped {
+  visibility: hidden;
+}
+.bal--tv .bal__sky {
+  width: min(520px, 46vw);
+}

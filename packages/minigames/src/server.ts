@@ -23,6 +23,10 @@ import tremplin from "./tremplin/server.ts";
 import liane from "./liane/server.ts";
 import pas from "./pas/server.ts";
 import photo from "./photo/server.ts";
+import zappeur from "./zappeur/server.ts";
+import penalty from "./penalty/server.ts";
+import alunissage from "./alunissage/server.ts";
+import ballons from "./ballons/server.ts";
 
 export const MINI_GAMES: MiniGameServerModule[] = [
   reflexes as MiniGameServerModule,
@@ -45,6 +49,10 @@ export const MINI_GAMES: MiniGameServerModule[] = [
   liane as MiniGameServerModule,
   pas as MiniGameServerModule,
   photo as MiniGameServerModule,
+  zappeur as MiniGameServerModule,
+  penalty as MiniGameServerModule,
+  alunissage as MiniGameServerModule,
+  ballons as MiniGameServerModule,
 ];
 
 export function getMiniGame(id: string): MiniGameServerModule | undefined {

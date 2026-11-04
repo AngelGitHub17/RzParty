@@ -279,7 +279,7 @@ describe("objets du plateau", () => {
   it("boutique, objets et double : une partie humaine pilotée de bout en bout", async () => {
     vi.useFakeTimers();
     try {
-      const { manager, start } = setup(21);
+      const { manager, start } = setup(22);
       const seat = manager.createIndividualRoom("chef", "Chef");
       manager.addBot("chef", "agressif");
       manager.updateSettings("chef", { mode: "plateau", board: { size: "court" } });
