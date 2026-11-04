@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { createReadStream, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import Fastify, { type FastifyInstance } from "fastify";
 import fastifyStatic from "@fastify/static";
@@ -6,14 +6,15 @@ import { GAME_NAME, type ServerInfo } from "@rzparty/shared";
 import { config, rootDir } from "./config.ts";
 import { lanAddresses } from "./network.ts";
 import { attachSockets } from "./socket.ts";
+import { availableUpdate, buildInfo, downloadArchive, readChangelog, version } from "./updater.ts";
 import type { ProfileStore } from "./profiles/ProfileStore.ts";
 import type { AdminStore } from "./profiles/AdminStore.ts";
 
 const clientDist = resolve(rootDir, "packages/client/dist");
-export const version = (JSON.parse(readFileSync(resolve(rootDir, "package.json"), "utf8")) as { version: string }).version;
+export { version };
 
 /** Pages de l'application : toutes servent le même index.html, le client choisit la vue. */
-const APP_ROUTES = ["/", "/ecran", "/manette", "/jouer", "/hote"];
+const APP_ROUTES = ["/", "/accueil", "/ecran", "/manette", "/jouer", "/hote"];
 
 export class ClientNotBuiltError extends Error {}
 
@@ -36,14 +37,45 @@ export async function startServer(port: number, deps: { profiles: ProfileStore; 
     port,
     lanAddresses: lanAddresses(),
     ...(config.publicUrl ? { publicUrl: config.publicUrl } : {}),
+    ...(config.site ? { site: true } : {}),
+    ...(availableUpdate() ? { update: availableUpdate()! } : {}),
   }));
+
+  // Version et journal des mises à jour : lus par les serveurs locaux et la page de présentation.
+  app.get("/api/version", async (_req, reply) => {
+    reply.header("access-control-allow-origin", "*").header("cache-control", "no-cache");
+    return { version, commit: buildInfo.commit, download: config.site ? "/telecharger" : null };
+  });
+  app.get("/api/mises-a-jour", async (_req, reply) => {
+    reply.header("access-control-allow-origin", "*").header("cache-control", "no-cache");
+    return { version, commit: buildInfo.commit, entries: readChangelog() };
+  });
+
+  if (config.site) {
+    app.get("/telecharger", async (_req, reply) => {
+      try {
+        const { file, name } = await downloadArchive();
+        return reply
+          .type("application/zip")
+          .header("content-disposition", `attachment; filename="${name}"`)
+          .header("cache-control", "no-cache")
+          .send(createReadStream(file));
+      } catch (err) {
+        return reply.code(503).type("text/plain; charset=utf-8").send(`Téléchargement indisponible pour le moment. ${(err as Error).message}`);
+      }
+    });
+  }
 
   if (!config.dev) {
     if (!existsSync(resolve(clientDist, "index.html"))) {
       throw new ClientNotBuiltError("Le client n'est pas compilé. Lance « npm start » depuis le dossier RzParty.");
     }
     await app.register(fastifyStatic, { root: clientDist, index: false });
-    for (const route of APP_ROUTES) app.get(route, (_req, reply) => reply.sendFile("index.html"));
+    const hasSite = existsSync(resolve(clientDist, "site.html"));
+    for (const route of APP_ROUTES) {
+      const page = route === "/" && config.site && hasSite ? "site.html" : "index.html";
+      app.get(route, (_req, reply) => reply.sendFile(page));
+    }
     app.setNotFoundHandler((_req, reply) => reply.code(404).type("text/plain; charset=utf-8").send("Page introuvable."));
   }
 

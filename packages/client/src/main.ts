@@ -17,6 +17,7 @@ export type View = (root: HTMLElement, ctx: ViewContext) => () => void;
 
 const routes: Record<string, View> = {
   "/": homeView,
+  "/accueil": homeView,
   "/ecran": screenView,
   "/manette": playerView("manette"),
   "/jouer": playerView("jouer"),
@@ -30,7 +31,7 @@ function mount(): void {
   cleanup?.();
   clear(root);
   const view = routes[window.location.pathname] ?? homeView;
-  document.body.dataset.route = window.location.pathname.slice(1) || "accueil";
+  document.body.dataset.route = window.location.pathname === "/" ? "accueil" : window.location.pathname.slice(1);
   cleanup = view(root, { navigate });
 }
 

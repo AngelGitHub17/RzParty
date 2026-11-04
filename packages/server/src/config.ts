@@ -54,6 +54,10 @@ export const config = {
   trustProxy: process.env.RZ_TRUST_PROXY === "1",
   /** D'où la page /hote est accessible : « local » (ce PC) ou « lan » (tout le réseau local, jamais Internet). */
   adminFrom: process.env.RZ_ADMIN_FROM === "lan" ? ("lan" as const) : ("local" as const),
+  /** Serveur en ligne (RZ_SITE=1) : page de présentation sur « / », téléchargement du jeu, journal des versions. */
+  site: process.env.RZ_SITE === "1",
+  /** Site interrogé pour savoir si une nouvelle version existe (RZ_UPDATE_URL=off pour ne pas vérifier). */
+  updateUrl: process.env.RZ_SITE === "1" || process.env.RZ_UPDATE_URL === "off" ? undefined : cleanUrl(process.env.RZ_UPDATE_URL || "https://rzparty.fr"),
 };
 
 function cleanUrl(value: string | undefined): string | undefined {

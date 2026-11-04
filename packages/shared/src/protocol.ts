@@ -1,5 +1,5 @@
 import type { PlayerColorIndex } from "./constants.ts";
-import type { BoardPrivate, BotPersonality, PublicProfile, RoomSnapshot } from "./types.ts";
+import type { BoardPrivate, BotPersonality, PublicProfile, RoomSnapshot, UpdateStatus } from "./types.ts";
 import type { ItemId } from "./items.ts";
 import type { Avatar } from "./avatar.ts";
 import type { SettingsPatch } from "./settings.ts";
@@ -105,6 +105,8 @@ export interface ClientToServerEvents {
   "admin:clearPin": (payload: { token: string; profileId: string }, ack: AckFn) => void;
   "admin:resetStats": (payload: { token: string; profileId: string }, ack: AckFn) => void;
   "admin:delete": (payload: { token: string; profileId: string }, ack: AckFn) => void;
+  "admin:updateStatus": (payload: { token: string }, ack: AckFn<UpdateStatus>) => void;
+  "admin:updateInstall": (payload: { token: string }, ack: AckFn<{ restarting: boolean; log: string[] }>) => void;
 
   /** Le joueur a lu les règles et est prêt. */
   "game:ready": (ack: AckFn) => void;

@@ -34,6 +34,8 @@ const writeSession = (token: string | null) => {
 export const hostView: View = (root, { navigate }) => {
   const list = h("div", { class: "host__list" });
   const intro = h("p", { class: "muted" });
+  const updateBox = h("section", { class: "panel host__update", attrs: { hidden: true, "aria-live": "polite" } });
+  let updateFor: string | null = null;
   let token = readSession();
   root.append(
     h(
@@ -42,10 +44,11 @@ export const hostView: View = (root, { navigate }) => {
       h(
         "header",
         { class: "host__top" },
-        h("a", { attrs: { href: "/" }, on: { click: (e) => (e.preventDefault(), navigate("/")) } }, wordmark("small")),
+        h("a", { attrs: { href: "/accueil" }, on: { click: (e) => (e.preventDefault(), navigate("/accueil")) } }, wordmark("small")),
         h("h1", { text: "Profils des joueurs" }),
       ),
       intro,
+      updateBox,
       list,
     ),
   );
@@ -191,6 +194,10 @@ export const hostView: View = (root, { navigate }) => {
       /* serveur injoignable : traité comme « pas l'hôte » */
     }
     clear(list);
+    if (!token) {
+      updateBox.hidden = true;
+      updateFor = null;
+    }
     if (!status.onHost) {
       intro.textContent = "Cette page n'est accessible que sur le PC qui fait tourner RzParty.";
       return;
@@ -203,6 +210,10 @@ export const hostView: View = (root, { navigate }) => {
       token = null;
       writeSession(null);
       return renderGate(status.configured);
+    }
+    if (updateFor !== token) {
+      updateFor = token;
+      void renderUpdate(token);
     }
     intro.textContent = profiles.length
       ? `${profiles.length} profil${profiles.length > 1 ? "s" : ""} enregistré${profiles.length > 1 ? "s" : ""} sur ce PC. Chaque joueur peut aussi modifier le sien depuis le jeu.`
@@ -223,6 +234,67 @@ export const hostView: View = (root, { navigate }) => {
       }),
       ...profiles.map(card),
     );
+  }
+
+  /** Rubrique « Mise à jour » : version installée, nouveautés en attente, bouton d'installation. */
+  async function renderUpdate(session: string): Promise<void> {
+    updateBox.hidden = false;
+    updateBox.replaceChildren(h("h2", { text: "Mise à jour" }), h("p", { class: "muted", text: "Recherche des nouveautés…" }));
+    let st;
+    try {
+      st = await request("admin:updateStatus", { token: session });
+    } catch (err) {
+      updateBox.replaceChildren(h("h2", { text: "Mise à jour" }), h("p", { class: "muted", text: err instanceof ServerError ? err.message : "Vérification impossible." }));
+      return;
+    }
+    const lines: Node[] = [
+      h("h2", { text: "Mise à jour" }),
+      h("p", { text: `Version installée : ${st.version}${st.commit ? ` (${st.commit})` : ""}.` }),
+    ];
+    if (st.error) lines.push(h("p", { class: "form-error", text: st.error }));
+    if (st.method === "git") {
+      if (st.pending.length) {
+        lines.push(
+          h("p", { text: `${st.pending.length} nouveauté${st.pending.length > 1 ? "s" : ""} en attente :` }),
+          h("ul", { class: "host__pending" }, ...st.pending.map((c) => h("li", {}, h("code", { text: c.hash }), ` ${c.subject}`))),
+        );
+        const out = h("p", { class: "muted" });
+        const btn = h("button", {
+          class: "btn btn--go",
+          attrs: { type: "button" },
+          text: "Installer la mise à jour",
+          on: {
+            click: async () => {
+              btn.setAttribute("disabled", "");
+              btn.textContent = "Installation… (1 à 3 minutes)";
+              try {
+                const res = await request("admin:updateInstall", { token: session });
+                out.textContent = res.log.at(-1) ?? "Terminé.";
+                btn.textContent = res.restarting ? "Redémarrage…" : "Installée";
+                if (res.restarting) setTimeout(() => window.location.reload(), 8000);
+              } catch (err) {
+                out.textContent = err instanceof ServerError ? err.message : "La mise à jour a échoué.";
+                btn.removeAttribute("disabled");
+                btn.textContent = "Réessayer";
+              }
+            },
+          },
+        });
+        lines.push(btn, out);
+        if (!st.autoRestart) lines.push(h("p", { class: "muted", text: "Après l'installation, ferme puis relance RzParty." }));
+      } else if (!st.error) {
+        lines.push(h("p", { class: "muted", text: "RzParty est à jour." }));
+      }
+    } else if (st.update) {
+      lines.push(
+        h("p", { text: `La version ${st.update.version} est disponible.` }),
+        h("p", { class: "muted", text: "Ferme RzParty, puis double-clique sur « mettre-a-jour.bat » dans le dossier du jeu. Tes profils sont conservés." }),
+        h("a", { class: "btn btn--ghost btn--small", attrs: { href: `${st.update.url}/#mises-a-jour`, target: "_blank", rel: "noopener" }, text: "Voir les nouveautés" }),
+      );
+    } else {
+      lines.push(h("p", { class: "muted", text: "RzParty est à jour." }));
+    }
+    updateBox.replaceChildren(...lines);
   }
 
   const onChanged = () => void load();

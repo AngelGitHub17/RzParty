@@ -3,7 +3,7 @@
 set -euo pipefail
 APP_DIR="$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)"
 cd "$APP_DIR"
-run() { if [ "$(id -u)" = 0 ]; then runuser -u rzparty -- "$@"; else "$@"; fi; }
+run() { if [ "$(id -u)" = 0 ]; then runuser -u rzparty -- env HOME="$APP_DIR" npm_config_cache=/var/cache/rzparty "$@"; else "$@"; fi; }
 
 echo "==> Récupération des nouveautés…"
 before="$(git rev-parse HEAD)"

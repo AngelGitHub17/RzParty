@@ -8,6 +8,7 @@ import { ClientNotBuiltError, startServer, version, type RunningServer } from ".
 import { HostConsole } from "./console.ts";
 import { lanAddresses } from "./network.ts";
 import { log } from "./log.ts";
+import { isGitInstall, watchForUpdates } from "./updater.ts";
 
 const hostConsole = new HostConsole();
 /** Profils des joueurs : un seul magasin, conservé même quand le port change. */
@@ -163,6 +164,16 @@ async function main(): Promise<void> {
 
   process.on("SIGINT", () => void shutdown(0));
   process.on("SIGTERM", () => void shutdown(0));
+
+  // Prévient l'hôte quand une nouvelle version est publiée sur le site.
+  watchForUpdates((u) => {
+    console.log("");
+    console.log(`  ★ Nouvelle version de ${GAME_NAME} disponible : ${u.version} (tu as la ${version}).`);
+    console.log(isGitInstall
+      ? "    Installe-la depuis la page /hote, rubrique « Mise à jour »."
+      : `    Ferme ${GAME_NAME}, puis double-clique sur « mettre-a-jour.bat » (journal : ${u.url}/#mises-a-jour).`);
+    console.log("");
+  });
 }
 
 main().catch((err) => {

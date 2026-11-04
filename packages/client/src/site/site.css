@@ -1,0 +1,341 @@
+/* ───────────── Page de présentation : mêmes couleurs et formes « jouet » que le jeu ───────────── */
+html:has(body.site) {
+  scroll-behavior: smooth;
+  scroll-padding-top: 84px;
+}
+
+.site {
+  overflow-x: hidden;
+}
+
+.site h3 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+/* Barre du haut */
+.site-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px max(16px, calc((100vw - 1120px) / 2));
+  background: #ffffffd9;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 1px 0 var(--line);
+}
+.site-bar__brand {
+  text-decoration: none;
+}
+.site-bar__nav {
+  display: flex;
+  gap: 4px 18px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+.site-bar__nav a {
+  color: var(--ink);
+  font-weight: 500;
+  text-decoration: none;
+}
+.site-bar__nav a:hover {
+  color: var(--go-deep);
+}
+@media (max-width: 720px) {
+  .site-bar__nav {
+    display: none;
+  }
+  .site-bar .btn {
+    margin-left: auto;
+  }
+}
+
+.site-main {
+  width: min(1120px, 100% - 32px);
+  margin: 0 auto;
+  display: grid;
+  gap: 28px;
+  padding: 28px 0 40px;
+}
+
+.site-btn-big {
+  min-height: 58px;
+  padding-inline: 1.6em;
+  font-size: 1.15rem;
+}
+
+/* Accroche */
+.site-hero {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+  gap: 36px;
+  align-items: center;
+  padding: 24px 0 8px;
+}
+.site-hero__text {
+  display: grid;
+  gap: 16px;
+  justify-items: start;
+}
+.site-hero h1 {
+  font-size: clamp(1.7rem, 3.6vw, 2.6rem);
+  line-height: 1.15;
+  font-weight: 600;
+}
+.site-hero__sub {
+  font-size: 1.1rem;
+  color: var(--ink-soft);
+  max-width: 34em;
+}
+.site-hero__cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 4px;
+}
+.site-hero__version {
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+.site-hero__art {
+  position: relative;
+  padding: 0 30px 40px 0;
+}
+.tv {
+  border: 10px solid var(--ink);
+  border-radius: 18px;
+  background: var(--ink);
+  box-shadow: 0 14px 0 -4px #1e2a4a55;
+  transform: rotate(-1.5deg);
+}
+.tv__screen {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  border-radius: 8px;
+}
+.phone {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 26%;
+  border: 6px solid var(--ink);
+  border-radius: 22px;
+  background: var(--ink);
+  transform: rotate(5deg);
+  box-shadow: 0 10px 0 -3px #1e2a4a55;
+}
+.phone__screen {
+  display: block;
+  width: 100%;
+  aspect-ratio: 390 / 844;
+  object-fit: cover;
+  object-position: top;
+  border-radius: 16px;
+}
+.site-hero__pawns {
+  position: absolute;
+  left: -6px;
+  bottom: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+}
+@media (max-width: 860px) {
+  .site-hero {
+    grid-template-columns: 1fr;
+  }
+  .site-hero__art {
+    max-width: 560px;
+  }
+}
+
+/* Sections */
+.site-section {
+  display: grid;
+  gap: 18px;
+  padding: clamp(20px, 4vw, 36px);
+  border-radius: var(--radius-l);
+  background: var(--paper);
+  box-shadow: 0 6px 0 var(--line);
+}
+.site-section__title {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 600;
+}
+.site-section__lead {
+  margin-top: -8px;
+  color: var(--ink-soft);
+  max-width: 46em;
+}
+
+.site-ways {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+.site-card {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  padding: 18px;
+  border-radius: var(--radius-m);
+  background: var(--cloud);
+}
+.site-card p {
+  color: var(--ink-soft);
+}
+.site-card__art {
+  display: flex;
+  align-items: flex-end;
+  min-height: 72px;
+}
+
+/* Modes */
+.site-modes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 18px;
+}
+.site-mode {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+.site-mode p {
+  color: var(--ink-soft);
+}
+.site-mode__shot {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  border-radius: var(--radius-m);
+  border: 3px solid var(--line);
+  background: var(--sky-low);
+}
+.site-mode__shot--pawns {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: linear-gradient(180deg, var(--sky-top), var(--sky-low));
+}
+
+/* Mini-jeux */
+.site-games {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.site-game {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: var(--radius-s);
+  background: var(--cloud);
+}
+.site-game span {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 0.92rem;
+  color: var(--ink-soft);
+}
+
+/* Jouer chez soi */
+.site-steps {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.site-step {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 14px;
+  align-items: start;
+}
+.site-step > div {
+  display: grid;
+  gap: 6px;
+}
+.site-step p {
+  color: var(--ink-soft);
+}
+.site-step__n {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--sun);
+  box-shadow: 0 4px 0 var(--sun-deep);
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+.site-download {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+  margin-top: 4px;
+}
+.site code {
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: var(--cloud);
+  color: var(--ink);
+  font-size: 0.92em;
+}
+
+/* Journal */
+.site-changelog {
+  display: grid;
+  gap: 10px;
+}
+.site-release {
+  padding: 12px 16px;
+  border-radius: var(--radius-m);
+  background: var(--cloud);
+}
+.site-release summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  align-items: baseline;
+  cursor: pointer;
+}
+.site-release ul {
+  margin: 10px 0 2px;
+  padding-left: 20px;
+  display: grid;
+  gap: 4px;
+}
+.site-badge {
+  padding: 1px 10px;
+  border-radius: 999px;
+  background: var(--go);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.site-foot {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  padding: 24px 16px 40px;
+  text-align: center;
+}
+.site-foot a {
+  color: var(--ink);
+}

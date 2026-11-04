@@ -34,6 +34,10 @@ export default defineConfig({
     outDir: "dist",
     emptyOutDir: true,
     target: "es2022",
+    // Deux pages : le jeu (index.html) et la présentation du projet (site.html, servie sur « / » en ligne).
+    rollupOptions: {
+      input: { main: resolve(__dirname, "index.html"), site: resolve(__dirname, "site.html") },
+    },
     // Three.js pèse ~500 ko : il est chargé à part, seulement quand la 3D s'affiche.
     chunkSizeWarningLimit: 800,
   },

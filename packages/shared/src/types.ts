@@ -222,6 +222,33 @@ export interface ServerInfo {
   lanAddresses: string[];
   /** Adresse publique du jeu (nom de domaine), si l'hôte en a défini une. */
   publicUrl?: string;
+  /** Vrai sur le serveur en ligne : « / » montre la page de présentation, le jeu est sur « /accueil ». */
+  site?: boolean;
+  /** Nouvelle version publiée sur le site, si ce serveur local est en retard. */
+  update?: { version: string; url: string };
+}
+
+/** Une version du journal des mises à jour (CHANGELOG.md). */
+export interface ChangelogEntry {
+  version: string;
+  date: string;
+  items: string[];
+}
+
+/** État de la mise à jour, pour la page de l'hôte. */
+export interface UpdateStatus {
+  version: string;
+  commit: string | null;
+  /** « git » : mise à jour possible depuis la page ; « archive » : via mettre-a-jour.bat. */
+  method: "git" | "archive";
+  /** Version plus récente annoncée par le site. */
+  update: { version: string; url: string } | null;
+  /** Modifications qui attendent sur GitHub (installation git). */
+  pending: { hash: string; subject: string }[];
+  canInstall: boolean;
+  /** Le serveur redémarre tout seul après l'installation (service systemd). */
+  autoRestart: boolean;
+  error?: string;
 }
 
 /** Statistiques d'un profil. */

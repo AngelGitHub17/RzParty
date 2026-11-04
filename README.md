@@ -16,6 +16,14 @@ Au démarrage, la console affiche deux adresses :
 - `http://localhost:5555` sur le PC hôte ;
 - `http://<ip-du-pc>:5555` pour les autres appareils du même Wi-Fi.
 
+### Mettre à jour
+
+Quand une nouvelle version est publiée sur [rzparty.fr](https://rzparty.fr/#mises-a-jour), la console
+et la page d'accueil le signalent. Ferme RzParty, puis double-clique sur `mettre-a-jour.bat`
+(Linux / macOS : `./mettre-a-jour.sh`). Les profils (`data/`) et le port enregistré sont conservés.
+Si le dossier a été récupéré avec git, la mise à jour peut aussi se faire depuis la page `/hote`.
+Pour ne pas vérifier les mises à jour : variable `RZ_UPDATE_URL=off`.
+
 ### Changer de port
 
 Par défaut, RzParty utilise le port **5555**. Pour en changer, appuie sur **Ctrl+P** dans la fenêtre
@@ -147,8 +155,16 @@ Un joueur déconnecté pendant une partie garde sa place ; un bot joue pour lui 
 ## Héberger sur un serveur (Proxmox, nom de domaine)
 
 RzParty peut tourner en continu dans un conteneur LXC et être joué depuis Internet (ex. https://rzparty.fr).
-Tout est expliqué dans [docs/hebergement.md](docs/hebergement.md) : création du conteneur en une commande,
-mise à jour avec `rzparty-maj`, proxy HTTPS (Nginx Proxy Manager ou Caddy).
+En mode site (`RZ_SITE=1`), `/` affiche la page de présentation (modes, mini-jeux, téléchargement,
+journal des versions) et le jeu est sur `/accueil`. Tout est expliqué dans [docs/hebergement.md](docs/hebergement.md) :
+création du conteneur en une commande, configuration NGINX, mise à jour depuis `/hote` ou avec `rzparty-maj`.
+
+### Publier une nouvelle version
+
+1. Augmente `version` dans `package.json`.
+2. Ajoute en haut de `CHANGELOG.md` une section `## x.y.z — date` avec une ligne par nouveauté.
+3. Envoie sur GitHub, puis mets le serveur en ligne à jour (page `/hote` ou `rzparty-maj`).
+   Les serveurs installés chez les joueurs le signalent ensuite tout seuls.
 
 ## Développement
 

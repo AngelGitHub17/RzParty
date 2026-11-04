@@ -1,20 +1,25 @@
 # Héberger RzParty sur Proxmox avec un nom de domaine
 
 Ce guide installe RzParty dans un conteneur LXC Debian 12 qui démarre tout seul avec le Proxmox,
-puis le rend accessible sur **https://rzparty.fr**.
+puis le rend accessible sur **https://rzparty.fr** :
+
+- `https://rzparty.fr/` : page de présentation (modes, mini-jeux, téléchargement, journal des versions) ;
+- `https://rzparty.fr/accueil` : le jeu ;
+- `https://rzparty.fr/telecharger` : le jeu en .zip pour l'installer chez soi (créé à partir de la version en ligne) ;
+- `https://rzparty.fr/api/version` : interrogé par les serveurs installés chez les joueurs pour signaler les nouvelles versions.
 
 ## 1. Créer le conteneur (une seule commande)
 
 Le dépôt GitHub est privé : crée d'abord un **jeton d'accès en lecture seule**.
 Sur GitHub : *Settings → Developer settings → Fine-grained tokens → Generate new token*,
-dépôt *RzParty* uniquement, permission *Contents : Read-only*.
+dépôt *rzparty* uniquement, permission *Contents : Read-only*.
 
 Dans le shell de l'hôte Proxmox (en root) :
 
 ```bash
 export RZ_GIT_TOKEN=github_pat_xxxxx
 curl -fsSL -H "Authorization: Bearer $RZ_GIT_TOKEN" \
-  https://raw.githubusercontent.com/AngelGitHub17/RzParty/main/deploy/proxmox/creer-lxc.sh -o creer-lxc.sh
+  https://raw.githubusercontent.com/AngelGitHub17/rzparty/main/deploy/proxmox/creer-lxc.sh -o creer-lxc.sh
 RZ_PUBLIC_URL=https://rzparty.fr CT_IP=192.168.1.50/24 CT_GW=192.168.1.254 bash creer-lxc.sh
 ```
 
@@ -26,6 +31,12 @@ RZ_PUBLIC_URL=https://rzparty.fr CT_IP=192.168.1.50/24 CT_GW=192.168.1.254 bash 
 > Déjà un conteneur Debian/Ubuntu ? Dedans : `git clone … /opt/rzparty` puis `bash /opt/rzparty/deploy/installer.sh`.
 
 ## 2. Mettre le jeu à jour
+
+**Depuis la page `/hote`** (sur le réseau local, connecté avec le compte de l'hôte) : la rubrique
+« Mise à jour » liste les nouveautés envoyées sur GitHub ; le bouton « Installer la mise à jour »
+les récupère, recompile et redémarre le serveur tout seul.
+
+**Ou en ligne de commande** :
 
 ```bash
 pct exec <CTID> -- rzparty-maj        # depuis l'hôte Proxmox
@@ -41,9 +52,27 @@ Journal : `journalctl -u rzparty -f`.
 
 1. **DNS** (chez le registraire, par ex. OVH) : un enregistrement `A` pour `rzparty.fr` (et `www`)
    vers l'IP publique de la Freebox. Si cette IP change, utilise un DynHost OVH.
-2. **Un proxy HTTPS** devant le jeu. Deux possibilités :
+2. **Un proxy HTTPS** devant le jeu :
 
-### a) Nginx Proxy Manager (conseillé si tu l'utilises déjà)
+### a) NGINX (ton NGINX existant)
+
+Le fichier prêt à l'emploi est [`deploy/nginx/rzparty.conf`](../deploy/nginx/rzparty.conf) :
+
+```bash
+cp deploy/nginx/rzparty.conf /etc/nginx/sites-available/rzparty.conf   # sur la machine NGINX
+nano /etc/nginx/sites-available/rzparty.conf                           # IP du conteneur à la place de 192.168.1.50
+ln -s /etc/nginx/sites-available/rzparty.conf /etc/nginx/sites-enabled/
+certbot --nginx -d rzparty.fr -d www.rzparty.fr                         # certificat Let's Encrypt
+nginx -t && systemctl reload nginx
+```
+
+Les deux points indispensables : les en-têtes `Upgrade` / `Connection` (WebSockets) et
+`X-Forwarded-For` (pour que la page `/hote` reste fermée à Internet). Ils sont déjà dans le fichier.
+
+> Pas encore de certificat ? Commente le bloc `server { listen 443 … }`, recharge NGINX,
+> lance `certbot --nginx …`, puis remets le bloc.
+
+### b) Nginx Proxy Manager
 
 Un seul proxy reçoit les ports 80 et 443 de la box et répartit selon le domaine
 (Jellyfin, Chatterbox, RzParty…). Nouveau *Proxy Host* :
@@ -55,7 +84,7 @@ Un seul proxy reçoit les ports 80 et 443 de la box et répartit selon le domain
 | **Websockets Support** | **activé** (indispensable) |
 | SSL | *Request a new SSL Certificate*, *Force SSL*, *HTTP/2* |
 
-### b) Caddy dans le conteneur
+### c) Caddy dans le conteneur
 
 Si les ports 80/443 de la box peuvent aller directement au conteneur RzParty :
 
@@ -73,4 +102,9 @@ Caddy obtient et renouvelle le certificat tout seul.
 
 - La page **/hote** (profils) n'est accessible que depuis le réseau local, jamais depuis Internet,
   et demande l'identifiant de l'hôte. Depuis chez toi, ouvre-la par l'IP : `http://192.168.1.50:5555/hote`.
-- Variables : `RZ_TRUST_PROXY=1` (proxy devant), `RZ_ADMIN_FROM=lan` ou `local`, `RZ_PUBLIC_URL`.
+- Variables (`/etc/rzparty/rzparty.env`) : `RZ_SITE=1` (page de présentation et téléchargement),
+  `RZ_TRUST_PROXY=1` (proxy devant), `RZ_ADMIN_FROM=lan` ou `local`, `RZ_PUBLIC_URL=https://rzparty.fr`.
+
+## Conteneur déjà installé avant la page de présentation ?
+
+Ajoute `RZ_SITE=1` dans `/etc/rzparty/rzparty.env`, puis `rzparty-maj --force`.

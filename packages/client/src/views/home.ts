@@ -2,6 +2,7 @@ import { isValidRoomCode, normalizeRoomCode } from "@rzparty/shared";
 import { h } from "../ui/dom.ts";
 import { wordmark } from "../ui/brand.ts";
 import { pawn } from "../ui/avatar.ts";
+import { fetchServerInfo } from "../net/connection.ts";
 import type { View } from "../main.ts";
 
 /** Page d'accueil : choisir comment on joue, ou rejoindre avec un code. */
@@ -47,11 +48,30 @@ export const homeView: View = (root, { navigate }) => {
   const trio = h("div", { class: "trio" }, pawn(1, { size: 64 }), pawn(0, { size: 84 }), pawn(3, { size: 64 }));
   const solo = h("div", { class: "trio" }, pawn(4, { size: 64 }), pawn(5, { size: 64 }));
 
+  const notice = h("div", { class: "home__notice", attrs: { hidden: true, role: "status" } });
+  void fetchServerInfo().then((info) => {
+    if (info?.update) {
+      notice.replaceChildren(
+        h("strong", { text: `Nouvelle version ${info.update.version} disponible !` }),
+        h("span", { text: " Sur le PC hôte, ferme RzParty puis double-clique sur « mettre-a-jour.bat »." }),
+        h("a", { attrs: { href: `${info.update.url}/#mises-a-jour`, target: "_blank", rel: "noopener" }, text: "Voir les nouveautés" }),
+      );
+      notice.hidden = false;
+    } else if (info?.site) {
+      notice.replaceChildren(h("a", { attrs: { href: "/" }, text: "← Découvrir RzParty, ses modes et le téléchargement" }));
+      notice.classList.add("home__notice--soft");
+      notice.hidden = false;
+    }
+    if (info?.site) tag.textContent = "Le jeu de société à plusieurs, en ligne ou sur le réseau de la maison.";
+  });
+  const tag = h("p", { class: "home__tag", text: "Le jeu de société à plusieurs, sur le réseau de la maison." });
+
   root.append(
     h(
       "main",
       { class: "home" },
-      h("header", { class: "home__head" }, wordmark("big"), h("p", { class: "home__tag", text: "Le jeu de société à plusieurs, sur le réseau de la maison." })),
+      notice,
+      h("header", { class: "home__head" }, wordmark("big"), tag),
       h(
         "div",
         { class: "home__choices" },

@@ -13,6 +13,7 @@ import { getMiniGame } from "@rzparty/minigames/server";
 import type { Identity } from "./rooms/RoomManager.ts";
 import { config, timings } from "./config.ts";
 import { log } from "./log.ts";
+import { installUpdate, updateStatus } from "./updater.ts";
 import { clientAddress, isPrivateAddress, lanAddresses } from "./network.ts";
 
 type GameSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
@@ -160,6 +161,18 @@ export function attachSockets(httpServer: HttpServer, opts: { dev: boolean; prof
     }
   }
 
+  /** Comme handle, pour une action asynchrone (mise à jour). Les erreurs ordinaires sont montrées telles quelles. */
+  function handleAsync<T>(ack: unknown, action: () => Promise<T>): void {
+    const reply = typeof ack === "function" ? (ack as (r: Ack<T>) => void) : () => {};
+    action().then(
+      (data) => reply({ ok: true, data }),
+      (err) => {
+        if (!(err instanceof RoomError)) log("Mise à jour :", err);
+        reply({ ok: false, error: err instanceof Error ? err.message.split("\n")[0]! : ERRORS.badRequest });
+      },
+    );
+  }
+
   io.on("connection", (socket: GameSocket) => {
     socket.on("screen:create", (ack) =>
       handle(ack, () => {
@@ -253,6 +266,20 @@ export function attachSockets(httpServer: HttpServer, opts: { dev: boolean; prof
     socket.on("admin:clearPin", (payload, ack) => handle(ack, () => (requireAdmin(socket, payload?.token), profiles.clearPin(payload?.profileId))));
     socket.on("admin:resetStats", (payload, ack) => handle(ack, () => (requireAdmin(socket, payload?.token), profiles.resetStats(payload?.profileId))));
     socket.on("admin:delete", (payload, ack) => handle(ack, () => (requireAdmin(socket, payload?.token), profiles.delete(payload?.profileId))));
+
+    socket.on("admin:updateStatus", (payload, ack) => handleAsync(ack, async () => (requireAdmin(socket, payload?.token), updateStatus())));
+    socket.on("admin:updateInstall", (payload, ack) =>
+      handleAsync(ack, async () => {
+        requireAdmin(socket, payload?.token);
+        log("Mise à jour lancée depuis la page de l'hôte.");
+        return installUpdate(() => {
+          io.emit("server:stopping");
+          log("Redémarrage après la mise à jour.");
+          // Arrêt propre (profils enregistrés) : systemd relance aussitôt la nouvelle version.
+          process.kill(process.pid, "SIGTERM");
+        });
+      }),
+    );
 
     socket.on("disconnect", () => manager.disconnect(socket.id));
   });

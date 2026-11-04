@@ -280,7 +280,7 @@ export function mountEntry(shell: HTMLElement, opts: EntryOptions): () => void {
     if (!alive) return;
     clear(main);
     main.append(
-      h("a", { class: "entry__brand", attrs: { href: "/" }, on: { click: (e) => (e.preventDefault(), opts.navigate("/")) } }, wordmark("small")),
+      h("a", { class: "entry__brand", attrs: { href: "/accueil" }, on: { click: (e) => (e.preventDefault(), opts.navigate("/accueil")) } }, wordmark("small")),
       chosen ? renderJoin(chosen) : renderPicker(),
     );
   }

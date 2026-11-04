@@ -1,0 +1,5 @@
+packages/server/build-info.txt export-subst
+*.sh text eol=lf
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+.github export-ignore

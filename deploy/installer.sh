@@ -2,7 +2,7 @@
 # Installe RzParty comme service (Debian / Ubuntu, en root) à partir du dossier /opt/rzparty.
 # Variables facultatives :
 #   RZ_PORT          port du jeu (5555 par défaut)
-#   RZ_PUBLIC_URL    adresse publique, ex. https://rzparty.fr (QR code et liens)
+#   RZ_PUBLIC_URL    adresse publique, ex. https://rzparty.fr (QR code, liens, page de présentation)
 #   RZ_CADDY_DOMAIN  installe Caddy dans le conteneur pour ce domaine (HTTPS automatique sur 80/443)
 set -euo pipefail
 
@@ -34,7 +34,8 @@ git config --global --add safe.directory "$APP_DIR"
 
 echo "==> Dépendances et compilation du client (une à deux minutes)…"
 cd "$APP_DIR"
-sudo_rz() { runuser -u rzparty -- "$@"; }
+mkdir -p /var/cache/rzparty && chown rzparty:rzparty /var/cache/rzparty
+sudo_rz() { runuser -u rzparty -- env HOME="$APP_DIR" npm_config_cache=/var/cache/rzparty "$@"; }
 sudo_rz npm ci --no-audit --no-fund
 sudo_rz npm run build
 
@@ -50,6 +51,8 @@ RZ_HOST=0.0.0.0
 RZ_NO_OPEN=1
 # Adresse publique (QR code, liens d'invitation). Laisser vide pour le réseau local seul.
 RZ_PUBLIC_URL=${RZ_PUBLIC_URL}
+# 1 = serveur en ligne : page de présentation sur « / », téléchargement du jeu, journal des versions.
+RZ_SITE=${TRUST}
 # 1 si un proxy (Caddy, Nginx Proxy Manager) est devant le jeu.
 RZ_TRUST_PROXY=${TRUST}
 # Page /hote : « lan » = depuis le réseau local (jamais Internet), « local » = depuis le conteneur seul.
