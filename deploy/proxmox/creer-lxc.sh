@@ -15,7 +15,7 @@ CT_GW="${CT_GW:-}"
 CT_MEMORY="${CT_MEMORY:-1024}"
 CT_CORES="${CT_CORES:-2}"
 CT_DISK="${CT_DISK:-8}"
-RZ_REPO="${RZ_REPO:-https://github.com/AngelGitHub17/rzparty.git}"
+RZ_REPO="${RZ_REPO:-https://github.com/AngelGitHub17/RzParty.git}"
 RZ_BRANCH="${RZ_BRANCH:-main}"
 
 command -v pct >/dev/null || { echo "Ce script se lance sur l'hôte Proxmox (commande pct introuvable)."; exit 1; }

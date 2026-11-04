@@ -12,14 +12,14 @@ puis le rend accessible sur **https://rzparty.fr** :
 
 Le dépôt GitHub est privé : crée d'abord un **jeton d'accès en lecture seule**.
 Sur GitHub : *Settings → Developer settings → Fine-grained tokens → Generate new token*,
-dépôt *rzparty* uniquement, permission *Contents : Read-only*.
+dépôt *RzParty* uniquement, permission *Contents : Read-only*.
 
 Dans le shell de l'hôte Proxmox (en root) :
 
 ```bash
 export RZ_GIT_TOKEN=github_pat_xxxxx
 curl -fsSL -H "Authorization: Bearer $RZ_GIT_TOKEN" \
-  https://raw.githubusercontent.com/AngelGitHub17/rzparty/main/deploy/proxmox/creer-lxc.sh -o creer-lxc.sh
+  https://raw.githubusercontent.com/AngelGitHub17/RzParty/main/deploy/proxmox/creer-lxc.sh -o creer-lxc.sh
 RZ_PUBLIC_URL=https://rzparty.fr CT_IP=192.168.1.50/24 CT_GW=192.168.1.254 bash creer-lxc.sh
 ```
 
