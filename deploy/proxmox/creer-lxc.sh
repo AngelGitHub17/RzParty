@@ -69,4 +69,4 @@ pct exec "$CTID" -- env RZ_PUBLIC_URL="${RZ_PUBLIC_URL:-}" RZ_CADDY_DOMAIN="${RZ
 IP="$(pct exec "$CTID" -- hostname -I | awk '{print $1}')"
 echo ""
 echo "  Conteneur $CTID prêt. RzParty répond sur http://${IP}:5555"
-echo "  Mise à jour plus tard : pct exec $CTID -- rzparty-maj"
+echo "  Mise à jour : automatique chaque heure (ou : pct exec $CTID -- bash /opt/rzparty/deploy/mettre-a-jour.sh)"

@@ -38,7 +38,7 @@ de sécurité de Debian et de Node.js s'installent aussi seules. Pour suivre : `
 Pour couper : `RZ_AUTO_UPDATE=0` dans `/etc/rzparty/rzparty.env`.
 
 Conteneur créé avant la version 0.3.1 ? Active-le une fois :
-`pct exec <CTID> -- rzparty-maj` puis `pct exec <CTID> -- bash /opt/rzparty/deploy/units.sh`.
+`pct exec <CTID> -- bash /opt/rzparty/deploy/mettre-a-jour.sh` puis `pct exec <CTID> -- bash /opt/rzparty/deploy/units.sh`.
 
 **Depuis la page `/hote`** (sur le réseau local, connecté avec le compte de l'hôte) : la rubrique
 « Mise à jour » liste les nouveautés envoyées sur GitHub ; le bouton « Installer la mise à jour »
@@ -47,7 +47,7 @@ les récupère, recompile et redémarre le serveur tout seul.
 **Ou en ligne de commande** :
 
 ```bash
-pct exec <CTID> -- rzparty-maj        # depuis l'hôte Proxmox
+pct exec <CTID> -- bash /opt/rzparty/deploy/mettre-a-jour.sh        # depuis l'hôte Proxmox
 rzparty-maj                           # ou depuis le conteneur
 ```
 
