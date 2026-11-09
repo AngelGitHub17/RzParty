@@ -138,11 +138,44 @@ affichée, et un nouveau voyage commence quand les trois sont visitées. En rout
 aéroports et ports (5 pièces), petits boulots, surprises et 1 contre tous. Après les tours prévus
 (6, 10 ou 15), la première photo des prolongations termine la partie.
 
-### Loto des copains
+### Bingo des copains
 
-Chacun reçoit un carton de 24 personnages (la case du milieu est offerte). Les boules tombent et
-cochent les cartons toutes seules ; une boule « Mini-jeu » lance un mini-jeu dont le gagnant coche
-la case de son choix. Première ligne complète (rangée, colonne ou diagonale) : gagné !
+Chacun choisit une grille de 16 personnages parmi 6 (une grille prise ne peut plus l'être). La
+machine contient les 24 personnages et 10 boules « Mini-jeu ». Quand un personnage sort, ceux qui
+l'ont doivent **le toucher eux-mêmes** sur leur grille avant la boule suivante, sinon c'est trop tard.
+Une boule « Mini-jeu » lance un mini-jeu dont le gagnant coche la case de son choix. Première ligne
+de 4 (rangée, colonne ou diagonale) : bingo !
+
+### Trios
+
+Chacun a 6 personnages en 2 rangées de 3. À chaque tour (4, 6 ou 8), un mini-jeu fixe l'ordre de
+passage ; dans cet ordre, chacun prend un personnage au centre et le met à la place d'un des siens
+(ou passe). Certains cachent la couleur de leur tenue jusqu'à ce qu'on les prenne, et
+l'arc-en-ciel va avec toutes les couleurs. À la fin du tour, une rangée de 3 de la même couleur
+rapporte 3 points, les deux rangées d'un coup 10 points ; elles laissent alors la place à de
+nouveaux personnages. Le plus de points gagne.
+
+### Bateau d'équilibre
+
+Mode coopératif : tout le salon forme l'équipage. Chaque mini-jeu donne à chacun un personnage à
+embarquer : petit pour le premier, gros pour le dernier. On le pose sur la vergue de sa couleur, à
+gauche ou à droite du mât : plus il est lourd, loin du mât et haut, plus le bateau penche (les places
+dangereuses sont signalées en rouge). Un coup de vent souffle entre deux tours. Embarquez 15 ou 20
+personnages sans chavirer pour gagner tous ensemble.
+
+### Paires cachées
+
+24 personnages en tenue sombre, 2 de chaque couleur. À son tour, on en retourne deux : même couleur,
+c'est une paire et on rejoue ; sinon on perd son cœur et la main passe. De temps en temps, deux
+personnages changent de place (signalés par ↔). Tous les 3 tours, un mini-jeu donne un cœur bonus au
+gagnant pour son prochain tour. Le plus de paires gagne (6, 10 ou 14 tours).
+
+### Test d'amitié
+
+Des « Plutôt chat ou chien ? » et des « Qui de nous est le plus gourmand ? » auxquels chacun répond
+en secret. Deux joueurs qui répondent pareil rapprochent leur duo ; toutes les 4 questions, un
+mini-jeu « synchro » rapproche ceux qui finissent côte à côte au classement. À la fin, le duo le
+plus complice gagne, avec son affinité en pourcentage. 8, 12 ou 16 questions.
 
 ### Quiz entre amis
 

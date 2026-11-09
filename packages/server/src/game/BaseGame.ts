@@ -37,6 +37,7 @@ export abstract class BaseGame implements GameSession {
   private lastModuleId: string | null = null;
   private runner: MiniGameRunner | null = null;
   private timer: ReturnType<typeof setTimeout> | null = null;
+  private sideTimers = new Set<ReturnType<typeof setTimeout>>();
 
   constructor(protected readonly host: GameHost) {}
 
@@ -97,6 +98,8 @@ export abstract class BaseGame implements GameSession {
   dispose(): void {
     this.disposed = true;
     this.clearTimer();
+    for (const t of this.sideTimers) clearTimeout(t);
+    this.sideTimers.clear();
     this.runner?.stop();
     this.runner = null;
   }
@@ -225,6 +228,15 @@ export abstract class BaseGame implements GameSession {
       this.timer = null;
       if (!this.disposed) next();
     }, delayMs);
+  }
+
+  /** Minuteur secondaire (réflexion d'un bot…), annulé avec la partie. Ne remplace pas l'étape en cours. */
+  protected later(delayMs: number, next: () => void): void {
+    const t = setTimeout(() => {
+      this.sideTimers.delete(t);
+      if (!this.disposed) next();
+    }, delayMs);
+    this.sideTimers.add(t);
   }
 
   protected clearTimer(): void {

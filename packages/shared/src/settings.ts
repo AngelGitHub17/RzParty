@@ -4,6 +4,7 @@ import { BOARD_SIZES } from "./board.ts";
 import { TEAM_CHOICES } from "./constants.ts";
 import { WHEEL_ROUND_CHOICES } from "./wheel.ts";
 import { GLOBE_ROUND_CHOICES } from "./globe.ts";
+import { AMITIE_ROUND_CHOICES, BOAT_GOAL_CHOICES, PAIRES_TOUR_CHOICES, TRIOS_ROUND_CHOICES } from "./familyModes.ts";
 import { QUIZ_ROUND_CHOICES, WORD_BOMB_CHOICES } from "./partyModes.ts";
 import { defaultCustomConfig, patchConfig } from "./boardConfig.ts";
 
@@ -16,6 +17,10 @@ export function defaultSettings(): RoomSettings {
     quiz: { rounds: 8 },
     mots: { bombs: 5 },
     voyage: { rounds: 10 },
+    trios: { rounds: 6 },
+    bateau: { goal: 20 },
+    paires: { tours: 10 },
+    amitie: { rounds: 12 },
     miniGames: [],
     board: { size: "moyen", custom: defaultCustomConfig() },
     survival: { rule: "vies", lives: 3, targetScore: 10 },
@@ -34,6 +39,10 @@ export interface SettingsPatch {
   quiz?: { rounds?: number };
   mots?: { bombs?: number };
   voyage?: { rounds?: number };
+  trios?: { rounds?: number };
+  bateau?: { goal?: number };
+  paires?: { tours?: number };
+  amitie?: { rounds?: number };
 }
 
 /**
@@ -61,6 +70,10 @@ export function applySettingsPatch(current: RoomSettings, patch: unknown): RoomS
   if (p.quiz && (QUIZ_ROUND_CHOICES as readonly number[]).includes(p.quiz.rounds as number)) next.quiz.rounds = p.quiz.rounds as number;
   if (p.mots && (WORD_BOMB_CHOICES as readonly number[]).includes(p.mots.bombs as number)) next.mots.bombs = p.mots.bombs as number;
   if (p.voyage && (GLOBE_ROUND_CHOICES as readonly number[]).includes(p.voyage.rounds as number)) next.voyage.rounds = p.voyage.rounds as number;
+  if (p.trios && (TRIOS_ROUND_CHOICES as readonly number[]).includes(p.trios.rounds as number)) next.trios.rounds = p.trios.rounds as number;
+  if (p.bateau && (BOAT_GOAL_CHOICES as readonly number[]).includes(p.bateau.goal as number)) next.bateau.goal = p.bateau.goal as number;
+  if (p.paires && (PAIRES_TOUR_CHOICES as readonly number[]).includes(p.paires.tours as number)) next.paires.tours = p.paires.tours as number;
+  if (p.amitie && (AMITIE_ROUND_CHOICES as readonly number[]).includes(p.amitie.rounds as number)) next.amitie.rounds = p.amitie.rounds as number;
   if (Array.isArray(p.miniGames)) {
     // Les identifiants inconnus sont ignorés par le serveur au moment du tirage.
     next.miniGames = [...new Set(p.miniGames.filter((id): id is string => typeof id === "string" && /^[a-z0-9-]{1,32}$/.test(id)))].slice(0, 100);

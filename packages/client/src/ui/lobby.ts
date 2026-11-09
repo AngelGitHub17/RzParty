@@ -14,6 +14,10 @@ import {
   QUIZ_ROUND_CHOICES,
   WORD_BOMB_CHOICES,
   GLOBE_ROUND_CHOICES,
+  TRIOS_ROUND_CHOICES,
+  BOAT_GOAL_CHOICES,
+  PAIRES_TOUR_CHOICES,
+  AMITIE_ROUND_CHOICES,
   type BotPersonality,
   type Difficulty,
   type GameModeId,
@@ -217,6 +221,14 @@ export function renderChefPanel(snapshot: RoomSnapshot, actions: ChefActions): H
         )
       : s.mode === "loto"
       ? null
+      : s.mode === "trios"
+      ? segmented("Nombre de tours", TRIOS_ROUND_CHOICES.map((n) => ({ value: n as number, label: `${n} tours` })), s.trios.rounds, (rounds) => actions.update({ trios: { rounds } }))
+      : s.mode === "bateau"
+      ? segmented("Personnages à embarquer", BOAT_GOAL_CHOICES.map((n) => ({ value: n as number, label: `${n}`, note: n === 15 ? "plus facile" : "le vrai défi" })), s.bateau.goal, (goal) => actions.update({ bateau: { goal } }))
+      : s.mode === "paires"
+      ? segmented("Nombre de tours", PAIRES_TOUR_CHOICES.map((n) => ({ value: n as number, label: `${n} tours` })), s.paires.tours, (tours) => actions.update({ paires: { tours } }))
+      : s.mode === "amitie"
+      ? segmented("Nombre de questions", AMITIE_ROUND_CHOICES.map((n) => ({ value: n as number, label: `${n} questions` })), s.amitie.rounds, (rounds) => actions.update({ amitie: { rounds } }))
       : s.mode === "quiz"
       ? segmented(
           "Nombre de questions",
@@ -318,6 +330,11 @@ function baseSummary(snapshot: RoomSnapshot): string {
     return `${mode}, ${end}, bots ${DIFFICULTIES[s.botDifficulty].label.toLowerCase()}`;
   }
   const cells = s.board.size === "perso" ? s.board.custom.length : BOARD_SIZES[s.board.size].cells;
+  const bots = `bots ${DIFFICULTIES[s.botDifficulty].label.toLowerCase()}`;
+  if (s.mode === "trios") return `${mode}, ${s.trios.rounds} tours, ${bots}`;
+  if (s.mode === "bateau") return `${mode}, ${s.bateau.goal} personnages à embarquer, ${bots}`;
+  if (s.mode === "paires") return `${mode}, ${s.paires.tours} tours, ${bots}`;
+  if (s.mode === "amitie") return `${mode}, ${s.amitie.rounds} questions, ${bots}`;
   if (s.mode === "loto") return `${mode}, bots ${DIFFICULTIES[s.botDifficulty].label.toLowerCase()}`;
   if (s.mode === "quiz") return `${mode}, ${s.quiz.rounds} questions, bots ${DIFFICULTIES[s.botDifficulty].label.toLowerCase()}`;
   if (s.mode === "voyage") return `${mode}, ${s.voyage.rounds} tours, bots ${DIFFICULTIES[s.botDifficulty].label.toLowerCase()}`;

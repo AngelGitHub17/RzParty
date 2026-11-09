@@ -14,17 +14,17 @@ rester **équitable** entre un téléphone et un PC.
 | Board Game Island | **Plateau** | Course au sommet, mini-jeu qui fixe l'ordre, dés bonus, cases spéciales | ✅ |
 | Spin-Off | **Grande Roue** | 500 médailles chacun et pour la banque, roue de 22 cases qui change 3 fois, Bataille / 1 contre tous / Duel / Chance, prolongations | ✅ |
 | Mode Libre / Bataille / Solo | **Mini-jeux au choix** + **Survie** | Le chef coche les mini-jeux (ou un seul) ; Survie en score = bataille ; bots pour jouer seul | ✅ |
-| Bingo | **Loto des copains** | Grille de personnages, tirages, une boule « Mini-jeu » laisse le gagnant cocher | ✅ |
+| Bingo | **Bingo des copains** | Choix d'une grille 4 × 4 parmi 6, on coche soi-même le personnage tiré avant la boule suivante, 10 boules « Mini-jeu » (le gagnant coche où il veut), première ligne de 4 | ✅ |
 | Globe Trot | **Tour du monde** | Boucle autour du monde, 12 destinations, 3 à la une, cartes Train/Taxi/Hélico/Avion/Montgolfière/Super voyage, surprises, 1 contre tous, prolongations | ✅ |
-| Mii of a Kind | **Trio de couleurs** | Récupérer des personnages pour former des trios de même couleur | 🟡 |
+| Swap Meet | **Trios** | 6 personnages en 2 rangées, mini-jeu pour l'ordre, on échange avec le centre (couleurs cachées, joker arc-en-ciel), rangée de 3 = 3 pts, double trio = 10 pts | ✅ |
 | Buddy Quiz | **Quiz entre amis** | Un joueur répond en secret sur son téléphone, les autres devinent | ✅ |
 | Word Bomb | **Bombe à mots** | Donner un mot de la catégorie pour passer la bombe (validation par les autres) | ✅ |
 | Time Bomb | **Patate explosive** | La bombe passe en tapant un mot | ✅ (mini-jeu) |
 | Animal Tracker | **Cris d'animaux** | Les téléphones émettent des cris, attraper le bon (nécessite les sons, phase 7) | 🟡 |
 | Hide 'n' Seek | — | Repose sur des manettes cachées dans la pièce | ⛔ |
-| Friendship House | **Test d'amitié** | Questionnaire à deux + mini-jeu coopératif, score de complicité | 🟡 |
-| Match-up | **Paires à deux** | Memory à deux avec bonus gagnés en mini-jeu | 🟡 |
-| Balance Boat | **Le bateau qui penche** | Placer des personnages sans faire chavirer (physique simplifiée) | 🟡 |
+| Friend Connection | **Test d'amitié** | « Plutôt ceci ou cela ? » et « Qui de nous… ? » en secret, mini-jeu « synchro » toutes les 4 questions, affinité de chaque duo en % (2 à 8 joueurs) | ✅ |
+| Pair-Off | **Paires cachées** | 24 personnages en tenue sombre, 2 de chaque couleur ; une erreur coûte un cœur ; ils changent parfois de place ; mini-jeu tous les 3 tours pour un cœur bonus | ✅ |
+| Balance Boat | **Bateau d'équilibre** | Coopératif : la place au mini-jeu donne un petit, moyen ou gros personnage, à poser sur la vergue de sa couleur ; penchant = poids × distance × hauteur ; coups de vent ; 15 ou 20 à embarquer | ✅ |
 
 ## Mini-jeux chacun pour soi (4 joueurs dans l'original, 2 à 8 ici)
 

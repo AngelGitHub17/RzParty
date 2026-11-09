@@ -1,44 +1,61 @@
 /**
- * Données et états des modes « Loto des copains », « Quiz entre amis » et « Bombe à mots ».
+ * Données et états des modes « Bingo des copains », « Quiz entre amis » et « Bombe à mots ».
  */
 import type { Avatar } from "./avatar.ts";
 
-// ───────────── Loto des copains ─────────────
+// ───────────── Bingo des copains ─────────────
 
-export const LOTO_POOL = 40;
-export const LOTO_SIZE = 5;
-/** Case centrale offerte. */
-export const LOTO_FREE = 12;
+/** Personnages du bingo (tous différents). */
+export const LOTO_POOL = 24;
+/** Grilles de 4 × 4. */
+export const LOTO_SIZE = 4;
+export const LOTO_CELLS = LOTO_SIZE * LOTO_SIZE;
+/** Grilles proposées au début (au moins une par joueur). */
+export const LOTO_GRIDS = 6;
+/** Boules « Mini-jeu » dans la machine. */
+export const LOTO_MINIGAME_BALLS = 10;
 
 export type LotoBall = { kind: "perso"; index: number } | { kind: "minijeu" };
 
 export interface LotoState {
-  /** Les personnages du loto (générés pour la partie). */
+  /** Les personnages du bingo (générés pour la partie). */
   pool: Avatar[];
-  /** Carton de chaque joueur : 25 numéros de personnage (-1 = case offerte). */
-  cards: Record<string, number[]>;
+  /** Les grilles proposées : 16 numéros de personnage chacune. */
+  grids: number[][];
+  /** Grille choisie par chaque joueur (null : pas encore choisie). */
+  choice: Record<string, number | null>;
+  /** Cases cochées (16 par joueur, dans l'ordre de sa grille). */
   marked: Record<string, boolean[]>;
   /** Personnages déjà tirés. */
   drawn: number[];
   /** Boule en cours. */
   ball: LotoBall | null;
   ballId: number;
-  phase: "draw" | "pick";
+  /** Personnage qu'on peut encore cocher (le dernier tiré). Ensuite, trop tard ! */
+  markable: number | null;
+  /** Ce qui reste dans la machine. */
+  left: { faces: number; minigames: number };
+  phase: "choose" | "draw" | "pick";
   /** Gagnants d'un mini-jeu qui choisissent une case à cocher. */
   pickers: string[];
   endsAt: number | null;
 }
 
-/** Les 12 lignes gagnantes : 5 rangées, 5 colonnes, 2 diagonales. */
+/** Les 10 lignes gagnantes : 4 rangées, 4 colonnes, 2 diagonales. */
 export const LOTO_LINES: number[][] = [
-  ...Array.from({ length: 5 }, (_, r) => Array.from({ length: 5 }, (_, c) => r * 5 + c)),
-  ...Array.from({ length: 5 }, (_, c) => Array.from({ length: 5 }, (_, r) => r * 5 + c)),
-  [0, 6, 12, 18, 24],
-  [4, 8, 12, 16, 20],
+  ...Array.from({ length: LOTO_SIZE }, (_, r) => Array.from({ length: LOTO_SIZE }, (_, c) => r * LOTO_SIZE + c)),
+  ...Array.from({ length: LOTO_SIZE }, (_, c) => Array.from({ length: LOTO_SIZE }, (_, r) => r * LOTO_SIZE + c)),
+  Array.from({ length: LOTO_SIZE }, (_, i) => i * (LOTO_SIZE + 1)),
+  Array.from({ length: LOTO_SIZE }, (_, i) => (i + 1) * (LOTO_SIZE - 1)),
 ];
 
 export function hasLine(marked: boolean[]): boolean {
   return LOTO_LINES.some((line) => line.every((i) => marked[i]));
+}
+
+/** Nombre de cases manquantes pour la ligne la plus avancée. */
+export function lotoMissing(marked: boolean[]): number {
+  return Math.min(...LOTO_LINES.map((l) => l.filter((i) => !marked[i]).length));
 }
 
 // ───────────── Quiz entre amis ─────────────

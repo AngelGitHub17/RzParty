@@ -21,7 +21,7 @@ const MODE_ART: Partial<Record<GameModeId, string>> = {
   mots: "/site/mots.webp",
   survie: "/site/tremplin.webp",
 };
-const MODE_ORDER: GameModeId[] = ["plateau", "voyage", "survie", "roue", "loto", "quiz", "mots"];
+const MODE_ORDER: GameModeId[] = ["plateau", "voyage", "survie", "roue", "loto", "trios", "bateau", "paires", "amitie", "quiz", "mots"];
 
 const link = (href: string, text: string, cls = "") => h("a", { class: cls, attrs: { href }, text });
 
@@ -67,7 +67,7 @@ const hero = h(
     h("h1", { text: "Le jeu de société à plusieurs, directement dans le navigateur." }),
     h("p", {
       class: "site-hero__sub",
-      text: "Un plateau plein de surprises, une vingtaine de mini-jeux, un quiz entre amis et un loto. La télé affiche la partie, les téléphones servent de manettes. Rien à installer pour les joueurs.",
+      text: "Un plateau plein de surprises, une trentaine de mini-jeux, un tour du monde, un bingo, un bateau à équilibrer, des paires à retrouver et un quiz entre amis. La télé affiche la partie, les téléphones servent de manettes. Rien à installer pour les joueurs.",
     }),
     h(
       "div",
@@ -121,7 +121,7 @@ const ways = section(
 // ── Modes ──
 const modes = section(
   "modes",
-  "Sept façons de faire la fête",
+  "Onze façons de faire la fête",
   "Le chef du salon choisit le mode et ses réglages : longueur du plateau, nombre de questions, de bombes, mini-jeux autorisés…",
   h(
     "div",

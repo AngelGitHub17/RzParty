@@ -33,25 +33,44 @@ describe("modes de fête", () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 
-  it("Loto des copains : les boules cochent les cartons, le premier avec une ligne gagne", async () => {
+  it("Bingo des copains : grilles toutes différentes, on coche à la sortie, le premier avec une ligne de 4 gagne", async () => {
     const { manager, room } = setup((h) => new LotoGame(h), { mode: "loto" });
-    manager.disconnect("chef");
-    let miniGames = 0;
+    const me = room.players.find((p) => !p.isBot)!.id;
+    // Choix de la grille : une grille prise ne peut pas être reprise.
+    await vi.advanceTimersByTimeAsync(3000);
+    const l0 = room.game!.snapshot().loto!;
+    expect(l0.phase).toBe("choose");
+    expect(l0.grids.length).toBeGreaterThanOrEqual(6);
+    for (const g of l0.grids) expect(new Set(g).size).toBe(16);
+    const taken = Object.values(l0.choice).find((c) => c !== null)!;
+    expect(() => manager.gameAction("chef", { type: "grid", grid: taken })).toThrow();
+    const free = l0.grids.findIndex((_, i) => !Object.values(l0.choice).includes(i));
+    manager.gameAction("chef", { type: "grid", grid: free });
+    let marks = 0;
+    let lateRefused = false;
     await untilPodium(room, () => {
-      if (room.game!.snapshot().stage === "results") miniGames++;
+      const l = room.game!.snapshot().loto!;
+      if (l.phase !== "draw" || l.markable === null) return;
+      const grid = l.grids[l.choice[me]!]!;
+      const pos = grid.indexOf(l.markable);
+      // Un personnage déjà passé ne peut plus être coché.
+      const late = grid.findIndex((n, i) => n !== l.markable && l.drawn.includes(n) && !l.marked[me]![i]);
+      if (late >= 0 && !lateRefused) {
+        expect(() => manager.gameAction("chef", { type: "mark", cell: late })).toThrow();
+        lateRefused = true;
+      }
+      if (pos >= 0 && !l.marked[me]![pos]) {
+        manager.gameAction("chef", { type: "mark", cell: pos });
+        marks++;
+      }
     });
     const snap = room.game!.snapshot();
     expect(snap.stage).toBe("podium");
     const loto = snap.loto!;
+    expect(new Set(Object.values(loto.choice)).size).toBe(4);
     for (const w of snap.winners) expect(hasLine(loto.marked[w]!)).toBe(true);
-    // Chaque case cochée (hors case offerte et cases gagnées en mini-jeu) correspond à une boule tirée.
-    for (const [id, card] of Object.entries(loto.cards)) {
-      expect(card.filter((n) => n === -1)).toHaveLength(1);
-      expect(new Set(card).size).toBe(25);
-      const fromBalls = card.filter((n, i) => loto.marked[id]![i] && loto.drawn.includes(n)).length;
-      expect(fromBalls).toBeLessThanOrEqual(loto.marked[id]!.filter(Boolean).length);
-    }
-    expect(miniGames).toBeGreaterThanOrEqual(0);
+    expect(marks).toBeGreaterThan(0);
+    expect(loto.left.minigames).toBeLessThanOrEqual(10);
   }, 60_000);
 
   it("Quiz entre amis : la vedette tourne, les bons paris rapportent des points", async () => {

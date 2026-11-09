@@ -11,6 +11,10 @@ import { LotoView } from "./LotoView.ts";
 import { QuizView } from "./QuizView.ts";
 import { MotsView } from "./MotsView.ts";
 import { GlobeView } from "./GlobeView.ts";
+import { TriosView } from "./TriosView.ts";
+import { BateauView } from "./BateauView.ts";
+import { PairesView } from "./PairesView.ts";
+import { AmitieView } from "./AmitieView.ts";
 
 /** Écrans des modes de jeu hors mini-jeux (une classe par étape). */
 interface ModeView {
@@ -23,6 +27,10 @@ const MODE_VIEWS: Record<string, new (root: HTMLElement, layout: ViewLayout, meI
   quiz: QuizView,
   mots: MotsView,
   globe: GlobeView,
+  trios: TriosView,
+  bateau: BateauView,
+  paires: PairesView,
+  amitie: AmitieView,
 };
 import { obfuscated } from "../ui/obfuscate.ts";
 
@@ -127,7 +135,13 @@ export class GameStage {
             game.mode === "roue"
               ? h("strong", { class: "chip__score", text: `🏅 ${s.score}` })
               : game.mode === "loto"
-              ? h("strong", { class: "chip__score", text: `${s.score}/24` })
+              ? h("strong", { class: "chip__score", text: `${s.score}/16` })
+              : game.mode === "trios" || game.mode === "paires"
+              ? h("strong", { class: "chip__score", text: game.mode === "paires" ? `${s.score} paire${s.score > 1 ? "s" : ""}` : `${s.score} pt${s.score > 1 ? "s" : ""}` })
+              : game.mode === "bateau"
+              ? h("strong", { class: "chip__score", text: `⛵ ${s.score}` })
+              : game.mode === "amitie"
+              ? h("strong", { class: "chip__score", text: `💞 ${s.score} %` })
               : game.mode === "quiz"
               ? h("strong", { class: "chip__score", text: `${s.score} pt${s.score > 1 ? "s" : ""}` })
               : game.mode === "mots"
@@ -195,7 +209,11 @@ export class GameStage {
       case "loto":
       case "quiz":
       case "mots":
-      case "globe": {
+      case "globe":
+      case "trios":
+      case "bateau":
+      case "paires":
+      case "amitie": {
         if (!this.modeView) this.modeView = { stage: game.stage, view: new MODE_VIEWS[game.stage]!(this.main, this.layout, this.meId) };
         this.modeView.view.update(room);
         return;
@@ -219,10 +237,18 @@ export class GameStage {
         h("p", {
           class: "intro__round",
           text:
-            game.purpose === "ordre"
+            game.purpose === "ordre" && game.mode !== "trios"
               ? `Qui commence ? Ce mini-jeu décide de l'ordre de jeu · ${CATEGORY_LABELS[mg.category] ?? mg.category}`
               : game.purpose === "loto"
                 ? `Boule Mini-jeu ! Le gagnant coche la case de son choix · ${CATEGORY_LABELS[mg.category] ?? mg.category}`
+                : game.purpose === "bateau"
+                ? `Le 1er reçoit un petit personnage à embarquer, le dernier un gros ! · ${CATEGORY_LABELS[mg.category] ?? mg.category}`
+                : game.purpose === "paires"
+                ? `Mini-jeu bonus : le gagnant gagne un cœur pour son prochain tour · ${CATEGORY_LABELS[mg.category] ?? mg.category}`
+                : game.purpose === "amitie"
+                ? `Test de synchro : ceux qui finissent côte à côte se rapprochent · ${CATEGORY_LABELS[mg.category] ?? mg.category}`
+                : game.mode === "trios" && game.purpose === "ordre"
+                ? `Ce mini-jeu décide de l'ordre pour choisir au centre · ${CATEGORY_LABELS[mg.category] ?? mg.category}`
                 : game.purpose === "cagnotte"
                 ? game.wheel?.battle?.kind === "bataille13"
                   ? `${room.players.find((p) => p.id === game.wheel?.battle?.solo)?.name ?? "?"} seul contre tous ! La banque de ${game.wheel?.pot ?? 0} médailles est en jeu · ${CATEGORY_LABELS[mg.category] ?? mg.category}`
@@ -347,6 +373,16 @@ export class GameStage {
               ? change?.points
                 ? "coche une case !"
                 : ""
+              : game.purpose === "bateau"
+              ? change?.points
+                ? `embarque un ${["", "petit", "moyen", "gros"][change.points]} personnage`
+                : ""
+              : game.purpose === "paires"
+              ? change?.points
+                ? "+1 cœur"
+                : ""
+              : game.purpose === "amitie"
+              ? ""
               : game.purpose === "voyage" || game.purpose === "unvstous"
               ? change?.points
                 ? `+${change.points} pièce${change.points > 1 ? "s" : ""}`
@@ -403,7 +439,7 @@ export class GameStage {
             )
           : null,
         h("ol", { class: "results__list" }, ...rows),
-        h("p", { class: "muted results__next", text: game.mode === "plateau" ? "Retour au plateau dans un instant…" : game.mode === "roue" ? "Retour à la roue dans un instant…" : game.mode === "loto" ? "Retour au loto dans un instant…" : "Prochaine manche dans un instant…" }),
+        h("p", { class: "muted results__next", text: game.mode === "plateau" ? "Retour au plateau dans un instant…" : game.mode === "roue" ? "Retour à la roue dans un instant…" : game.mode === "loto" ? "Retour au bingo dans un instant…" : game.mode === "bateau" ? "Retour au bateau dans un instant…" : game.mode === "trios" ? "Au centre, chacun son tour…" : game.mode === "paires" ? "Retour aux paires dans un instant…" : game.mode === "amitie" ? "Question suivante dans un instant…" : "Prochaine manche dans un instant…" }),
       ),
     );
   }
@@ -430,6 +466,8 @@ export class GameStage {
             const teams = game.board?.teams;
             const team = teams && winners[0] ? teams[winners[0].id] : undefined;
             if (team !== undefined) return `L'${TEAMS[team]?.label ?? "équipe"} gagne !`;
+            if (game.mode === "bateau") return game.bateau?.phase === "won" ? "Tout l'équipage est à bord !" : "Le bateau a chaviré…";
+            if (game.mode === "amitie" && winners.length === 2) return `${winners[0]!.name} et ${winners[1]!.name} : ${game.standings.find((s) => s.playerId === winners[0]!.id)?.score ?? 0} % d'affinité !`;
             return winners.length > 1 ? "Égalité au sommet !" : winners.length ? `${winners[0]!.name} gagne !` : "Partie terminée";
           })(),
         }),

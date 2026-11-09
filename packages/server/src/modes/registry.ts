@@ -12,6 +12,10 @@ import { lotoMode } from "../game/modes/loto.ts";
 import { quizMode } from "../game/modes/quiz.ts";
 import { motsMode } from "../game/modes/mots.ts";
 import { voyageMode } from "../game/modes/voyage.ts";
+import { triosMode } from "../game/modes/trios.ts";
+import { bateauMode } from "../game/modes/bateau.ts";
+import { pairesMode } from "../game/modes/paires.ts";
+import { amitieMode } from "../game/modes/amitie.ts";
 
 const modes = new Map<GameModeId, GameModeModule>();
 
@@ -35,3 +39,7 @@ registerMode(lotoMode);
 registerMode(quizMode);
 registerMode(motsMode);
 registerMode(voyageMode);
+registerMode(triosMode);
+registerMode(bateauMode);
+registerMode(pairesMode);
+registerMode(amitieMode);

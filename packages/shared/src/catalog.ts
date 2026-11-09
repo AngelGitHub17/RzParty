@@ -11,8 +11,8 @@ export const GAME_MODES: Record<GameModeId, { label: string; description: string
     description: "La course sur le plateau, avec pièces, boutique et embranchements.",
   },
   loto: {
-    label: "Loto des copains",
-    description: "Chacun son carton de personnages. Les boules tombent ; une boule Mini-jeu laisse le gagnant cocher la case de son choix. Première ligne complète : gagné !",
+    label: "Bingo des copains",
+    description: "Choisis ta grille de 16 personnages. Quand une boule sort, touche vite le personnage s'il est sur ta grille : à la boule suivante, c'est trop tard ! Les 10 boules Mini-jeu laissent le gagnant cocher la case de son choix. Première ligne de 4 : bingo !",
   },
   quiz: {
     label: "Quiz entre amis",
@@ -25,6 +25,22 @@ export const GAME_MODES: Record<GameModeId, { label: string; description: string
   voyage: {
     label: "Tour du monde",
     description: "Voyage autour de la carte avec des cartes de transport (train, taxi, avion…) et achète les photos-souvenirs des destinations à la une. Pièces au mini-jeu de chaque tour, surprises et 1 contre tous en route. Le plus de photos gagne !",
+  },
+  trios: {
+    label: "Trios",
+    description: "Chacun a 6 personnages en 2 rangées. À chaque tour, un mini-jeu fixe l'ordre pour en prendre un au centre (certains cachent leur couleur, l'arc-en-ciel va avec tout). Une rangée de 3 de la même couleur rapporte 3 points, les deux rangées d'un coup 10 !",
+  },
+  bateau: {
+    label: "Bateau d'équilibre",
+    description: "Tous dans le même bateau ! Chaque mini-jeu donne à chacun un personnage (petit si on a bien joué, gros sinon) à poser sur la vergue de sa couleur. Embarquez-en assez sans faire chavirer le bateau.",
+  },
+  paires: {
+    label: "Paires cachées",
+    description: "24 personnages en tenue sombre : retournes-en deux, même couleur = une paire et tu rejoues. Une erreur coûte ton cœur. Ils bougent de temps en temps, et un mini-jeu tous les 3 tours fait gagner un cœur de plus.",
+  },
+  amitie: {
+    label: "Test d'amitié",
+    description: "Des « plutôt ceci ou cela ? » et des « qui de nous… ? » auxquels chacun répond en secret. Plus vos réponses se ressemblent, plus votre duo monte. Avec quelques mini-jeux pour tester votre synchro !",
   },
   roue: {
     label: "Grande Roue",

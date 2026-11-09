@@ -2865,10 +2865,13 @@ a {
   }
 }
 
-/* Modes Loto, Quiz, Bombe à mots : mise en page commune */
+/* Modes Bingo, Quiz, Bombe à mots, Trios, Bateau, Paires : mise en page commune */
 .loto,
 .quiz,
-.words {
+.words,
+.trios,
+.boat,
+.cache {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(240px, 320px);
   gap: 16px;
@@ -2878,21 +2881,30 @@ a {
 
 .loto--pad,
 .quiz--pad,
-.words--pad {
+.words--pad,
+.trios--pad,
+.boat--pad,
+.cache--pad {
   grid-template-columns: 1fr;
 }
 
 @media (max-width: 860px) {
   .loto,
   .quiz,
-  .words {
+  .words,
+  .trios,
+  .boat,
+  .cache {
     grid-template-columns: 1fr;
   }
 }
 
 .loto__main,
 .quiz__main,
-.words__main {
+.words__main,
+.trios__main,
+.boat__main,
+.cache__main {
   display: grid;
   justify-items: center;
   gap: 14px;
@@ -2933,9 +2945,9 @@ a {
 
 .loto__card {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 6px;
-  width: min(440px, 100%);
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  width: min(420px, 100%);
   padding: 10px;
   border-radius: var(--radius-m, 16px);
   background: #fff3c4;
@@ -3010,7 +3022,7 @@ button.loto__cell {
 
 .loto__dots {
   display: grid;
-  grid-template-columns: repeat(5, 14px);
+  grid-template-columns: repeat(4, 14px);
   gap: 3px;
 }
 
@@ -3023,6 +3035,527 @@ button.loto__cell {
 
 .loto__dots span.is-on {
   background: #f0483e;
+}
+
+.loto__dots span.is-wanted {
+  background: var(--sun);
+  animation: pop 600ms ease-in-out infinite alternate;
+}
+
+.loto__mini.is-bingo {
+  outline: 4px solid var(--sun);
+}
+
+.loto__top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+}
+
+.loto__status {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  max-width: 380px;
+}
+
+.loto__machine {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.loto__timer {
+  width: 220px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--cloud);
+  overflow: hidden;
+}
+
+.loto__timer span {
+  display: block;
+  height: 100%;
+  background: var(--go);
+  transition: width 120ms linear;
+}
+
+.loto__grids {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+  width: 100%;
+}
+
+.loto__gridpick {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  padding: 10px;
+  border: 0;
+  border-radius: var(--radius-s);
+  background: #fff3c4;
+  box-shadow: inset 0 0 0 3px #f2b705;
+  font: inherit;
+  color: inherit;
+}
+
+button.loto__gridpick {
+  cursor: pointer;
+}
+
+button.loto__gridpick:hover,
+button.loto__gridpick:focus-visible {
+  box-shadow: inset 0 0 0 4px var(--go);
+  transform: translateY(-2px);
+}
+
+.loto__gridpick.is-taken {
+  opacity: 0.6;
+  box-shadow: inset 0 0 0 4px var(--player, #999);
+}
+
+.loto__gridpick.is-mine {
+  opacity: 1;
+  outline: 4px solid var(--go);
+}
+
+.loto__minigrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+}
+
+.loto__owner {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+/* Personnage à couleur cachée ou joker (Trios, Paires) */
+.char {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+}
+
+.char__badge {
+  position: absolute;
+  inset: auto 0 18% 0;
+  margin: auto;
+  width: 1.5em;
+  height: 1.5em;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--ink);
+  font-size: 0.95rem;
+  box-shadow: 0 2px 0 #0003;
+}
+
+.char.is-joker {
+  border-radius: 50%;
+  background: conic-gradient(#f0483e, #f7c21b, #2db866, #2f7bef, #9257e8, #f45fae, #f0483e);
+  padding: 3px;
+}
+
+.char.is-new {
+  animation: pop 520ms cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+/* Trios */
+.trios__head,
+.boat__head,
+.cache__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 1.1rem;
+}
+
+.trios__text,
+.boat__text,
+.cache__text {
+  margin: 0;
+  font-weight: 700;
+  text-align: center;
+  min-height: 1.4em;
+}
+
+.trios__center {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 18px;
+  border-radius: var(--radius-l);
+  background: linear-gradient(#e8eef6, #cfd9e6);
+  box-shadow: inset 0 -5px 0 #0001;
+}
+
+.trios__slot {
+  display: grid;
+  place-items: center;
+  min-width: 64px;
+  min-height: 64px;
+  border: 0;
+  border-radius: var(--radius-s);
+  background: transparent;
+  padding: 2px;
+}
+
+.trios__slot.is-empty {
+  outline: 2px dashed #9fb2c6;
+  outline-offset: -8px;
+}
+
+button.trios__slot {
+  cursor: pointer;
+  background: #ffffffaa;
+}
+
+button.trios__slot:hover,
+.trios__slot.is-selected {
+  outline: 4px solid var(--go);
+  transform: translateY(-3px);
+}
+
+.trios__actions:empty {
+  display: none;
+}
+
+.trios__others {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.trios__plat {
+  display: grid;
+  gap: 4px;
+  padding: 8px 10px;
+  border-radius: var(--radius-m);
+  background: color-mix(in srgb, var(--player) 18%, white);
+  box-shadow: inset 0 0 0 3px var(--player);
+}
+
+.trios__plat.is-turn {
+  outline: 4px solid var(--sun);
+}
+
+.trios__plat.is-scored {
+  animation: pop 520ms cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+.trios__plat-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+}
+
+.trios__plat-head strong {
+  margin-left: auto;
+  color: var(--go-deep);
+}
+
+.trios__row {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: var(--radius-s);
+}
+
+.trios__row.is-trio {
+  background: #ffe58a;
+  box-shadow: 0 0 0 3px var(--sun);
+}
+
+.trios__cell {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  border-radius: var(--radius-s);
+}
+
+button.trios__cell {
+  cursor: pointer;
+  outline: 3px dashed var(--go);
+  outline-offset: -2px;
+}
+
+button.trios__cell:hover {
+  background: #2db86633;
+}
+
+/* Bateau d'équilibre */
+.boat__hand {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+}
+
+.boat__sailor.is-next {
+  opacity: 0.55;
+}
+
+.boat__ship {
+  position: relative;
+  width: min(640px, 100%);
+  aspect-ratio: 16 / 11;
+  border-radius: var(--radius-m);
+  background: linear-gradient(#8fd3ff, #d9f1ff 70%);
+  overflow: hidden;
+}
+
+.boat__rig {
+  position: absolute;
+  inset: 4% 4% 26%;
+  display: grid;
+  grid-template-rows: repeat(3, 1fr);
+  gap: 4%;
+  transform-origin: 50% 120%;
+  transition: transform 700ms cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+
+.boat__mast {
+  position: absolute;
+  left: calc(50% - 7px);
+  top: -2%;
+  bottom: -14%;
+  width: 14px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #8a5a2b, #b57a3c, #8a5a2b);
+}
+
+.boat__yard {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr) 18px repeat(5, 1fr);
+  align-items: end;
+  border-bottom: 10px solid var(--yard);
+  border-radius: 6px;
+}
+
+.boat__yard.is-green {
+  --yard: #7bcb3a;
+}
+
+.boat__yard.is-yellow {
+  --yard: #f7c21b;
+}
+
+.boat__yard.is-purple {
+  --yard: #9257e8;
+}
+
+.boat__place.is-right {
+  grid-column: 7;
+}
+
+.boat__place {
+  display: grid;
+  place-items: end center;
+  min-height: 34px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+}
+
+button.boat__place {
+  cursor: pointer;
+  border-radius: 8px 8px 0 0;
+  background: #2db86633;
+  outline: 2px dashed var(--go);
+  outline-offset: -2px;
+}
+
+button.boat__place.is-risky {
+  background: #f0483e33;
+  outline-color: var(--danger);
+}
+
+button.boat__place:hover {
+  background: #2db86677;
+}
+
+.boat__hull {
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  bottom: 12%;
+  height: 16%;
+  border-radius: 0 0 50% 50% / 0 0 100% 100%;
+  background: linear-gradient(#a8692f, #6f4019);
+  transition: transform 700ms cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+
+.boat__sea {
+  position: absolute;
+  inset: auto 0 0;
+  height: 18%;
+  background: repeating-linear-gradient(90deg, #2f7bef 0 30px, #4f95f5 30px 60px);
+  opacity: 0.9;
+}
+
+.boat__ship.is-sunk .boat__rig {
+  transform: rotate(70deg) translateY(30%) !important;
+  opacity: 0.5;
+}
+
+.boat__ship.is-won {
+  box-shadow: 0 0 0 5px var(--sun);
+}
+
+.boat__gauge {
+  position: relative;
+  width: min(420px, 100%);
+  height: 14px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--danger) 0 8%, #ffe58a 8% 25%, #c9f0d6 25% 75%, #ffe58a 75% 92%, var(--danger) 92%);
+}
+
+.boat__needle {
+  position: absolute;
+  top: -6px;
+  width: 6px;
+  height: 26px;
+  margin-left: -3px;
+  border-radius: 3px;
+  background: var(--ink);
+  transition: left 600ms ease;
+}
+
+.boat__gauge.is-danger {
+  animation: shake 400ms ease-in-out infinite;
+}
+
+/* Paires cachées */
+.cache__hearts {
+  color: var(--danger);
+  font-size: 1.3rem;
+  letter-spacing: 2px;
+}
+
+.cache__grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  width: min(620px, 100%);
+}
+
+.cache__card {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  padding: 2px;
+  border: 0;
+  border-radius: var(--radius-s);
+  background: #e8eef6;
+  box-shadow: inset 0 -4px 0 #0001;
+  font: inherit;
+}
+
+button.cache__card {
+  cursor: pointer;
+}
+
+button.cache__card:hover {
+  background: #d4f3df;
+  transform: translateY(-2px);
+}
+
+.cache__card.is-open {
+  background: #fff;
+  outline: 4px solid var(--sun);
+  animation: pop 420ms cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+.cache__card.is-pair {
+  outline-color: var(--go);
+}
+
+.cache__card.is-miss {
+  outline-color: var(--danger);
+  animation: shake 400ms ease-in-out;
+}
+
+.cache__card.is-found {
+  opacity: 0.55;
+  background: color-mix(in srgb, var(--player) 25%, white);
+}
+
+.cache__card.is-moved::after {
+  content: "↔";
+  position: absolute;
+  top: 2px;
+  right: 6px;
+  font-weight: 800;
+  color: var(--danger);
+}
+
+@media (max-width: 520px) {
+  .cache__grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Test d'amitié */
+.friends__options.is-who {
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+.friends__title {
+  margin: 0 0 8px;
+  font-size: 1.1rem;
+}
+
+.friends__duos {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.friends__duo {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: var(--radius-s);
+  background: #fff;
+}
+
+.friends__bar {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--cloud);
+  overflow: hidden;
+}
+
+.friends__bar span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #f45fae, #f0483e);
+  transition: width 500ms ease;
 }
 
 /* Quiz entre amis */

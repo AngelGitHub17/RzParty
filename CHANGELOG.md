@@ -3,6 +3,13 @@
 Chaque version commence par « ## numéro — date ». La page de présentation et les serveurs
 locaux lisent ce fichier : pense à augmenter la version dans package.json à chaque publication.
 
+## 0.8.0 — 9 novembre 2026
+- Le Loto devient le Bingo des copains : choix d'une grille de 16 personnages parmi 6, on coche soi-même le personnage tiré avant la boule suivante, 10 boules Mini-jeu, première ligne de 4 gagnante.
+- Nouveau mode Trios : échange tes personnages avec ceux du centre pour aligner 3 tenues de la même couleur (couleurs cachées et joker arc-en-ciel), double trio à 10 points.
+- Nouveau mode coopératif Bateau d'équilibre : les mini-jeux donnent des personnages petits ou gros à poser sur les vergues sans faire chavirer le bateau.
+- Nouveau mode Paires cachées : memory de personnages en tenue sombre, cœurs, personnages qui changent de place et mini-jeu bonus tous les 3 tours.
+- Nouveau mode Test d'amitié : « plutôt ceci ou cela ? » et « qui de nous… ? » en secret, mini-jeux synchro, affinité de chaque duo.
+
 ## 0.7.0 — 9 novembre 2026
 - Tour du monde refait d'après le mode d'origine : la carte devient un réseau de chemins avec embranchements.
 - Déplacement : on retourne une carte face cachée de la rangée commune (1 à 6) et on choisit sa case d'arrivée parmi celles en surbrillance.
