@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { GLOBE_MAP, GLOBE_SIZE, createRng, type GameModeId } from "@rzparty/shared";
+import { GLOBE_MAP, createRng, globeDistances, globeReachable, type GameModeId } from "@rzparty/shared";
 import { RoomManager } from "../src/rooms/RoomManager.ts";
-import { GlobeGame, ringDistance, walk } from "../src/game/modes/voyage.ts";
+import { GlobeGame } from "../src/game/modes/voyage.ts";
 import type { Room } from "../src/rooms/Room.ts";
 
 const timings = { chefGrace: 10_000, lobbySeatHold: 90_000, roomIdle: 300_000 };
@@ -24,15 +24,26 @@ describe("mode Tour du monde", () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 
-  it("une boucle autour du monde : 12 destinations, 3 aéroports, 3 ports", () => {
+  it("un réseau autour du monde : 12 destinations, 3 aéroports, des embranchements", () => {
     expect(GLOBE_MAP.filter((s) => s.kind === "destination")).toHaveLength(12);
     expect(GLOBE_MAP.filter((s) => s.kind === "aeroport")).toHaveLength(3);
-    expect(GLOBE_MAP.filter((s) => s.kind === "port")).toHaveLength(3);
     expect(GLOBE_MAP[0]!.kind).toBe("depart");
-    for (const s of GLOBE_MAP) expect(s.x).toBeGreaterThanOrEqual(0), expect(s.x).toBeLessThanOrEqual(1000);
-    expect(walk(GLOBE_SIZE - 1, 2, 1)).toEqual([0, 1]);
-    expect(walk(1, 2, -1)).toEqual([0, GLOBE_SIZE - 1]);
-    expect(ringDistance(0, GLOBE_SIZE - 1)).toBe(1);
+    // Tout est relié, dans les deux sens, et il y a des carrefours.
+    expect(globeDistances(0).every((d) => Number.isFinite(d))).toBe(true);
+    for (const s of GLOBE_MAP) for (const n of s.next) expect(GLOBE_MAP[n]!.next).toContain(s.id);
+    expect(GLOBE_MAP.filter((s) => s.next.length >= 3).length).toBeGreaterThanOrEqual(8);
+    // Les cases ne se chevauchent pas sur la carte.
+    for (const a of GLOBE_MAP) for (const b of GLOBE_MAP) if (a.id < b.id) expect(Math.hypot(a.x - b.x, a.y - b.y)).toBeGreaterThan(30);
+    // Arrivées à exactement N cases, chemins sans retour en arrière.
+    for (const n of [1, 2, 3, 6]) {
+      const reach = globeReachable(0, n);
+      expect(reach.size).toBeGreaterThanOrEqual(2);
+      for (const [end, path] of reach) {
+        expect(path).toHaveLength(n);
+        expect(path.at(-1)).toBe(end);
+        expect(new Set(path).size).toBe(n);
+      }
+    }
   });
 
   for (const [seed, rounds, bots] of [[3, 6, 3], [11, 6, 1], [17, 10, 2]] as const) {
@@ -70,22 +81,21 @@ describe("mode Tour du monde", () => {
       const turn = g.turn;
       if (snap.stage !== "globe" || !turn?.choice) continue;
       if (turn.playerId !== me) {
-        expect(() => manager.gameAction("chef", { type: "card", index: 0, dir: 1 })).toThrow();
+        expect(() => manager.gameAction("chef", { type: "draw", slot: 0 })).toThrow();
         continue;
       }
       if (turn.choice.type === "card") {
-        const hand = g.hands[me]!;
-        expect(() => manager.gameAction("chef", { type: "card", index: 99, dir: 1 })).toThrow();
-        const i = hand.findIndex((c) => c.kind === "train" || c.kind === "helico");
-        const pos = g.positions[me]!;
-        if (i >= 0) {
-          manager.gameAction("chef", { type: "card", index: i, dir: 1 });
-          const after = room.game!.snapshot().globe!;
-          expect(after.positions[me]).toBe((pos + (hand[i]!.value ?? 8)) % GLOBE_SIZE);
-          expect(after.hands[me]).toHaveLength(hand.length - 1);
-        } else if (!hand.length) manager.gameAction("chef", { type: "card", index: null, dir: -1 });
-        else continue;
+        expect(() => manager.gameAction("chef", { type: "draw", slot: 9 })).toThrow();
+        manager.gameAction("chef", { type: "draw", slot: 2 });
+        expect(room.game!.snapshot().globe!.turn!.reveal?.slot).toBe(2);
         played++;
+      } else if (turn.choice.type === "move") {
+        const pos = g.positions[me]!;
+        const target = turn.choice.options.at(-1)!;
+        expect(() => manager.gameAction("chef", { type: "move", space: pos })).toThrow();
+        manager.gameAction("chef", { type: "move", space: target });
+        expect(room.game!.snapshot().globe!.positions[me]).toBe(target);
+        expect(globeDistances(pos)[target]).toBeLessThanOrEqual(turn.choice.steps);
       } else if (turn.choice.type === "shop") manager.gameAction("chef", { type: "shop", index: null });
       else if (turn.choice.type === "airport" || turn.choice.type === "port") manager.gameAction("chef", { type: "travel", space: null });
     }

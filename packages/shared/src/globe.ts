@@ -23,6 +23,8 @@ export interface GlobeSpace {
   y: number;
   /** Destination (indice dans DESTINATIONS). */
   destination?: number;
+  /** Cases voisines (le réseau de chemins, avec ses embranchements). */
+  next: number[];
 }
 
 export interface Destination {
@@ -49,51 +51,119 @@ export const DESTINATIONS: Destination[] = [
 
 /** Étapes du tour : départ (France), puis chaque destination dans l'ordre, et retour. */
 const WAYPOINTS: { x: number; y: number; destination?: number; between: string[] }[] = [
-  { x: 506, y: 128, between: ["aeroport", "boulot"] }, // Départ : Paris
-  { x: 540, y: 158, destination: 0, between: ["surprise", "gare"] },
-  { x: 478, y: 196, destination: 1, between: ["boutique", "unvstous"] },
-  { x: 588, y: 214, destination: 2, between: ["boulot", "port", "surprise"] },
-  { x: 636, y: 398, destination: 3, between: ["gare", "unvstous"] },
-  { x: 716, y: 238, destination: 4, between: ["aeroport", "boulot"] },
-  { x: 790, y: 318, destination: 5, between: ["surprise", "boutique"] },
-  { x: 880, y: 182, destination: 6, between: ["gare", "boulot", "unvstous"] },
-  { x: 872, y: 424, destination: 7, between: ["port", "surprise", "boulot", "gare"] },
-  { x: 372, y: 382, destination: 8, between: ["boutique", "surprise"] },
-  { x: 228, y: 248, destination: 9, between: ["aeroport", "unvstous"] },
-  { x: 186, y: 172, destination: 10, between: ["boulot", "surprise"] },
-  { x: 300, y: 140, destination: 11, between: ["port", "boutique", "boulot"] },
+  { x: 480, y: 100, between: ["aeroport", "boulot"] }, // Départ : Paris
+  { x: 600, y: 120, destination: 0, between: ["surprise", "gare"] },
+  { x: 430, y: 215, destination: 1, between: ["boutique", "unvstous"] },
+  { x: 600, y: 232, destination: 2, between: ["boulot", "port", "surprise"] },
+  { x: 650, y: 425, destination: 3, between: ["gare", "unvstous"] },
+  { x: 730, y: 250, destination: 4, between: ["aeroport", "boulot"] },
+  { x: 810, y: 330, destination: 5, between: ["surprise", "boutique"] },
+  { x: 935, y: 150, destination: 6, between: ["gare", "boulot", "unvstous"] },
+  { x: 885, y: 445, destination: 7, between: ["port", "surprise", "boulot", "gare"] },
+  { x: 370, y: 405, destination: 8, between: ["boutique", "surprise"] },
+  { x: 220, y: 285, destination: 9, between: ["aeroport", "unvstous"] },
+  { x: 120, y: 170, destination: 10, between: ["boulot", "surprise"] },
+  { x: 300, y: 90, destination: 11, between: ["port", "boutique", "boulot"] },
 ];
 
 /** Points de passage du trajet entre deux étapes (route du Sud entre l'Australie et le Brésil, Atlantique Nord au retour). */
 const DETOURS: Record<number, { x: number; y: number }[]> = {
-  8: [{ x: 820, y: 500 }, { x: 560, y: 520 }, { x: 420, y: 470 }],
-  12: [{ x: 400, y: 70 }],
+  8: [{ x: 975, y: 290 }],
+  9: [{ x: 830, y: 520 }, { x: 570, y: 535 }, { x: 430, y: 490 }],
+  0: [{ x: 390, y: 45 }],
 };
+
+/**
+ * Raccourcis : des chemins de traverse entre deux étapes du tour (indice de l'étape dans
+ * WAYPOINTS), avec les cases qui les jalonnent. Ils créent les embranchements du réseau.
+ */
+const SHORTCUTS: { from: number; to: number; kinds: SpaceKind[]; via?: { x: number; y: number } }[] = [
+  { from: 1, to: 3, kinds: ["boulot", "surprise"], via: { x: 680, y: 170 } }, // Méditerranée : Italie → Égypte
+  { from: 2, to: 9, kinds: ["port", "surprise", "boulot", "unvstous"], via: { x: 380, y: 310 } }, // Atlantique Sud : Maroc → Brésil
+  { from: 5, to: 7, kinds: ["gare", "surprise", "boutique"], via: { x: 780, y: 150 } }, // Chine : Inde → Japon
+  { from: 6, to: 8, kinds: ["boulot", "gare"], via: { x: 830, y: 410 } }, // Singapour → Australie
+  { from: 10, to: 12, kinds: ["surprise", "gare"], via: { x: 290, y: 200 } }, // Mexique → Canada
+  { from: 4, to: 6, kinds: ["unvstous", "surprise", "boulot"], via: { x: 730, y: 395 } }, // Océan Indien : Madagascar → Singapour
+];
 
 function buildMap(): GlobeSpace[] {
   const spaces: GlobeSpace[] = [];
-  WAYPOINTS.forEach((w, i) => {
-    spaces.push({ id: spaces.length, kind: i === 0 ? "depart" : "destination", x: w.x, y: w.y, destination: w.destination });
-    const next = WAYPOINTS[(i + 1) % WAYPOINTS.length]!;
-    // Points intermédiaires répartis sur le trajet (avec détours éventuels).
-    const path = [{ x: w.x, y: w.y }, ...(DETOURS[(i + 1) % WAYPOINTS.length] ?? []), { x: next.x, y: next.y }];
+  const stops: number[] = [];
+  const link = (a: number, b: number) => {
+    if (!spaces[a]!.next.includes(b)) spaces[a]!.next.push(b);
+    if (!spaces[b]!.next.includes(a)) spaces[b]!.next.push(a);
+  };
+  /** Ajoute des cases le long d'un trajet (avec détours) et renvoie leurs indices. */
+  const along = (path: { x: number; y: number }[], kinds: SpaceKind[]): number[] => {
     const lengths = path.slice(1).map((p, k) => Math.hypot(p.x - path[k]!.x, p.y - path[k]!.y));
     const total = lengths.reduce((a, b) => a + b, 0);
-    w.between.forEach((kind, k) => {
-      let d = ((k + 1) / (w.between.length + 1)) * total;
+    return kinds.map((kind, k) => {
+      let d = ((k + 1) / (kinds.length + 1)) * total;
       let seg = 0;
       while (seg < lengths.length - 1 && d > lengths[seg]!) d -= lengths[seg++]!;
       const a = path[seg]!;
       const b = path[seg + 1]!;
       const t = d / lengths[seg]!;
-      spaces.push({ id: spaces.length, kind: kind as SpaceKind, x: Math.round(a.x + (b.x - a.x) * t), y: Math.round(a.y + (b.y - a.y) * t) });
+      spaces.push({ id: spaces.length, kind, x: Math.round(a.x + (b.x - a.x) * t), y: Math.round(a.y + (b.y - a.y) * t), next: [] });
+      return spaces.length - 1;
     });
+  };
+  // Le grand tour : départ, destinations et cases entre elles.
+  const between: number[][] = [];
+  WAYPOINTS.forEach((w, i) => {
+    stops.push(spaces.length);
+    spaces.push({ id: spaces.length, kind: i === 0 ? "depart" : "destination", x: w.x, y: w.y, destination: w.destination, next: [] });
+    const next = WAYPOINTS[(i + 1) % WAYPOINTS.length]!;
+    between.push(along([{ x: w.x, y: w.y }, ...(DETOURS[(i + 1) % WAYPOINTS.length] ?? []), { x: next.x, y: next.y }], w.between as SpaceKind[]));
   });
+  WAYPOINTS.forEach((_, i) => {
+    const chain = [stops[i]!, ...between[i]!, stops[(i + 1) % WAYPOINTS.length]!];
+    for (let k = 0; k < chain.length - 1; k++) link(chain[k]!, chain[k + 1]!);
+  });
+  // Les chemins de traverse.
+  for (const sc of SHORTCUTS) {
+    const a = spaces[stops[sc.from]!]!;
+    const b = spaces[stops[sc.to]!]!;
+    const ids = along([{ x: a.x, y: a.y }, ...(sc.via ? [sc.via] : []), { x: b.x, y: b.y }], sc.kinds);
+    const chain = [a.id, ...ids, b.id];
+    for (let k = 0; k < chain.length - 1; k++) link(chain[k]!, chain[k + 1]!);
+  }
   return spaces;
 }
 
 export const GLOBE_MAP: GlobeSpace[] = buildMap();
 export const GLOBE_SIZE = GLOBE_MAP.length;
+
+/** Distance (en cases) de `from` à toutes les cases. */
+export function globeDistances(from: number, map: GlobeSpace[] = GLOBE_MAP): number[] {
+  const dist = map.map(() => Infinity);
+  dist[from] = 0;
+  const queue = [from];
+  while (queue.length) {
+    const a = queue.shift()!;
+    for (const b of map[a]!.next) if (dist[b] === Infinity) (dist[b] = dist[a]! + 1), queue.push(b);
+  }
+  return dist;
+}
+
+/**
+ * Cases d'arrivée possibles en avançant d'exactement `steps` cases (sans repasser par une case),
+ * avec un chemin pour chacune.
+ */
+export function globeReachable(from: number, steps: number, map: GlobeSpace[] = GLOBE_MAP): Map<number, number[]> {
+  const out = new Map<number, number[]>();
+  const walk = (at: number, path: number[]) => {
+    if (path.length === steps) {
+      if (!out.has(at)) out.set(at, path);
+      return;
+    }
+    for (const n of map[at]!.next) if (n !== from && !path.includes(n)) walk(n, [...path, n]);
+  };
+  walk(from, []);
+  // Impasse (aucun chemin assez long) : on va le plus loin possible.
+  if (!out.size && steps > 1) return globeReachable(from, steps - 1, map);
+  return out;
+}
 
 export type CardKind = "train" | "taxi" | "helico" | "avion" | "montgolfiere" | "super";
 
@@ -117,6 +187,9 @@ export function cardLabel(card: TravelCard): string {
 }
 
 export const GLOBE_HAND_MAX = 4;
+/** Cartes face cachée dans la rangée commune, et leurs valeurs possibles. */
+export const GLOBE_ROW = 5;
+export const ROW_VALUES = [1, 1, 2, 2, 3, 3, 4, 4, 5, 6];
 export const GLOBE_START_COINS = 10;
 export const PHOTO_PRICE = 10;
 export const TRAVEL_FEE = 5;
@@ -144,7 +217,8 @@ export interface GlobePhoto {
 
 /** Ce que le joueur doit décider pendant son tour. */
 export type GlobeChoice =
-  | { type: "card" } // jouer une carte (ou « À pied » si la main est vide)
+  | { type: "card" } // retourner une carte de la rangée, ou jouer une carte de transport
+  | { type: "move"; steps: number; options: number[] } // choisir la case d'arrivée
   | { type: "airport"; options: number[]; fee: number } // s'envoler vers une case (ou rester)
   | { type: "port"; options: number[]; fee: number }
   | { type: "shop"; offers: TravelCard[] } // acheter une carte (ou passer)
@@ -158,6 +232,8 @@ export interface GlobeTurn {
   /** Déplacement en cours, pour l'animation : cases traversées. */
   path: number[];
   moveId: number;
+  /** Carte de la rangée retournée ce tour-ci. */
+  reveal?: { slot: number; value: number };
   /** Roue (montgolfière, petit boulot) : valeur tirée. */
   spin?: { kind: "montgolfiere" | "boulot"; value: number; id: number };
   endsAt: number | null;
@@ -171,6 +247,10 @@ export interface GlobeState {
   photos: Record<string, GlobePhoto[]>;
   /** Destinations à la une (indices de cases) et photo proposée pour chacune. */
   hotspots: { space: number; photo: number }[];
+  /** Rangée commune de cartes face cachée (seul leur nombre est connu). */
+  row: number;
+  /** Numéro du voyage à thème en cours (change quand ses 3 destinations sont visitées). */
+  trip: number;
   order: string[];
   turn: GlobeTurn | null;
   round: number;

@@ -1,5 +1,5 @@
 import {
-  CARD_INFO, DESTINATIONS, GLOBE_SIZE, PHOTO_PRICE, PLAYER_COLORS, cardLabel,
+  CARD_INFO, DESTINATIONS, PHOTO_PRICE, PLAYER_COLORS, cardLabel, globeDistances,
   type GlobeSpace, type GlobeState, type PublicPlayer, type RoomSnapshot, type SpaceKind, type TravelCard,
 } from "@rzparty/shared";
 import type { ViewLayout } from "@rzparty/minigames/client";
@@ -23,34 +23,29 @@ const ICONS: Record<SpaceKind, string> = {
   unvstous: "⚔️",
 };
 const KIND_NAMES: Record<SpaceKind, string> = {
-  depart: "Départ : une carte offerte",
+  depart: "Départ : une carte de transport offerte",
   destination: "Destination",
-  boutique: "Boutique : acheter des cartes",
-  aeroport: "Aéroport : s'envoler (5 pièces)",
-  port: "Port : traverser (5 pièces)",
-  gare: "Gare : une carte Train",
+  boutique: "Boutique : acheter des cartes de transport",
+  aeroport: "Aéroport : s'envoler ailleurs (5 pièces)",
+  port: "Port : traverser l'océan (5 pièces)",
+  gare: "Gare : une carte Train offerte",
   boulot: "Petit boulot : 1 à 10 pièces",
   surprise: "Surprise !",
-  unvstous: "1 contre tous",
+  unvstous: "1 contre tous : mini-jeu seul contre les autres",
 };
 
-/** Continents, très simplifiés (longitude, latitude). */
-const CONTINENTS: [number, number][][] = [
-  [[-165, 65], [-140, 70], [-95, 72], [-75, 62], [-55, 50], [-80, 25], [-97, 17], [-105, 22], [-125, 40], [-125, 50], [-150, 58]],
-  [[-80, 10], [-60, 10], [-35, -7], [-40, -22], [-55, -35], [-70, -53], [-75, -40], [-80, -5]],
-  [[-45, 60], [-20, 72], [-35, 80], [-60, 78]],
-  [[-10, 36], [-9, 44], [-5, 48], [5, 60], [20, 70], [40, 68], [40, 45], [28, 40], [15, 38], [0, 38]],
-  [[-17, 15], [-10, 30], [10, 37], [32, 31], [43, 12], [51, 12], [40, -5], [35, -25], [20, -35], [13, -20], [9, 4], [-8, 5]],
-  [[40, 68], [70, 72], [110, 76], [140, 70], [170, 66], [140, 50], [130, 35], [122, 25], [108, 10], [100, 2], [95, 15], [80, 8], [72, 20], [60, 25], [48, 28], [40, 45]],
-  [[114, -22], [130, -12], [142, -11], [153, -27], [146, -39], [135, -35], [115, -34]],
-  [[44, -25], [47, -14], [50, -15], [48, -25]],
-  [[130, 31], [136, 34], [141, 41], [142, 38], [138, 33]],
+/** Continents, très simplifiés (positions sur la carte stylisée 1000 × 560). */
+const CONTINENTS: string[] = [
+  "40,90 150,60 330,50 360,110 300,170 250,250 230,320 180,300 140,240 70,200 40,140",
+  "300,330 380,330 430,380 400,460 360,530 320,500 310,420",
+  "350,20 430,15 420,60 360,70",
+  "430,70 520,40 640,50 650,140 600,170 520,160 450,150",
+  "400,180 520,170 640,190 670,260 650,330 620,470 560,480 520,380 470,290 400,260",
+  "640,50 820,40 980,70 990,170 920,200 860,260 800,300 760,280 700,280 660,200",
+  "800,320 860,330 830,360",
+  "800,400 900,390 960,430 940,500 860,500 800,470",
+  "640,380 670,400 660,450 630,445",
 ];
-const project = ([lon, lat]: [number, number]) => `${(((lon + 180) / 360) * 1000).toFixed(0)},${((80 - lat) * 4).toFixed(0)}`;
-
-function walk(from: number, steps: number, dir: 1 | -1): number[] {
-  return Array.from({ length: steps }, (_, i) => (((from + dir * (i + 1)) % GLOBE_SIZE) + GLOBE_SIZE) % GLOBE_SIZE);
-}
 
 function spaceName(map: GlobeSpace[], id: number): string {
   const s = map[id]!;
@@ -66,15 +61,16 @@ function spaceName(map: GlobeSpace[], id: number): string {
   return `${ICONS[s.kind]} près de ${DESTINATIONS[best]!.name}`;
 }
 
-/** Mode « Tour du monde » : la carte, les destinations à la une, la main de cartes. */
+/** Mode « Tour du monde » : la carte en réseau, le voyage à thème, la rangée de cartes. */
 export class GlobeView {
   private readonly el: HTMLElement;
   private readonly map = document.createElementNS(NS, "svg") as SVGSVGElement;
   private readonly pawnLayer = document.createElementNS(NS, "g");
-  private readonly previewLayer = document.createElementNS(NS, "g");
+  private readonly optionLayer = document.createElementNS(NS, "g");
   private readonly hotLayer = document.createElementNS(NS, "g");
   private readonly banner = h("div", { class: "bv-banner globe__banner" });
   private readonly text = h("p", { class: "wheel__result globe__text", attrs: { "aria-live": "polite" } });
+  private readonly row = h("div", { class: "globe__row-cards" });
   private readonly controls = h("div", { class: "bv-controls globe__controls" });
   private readonly hot = h("div", { class: "globe__hot" });
   private readonly table = h("div", {});
@@ -85,19 +81,18 @@ export class GlobeView {
   private anim: { id: string; path: number[]; start: number } | null = null;
   private shownMove = -1;
   private pawns = new Map<string, SVGGElement>();
-  private selected: number | null | undefined = undefined;
-  private taxiSteps = 0;
+  private taxi: { index: number; steps: number } | null = null;
   private stop: () => void;
 
   constructor(root: HTMLElement, private readonly layout: ViewLayout, private readonly meId: string | null) {
     this.map.setAttribute("viewBox", "0 0 1000 560");
     this.map.setAttribute("class", "globe__map");
     this.map.setAttribute("role", "img");
-    this.map.setAttribute("aria-label", "Carte du monde et trajet");
+    this.map.setAttribute("aria-label", "Carte du monde et chemins");
     this.el = h(
       "section",
       { class: `globe globe--${layout}` },
-      h("div", { class: "globe__main" }, this.banner, h("div", { class: "globe__map-box" }, this.map), this.text),
+      h("div", { class: "globe__main" }, this.banner, h("div", { class: "globe__map-box" }, this.map), this.row, this.text),
       h("aside", { class: "bv-side" }, this.hot, this.controls, this.table),
     );
     root.append(this.el);
@@ -117,16 +112,15 @@ export class GlobeView {
     const turn = g.turn;
     if (turn && turn.moveId !== this.shownMove) {
       this.shownMove = turn.moveId;
-      if (turn.path.length > 1 || (turn.path.length === 1 && this.shown.has(turn.playerId))) {
-        this.anim = { id: turn.playerId, path: turn.path, start: performance.now() };
-      }
+      if (turn.path.length && this.shown.has(turn.playerId)) this.anim = { id: turn.playerId, path: turn.path, start: performance.now() };
     }
     for (const [id, pos] of Object.entries(g.positions)) if (!this.anim || this.anim.id !== id) this.shown.set(id, pos);
-    if (turn?.choice?.type !== "card") this.selected = undefined;
+    if (turn?.choice?.type !== "card") this.taxi = null;
     this.renderHot(g);
     this.renderBanner(g, room.players);
+    this.renderRow(g);
     this.renderControls(g);
-    this.renderPreview(g);
+    this.renderOptions(g);
     clear(this.table);
     this.table.append(
       scoreTable(room.players, g.order, (id) => (g.photos[id]?.length ?? 0) * 10000 + (g.coins[id] ?? 0), (id) => `📷 ${g.photos[id]?.length ?? 0} · 🪙 ${g.coins[id] ?? 0}`, { meId: this.meId, highlight: turn?.playerId ?? null }),
@@ -135,21 +129,23 @@ export class GlobeView {
 
   private buildMap(g: GlobeState): void {
     this.builtMap = true;
-    const ring = g.map.map((s) => `${s.x},${s.y}`).join(" ");
+    const edges: string[] = [];
+    for (const s of g.map) for (const n of s.next) if (n > s.id) edges.push(`<line x1="${s.x}" y1="${s.y}" x2="${g.map[n]!.x}" y2="${g.map[n]!.y}"/>`);
     this.map.innerHTML = `<rect width="1000" height="560" fill="#5eb8f2"/>
-      ${CONTINENTS.map((c) => `<polygon points="${c.map(project).join(" ")}" fill="#9be07a" stroke="#6cbf55" stroke-width="3" stroke-linejoin="round"/>`).join("")}
-      <polygon points="${ring}" fill="none" stroke="#ffffff" stroke-width="7" stroke-dasharray="2 12" stroke-linecap="round" opacity="0.9"/>
+      ${CONTINENTS.map((c) => `<polygon points="${c}" fill="#9be07a" stroke="#6cbf55" stroke-width="3" stroke-linejoin="round"/>`).join("")}
+      <g stroke="#ffffff" stroke-width="6" stroke-linecap="round" opacity="0.9">${edges.join("")}</g>
       ${g.map
         .map((s) => {
           const dest = s.destination !== undefined;
           return `<g transform="translate(${s.x} ${s.y})"><title>${dest ? DESTINATIONS[s.destination!]!.name : KIND_NAMES[s.kind]}</title>
-            <circle r="${dest ? 17 : 12}" fill="${dest ? "#ffffff" : "#1e2a4a"}" stroke="${dest ? "#1e2a4a" : "#ffffff"}" stroke-width="3"/>
+            <circle r="${dest ? 17 : 13}" fill="${dest ? "#ffffff" : "#1e2a4a"}" stroke="${dest ? "#1e2a4a" : "#ffffff"}" stroke-width="3"/>
             <text y="${dest ? 7 : 5}" text-anchor="middle" font-size="${dest ? 18 : 13}">${dest ? DESTINATIONS[s.destination!]!.flag : ICONS[s.kind]}</text></g>`;
         })
         .join("")}`;
-    this.map.append(this.hotLayer, this.previewLayer, this.pawnLayer);
+    this.map.append(this.hotLayer, this.optionLayer, this.pawnLayer);
   }
 
+  /** Voyage à thème : les 3 destinations, et la distance qui m'en sépare (ou le joueur dont c'est le tour). */
   private renderHot(g: GlobeState): void {
     this.hotLayer.innerHTML = g.hotspots
       .map((hs) => {
@@ -157,12 +153,20 @@ export class GlobeView {
         return `<g transform="translate(${s.x} ${s.y})" class="globe__hotspot"><circle r="26" fill="none" stroke="#ffc83d" stroke-width="6"/><text y="-32" text-anchor="middle" font-size="22">📷</text></g>`;
       })
       .join("");
+    const who = this.meId && g.positions[this.meId] !== undefined ? this.meId : g.turn?.playerId;
+    const dist = who !== undefined ? globeDistances(g.positions[who]!, g.map) : null;
     clear(this.hot);
     this.hot.append(
-      h("p", { class: "globe__hot-title", text: `À la une · photo ${PHOTO_PRICE} pièces` }),
+      h("p", { class: "globe__hot-title", text: `Voyage n° ${g.trip} · photo ${PHOTO_PRICE} pièces` }),
       ...g.hotspots.map((hs) => {
         const d = DESTINATIONS[g.map[hs.space]!.destination!]!;
-        return h("div", { class: "globe__hot-item" }, h("span", { class: "globe__flag", text: d.flag }), h("span", {}, h("strong", { text: d.name }), h("small", { text: d.photos[hs.photo] })));
+        return h(
+          "div",
+          { class: "globe__hot-item" },
+          h("span", { class: "globe__flag", text: d.flag }),
+          h("span", { class: "globe__hot-name" }, h("strong", { text: d.name }), h("small", { text: d.photos[hs.photo] })),
+          dist ? h("span", { class: "globe__dist", text: `${dist[hs.space]} case${dist[hs.space]! > 1 ? "s" : ""}` }) : null,
+        );
       }),
     );
   }
@@ -178,12 +182,29 @@ export class GlobeView {
     } else this.banner.append(h("strong", { text: g.round === 0 ? "Bon voyage !" : "Nouveau tour !" }));
     const name = p?.name ?? "";
     let text = "";
-    if (!turn) text = g.round === 0 ? "Tout le monde part de Paris avec 10 pièces. Achète les photos des destinations à la une !" : "";
-    else if (turn.spin && turn.text?.endsWith("…")) text = `${name} ${turn.text}`;
+    if (!turn) text = g.round === 0 ? "Tout le monde part de Paris avec 10 pièces. Visite les destinations du voyage pour leurs photos-souvenirs !" : "";
     else if (turn.text) text = `${name} ${turn.text}`;
-    else if (turn.choice?.type === "card") text = p?.id === this.meId ? "Choisis une carte de transport et une direction." : `${name} choisit sa carte de transport…`;
+    else if (turn.choice?.type === "card") text = p?.id === this.meId ? "Retourne une carte de la rangée, ou joue une carte de transport." : `${name} choisit une carte…`;
     this.text.textContent = text;
     this.text.classList.toggle("is-on", Boolean(text));
+  }
+
+  /** Rangée commune de cartes face cachée ; la carte retournée montre sa valeur. */
+  private renderRow(g: GlobeState): void {
+    clear(this.row);
+    const turn = g.turn;
+    const mine = turn?.playerId === this.meId && turn?.choice?.type === "card";
+    for (let i = 0; i < g.row; i++) {
+      const revealed = turn?.reveal?.slot === i ? turn.reveal.value : null;
+      this.row.append(
+        h("button", {
+          class: `globe__face${revealed !== null ? " is-revealed" : ""}`,
+          attrs: { type: "button", disabled: !mine || undefined, "aria-label": revealed !== null ? `Carte retournée : ${revealed}` : `Carte face cachée ${i + 1}` },
+          text: revealed !== null ? String(revealed) : "?",
+          on: { click: () => void sendAction({ type: "draw", slot: i }) },
+        }),
+      );
+    }
   }
 
   private renderControls(g: GlobeState): void {
@@ -192,16 +213,16 @@ export class GlobeView {
     if (!turn || !this.meId || this.layout === "tv") return;
     const hand = g.hands[this.meId] ?? [];
     const mine = turn.playerId === this.meId;
+    const canPlay = mine && turn.choice?.type === "card";
     const handView = h("div", { class: "globe__hand" });
-    // Ma main est toujours visible (même hors de mon tour).
     hand.forEach((card, i) =>
       handView.append(
         h(
           "button",
           {
-            class: `globe__card${this.selected === i ? " is-selected" : ""}`,
-            attrs: { type: "button", disabled: !(mine && turn.choice?.type === "card") || undefined, title: CARD_INFO[card.kind].help },
-            on: { click: () => this.select(g, i, card) },
+            class: `globe__card${this.taxi?.index === i ? " is-selected" : ""}`,
+            attrs: { type: "button", disabled: !canPlay || undefined, title: CARD_INFO[card.kind].help },
+            on: { click: () => this.playCard(g, i, card) },
           },
           h("span", { class: "globe__card-icon", text: CARD_INFO[card.kind].icon }),
           h("strong", { text: cardLabel(card) }),
@@ -209,8 +230,8 @@ export class GlobeView {
         ),
       ),
     );
-    if (!hand.length) handView.append(h("p", { class: "muted", text: "Plus de cartes : tu iras à pied (1 à 3 cases)." }));
-    this.controls.append(h("p", { class: "globe__hot-title", text: "Mes cartes" }), handView);
+    if (!hand.length) handView.append(h("p", { class: "muted", text: "Aucune carte de transport : achète-en en boutique, ou passe par une gare." }));
+    this.controls.append(h("p", { class: "globe__hot-title", text: "Mes cartes de transport" }), handView);
     if (!mine || !turn.choice) {
       if (!mine && this.layout === "pad") this.controls.append(h("p", { class: "bv-wait", text: "Regarde l'écran commun !" }));
       return;
@@ -218,32 +239,19 @@ export class GlobeView {
     const choice = turn.choice;
     const box = h("div", { class: "globe__choice" });
     if (choice.type === "card") {
-      const card = this.selected === undefined ? undefined : this.selected === null ? null : hand[this.selected];
-      if (!hand.length && this.selected === undefined) this.selected = null;
-      const pickedNoCard = this.selected === null;
-      if (card === undefined && !pickedNoCard) box.append(h("p", { class: "bv-wait", text: "Choisis une carte." }));
-      else if (card && (card.kind === "avion" || card.kind === "super")) {
-        box.append(h("button", { class: "btn btn--go", attrs: { type: "button" }, text: card.kind === "avion" ? "Prendre l'avion" : "Partir en Super voyage", on: { click: () => void this.play(1) } }));
-      } else {
-        if (card?.kind === "taxi") {
-          box.append(
-            h("p", { class: "bv-wait", text: "Combien de cases ?" }),
-            h("div", { class: "globe__row" }, ...[1, 2, 3].map((n) => h("button", { class: `btn ${this.taxiSteps === n ? "btn--go" : "btn--ghost"}`, attrs: { type: "button" }, text: String(n), on: { click: () => ((this.taxiSteps = n), this.renderControls(g), this.renderPreview(g)) } }))),
-          );
-        }
-        if (card?.kind !== "taxi" || this.taxiSteps) {
-          box.append(
-            h("p", { class: "bv-wait", text: pickedNoCard ? "À pied : dans quelle direction ?" : "Dans quelle direction ?" }),
-            h(
-              "div",
-              { class: "globe__row" },
-              h("button", { class: "btn btn--go", attrs: { type: "button" }, text: "◀ Ouest", on: { click: () => void this.play(-1) } }),
-              h("button", { class: "btn btn--go", attrs: { type: "button" }, text: "Est ▶", on: { click: () => void this.play(1) } }),
-            ),
-          );
-        }
-      }
-      if (card?.kind === "super" && (g.coins[this.meId] ?? 0) < PHOTO_PRICE) box.append(h("p", { class: "form-error", text: "Il faut 10 pièces pour la photo." }));
+      if (this.taxi) {
+        box.append(
+          h("p", { class: "bv-wait", text: "Taxi : combien de cases ?" }),
+          h(
+            "div",
+            { class: "globe__row" },
+            ...[1, 2, 3].map((n) => h("button", { class: "btn btn--go", attrs: { type: "button" }, text: String(n), on: { click: () => void sendAction({ type: "card", index: this.taxi!.index, steps: n }) } })),
+          ),
+        );
+      } else box.append(h("p", { class: "bv-wait", text: "Retourne une des cartes sous la carte (ou joue une carte de transport)." }));
+    } else if (choice.type === "move") {
+      box.append(h("p", { class: "bv-wait", text: "Touche une case en jaune sur la carte, ou choisis :" }));
+      for (const space of choice.options) box.append(h("button", { class: "btn btn--ghost btn--small", attrs: { type: "button" }, text: spaceName(g.map, space), on: { click: () => void sendAction({ type: "move", space }) } }));
     } else if (choice.type === "airport" || choice.type === "port" || choice.type === "super") {
       box.append(h("p", { class: "bv-wait", text: choice.type === "super" ? "Quelle destination ?" : choice.type === "airport" ? `Quel aéroport ?${choice.fee ? ` (${choice.fee} pièces)` : ""}` : `Quel port ? (${choice.fee} pièces)` }));
       for (const space of choice.options) box.append(h("button", { class: "btn btn--go", attrs: { type: "button" }, text: spaceName(g.map, space), on: { click: () => void sendAction({ type: "travel", space }) } }));
@@ -268,45 +276,38 @@ export class GlobeView {
     this.controls.append(box);
   }
 
-  private select(g: GlobeState, index: number, _card: TravelCard): void {
-    this.selected = index;
-    this.taxiSteps = 0;
-    this.renderControls(g);
-    this.renderPreview(g);
+  private playCard(g: GlobeState, index: number, card: TravelCard): void {
+    if (card.kind === "taxi") {
+      this.taxi = { index, steps: 0 };
+      this.renderControls(g);
+      return;
+    }
+    if (card.kind === "super" && (g.coins[this.meId!] ?? 0) < PHOTO_PRICE) return;
+    void sendAction({ type: "card", index });
   }
 
-  private async play(dir: 1 | -1): Promise<void> {
-    const g = this.room?.game?.globe;
-    if (!g) return;
-    const card = this.selected === null || this.selected === undefined ? null : g.hands[this.meId!]![this.selected];
-    await sendAction({ type: "card", index: this.selected ?? null, dir, ...(card?.kind === "taxi" ? { steps: this.taxiSteps } : {}) });
-    this.selected = undefined;
-    this.taxiSteps = 0;
-  }
-
-  /** Aperçu des deux trajets possibles pour la carte choisie. */
-  private renderPreview(g: GlobeState): void {
-    this.previewLayer.innerHTML = "";
+  /** Cases d'arrivée possibles : en jaune et cliquables sur la carte. */
+  private renderOptions(g: GlobeState): void {
+    this.optionLayer.innerHTML = "";
     const turn = g.turn;
-    if (!turn || turn.playerId !== this.meId || turn.choice?.type !== "card" || this.selected === undefined) return;
-    const card = this.selected === null ? null : g.hands[this.meId]![this.selected];
-    const steps = card === null ? 0 : card?.kind === "train" || card?.kind === "helico" ? card.value ?? 8 : card?.kind === "taxi" ? this.taxiSteps : 0;
-    if (!steps) return;
-    const pos = g.positions[this.meId]!;
-    this.previewLayer.innerHTML = ([1, -1] as const)
-      .map((dir) => {
-        const path = [pos, ...walk(pos, steps, dir)].map((id) => `${g.map[id]!.x},${g.map[id]!.y}`).join(" ");
-        const end = g.map[walk(pos, steps, dir).at(-1)!]!;
-        return `<polyline points="${path}" fill="none" stroke="#ffc83d" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.8"/><circle cx="${end.x}" cy="${end.y}" r="22" fill="none" stroke="#ffc83d" stroke-width="5"/>`;
-      })
-      .join("");
+    if (!turn || turn.choice?.type !== "move") return;
+    const mine = turn.playerId === this.meId;
+    for (const space of turn.choice.options) {
+      const s = g.map[space]!;
+      const ring = document.createElementNS(NS, "circle");
+      ring.setAttribute("cx", String(s.x));
+      ring.setAttribute("cy", String(s.y));
+      ring.setAttribute("r", "22");
+      ring.setAttribute("class", `globe__option${mine ? " is-mine" : ""}`);
+      if (mine) ring.addEventListener("click", () => void sendAction({ type: "move", space }));
+      this.optionLayer.append(ring);
+    }
   }
 
   private tick(): void {
     const room = this.room;
     const g = room?.game?.globe;
     if (!room || !g) return;
-    // Animation du déplacement en cours.
     if (this.anim) {
       const k = Math.floor((performance.now() - this.anim.start) / STEP_MS);
       if (k >= this.anim.path.length - 1) {

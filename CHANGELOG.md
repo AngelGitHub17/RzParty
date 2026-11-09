@@ -3,6 +3,12 @@
 Chaque version commence par « ## numéro — date ». La page de présentation et les serveurs
 locaux lisent ce fichier : pense à augmenter la version dans package.json à chaque publication.
 
+## 0.7.0 — 9 novembre 2026
+- Tour du monde refait d'après le mode d'origine : la carte devient un réseau de chemins avec embranchements.
+- Déplacement : on retourne une carte face cachée de la rangée commune (1 à 6) et on choisit sa case d'arrivée parmi celles en surbrillance.
+- Voyage à thème de 3 destinations, avec la distance jusqu'à chacune toujours affichée ; un nouveau voyage commence quand les trois sont visitées.
+- Les cartes de transport (Train, Taxi, Hélico, Avion…) s'achètent en boutique ou s'obtiennent en gare, et remplacent la carte de la rangée.
+
 ## 0.6.0 — 9 novembre 2026
 - Nouveau mode Tour du monde : une carte du monde en boucle, 12 destinations, des cartes de transport et des photos-souvenirs à acheter.
 - Mini-jeu de début de tour (10, 5, 3, 1 pièce et ordre de passage), boutiques, gares, aéroports, ports, petits boulots, surprises et 1 contre tous.

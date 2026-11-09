@@ -1,6 +1,6 @@
 import {
-  CARD_INFO, DESTINATIONS, ERRORS, GLOBE_HAND_MAX, GLOBE_MAP, GLOBE_SIZE, GLOBE_START_COINS, ORDER_COINS, PHOTO_PRICE,
-  SURPRISES, TRAVEL_FEE, cardLabel,
+  CARD_INFO, DESTINATIONS, ERRORS, GLOBE_HAND_MAX, GLOBE_MAP, GLOBE_ROW, GLOBE_SIZE, GLOBE_START_COINS, ORDER_COINS, PHOTO_PRICE,
+  ROW_VALUES, SURPRISES, TRAVEL_FEE, cardLabel, globeDistances, globeReachable,
   type GameSnapshot, type GlobeChoice, type GlobePhoto, type GlobeTurn, type RoundResult, type Standing, type SurpriseKind, type TravelCard,
 } from "@rzparty/shared";
 import { RoomError } from "../../rooms/RoomManager.ts";
@@ -11,6 +11,7 @@ export const GLOBE_TIMINGS = {
   intro: 3500,
   /** Durée d'une case pendant un déplacement (animation). */
   step: 320,
+  reveal: 1500,
   spin: 2400,
   result: 2600,
   cardTimeout: 30_000,
@@ -22,31 +23,28 @@ const MAX_OVERTIME = 10;
 const AIRPORTS = GLOBE_MAP.filter((s) => s.kind === "aeroport").map((s) => s.id);
 const PORTS = GLOBE_MAP.filter((s) => s.kind === "port").map((s) => s.id);
 const DESTINATION_SPACES = GLOBE_MAP.filter((s) => s.kind === "destination").map((s) => s.id);
+/** Distances entre toutes les cases (calculées une fois). */
+const DIST = GLOBE_MAP.map((s) => globeDistances(s.id));
 
-/** Distance (en cases) entre deux cases de la boucle. */
-export function ringDistance(a: number, b: number): number {
-  const d = Math.abs(a - b) % GLOBE_SIZE;
-  return Math.min(d, GLOBE_SIZE - d);
-}
-
-/** Cases traversées en avançant de `steps` dans la direction `dir`. */
-export function walk(from: number, steps: number, dir: 1 | -1): number[] {
-  return Array.from({ length: steps }, (_, i) => (((from + dir * (i + 1)) % GLOBE_SIZE) + GLOBE_SIZE) % GLOBE_SIZE);
+export function globeDistance(a: number, b: number): number {
+  return DIST[a]![b]!;
 }
 
 type Pending =
   | { kind: "card" }
+  | { kind: "move"; steps: number; options: Map<number, number[]>; label: string }
   | { kind: "airport" | "port"; options: number[]; fee: number }
   | { kind: "shop"; offers: TravelCard[] }
   | { kind: "super"; options: number[] };
 
 /**
  * Mode « Tour du monde » : chacun part de Paris avec 10 pièces. Chaque tour commence par un
- * mini-jeu qui rapporte des pièces (10/5/3/1) et fixe l'ordre de passage. À son tour, on joue
- * une carte de transport (ou on marche si la main est vide). Passer ou s'arrêter sur une
- * destination à la une permet d'acheter sa photo-souvenir (10 pièces). Boutiques, gares,
- * aéroports, ports, petits boulots, surprises et 1 contre tous jalonnent la route.
- * Après les tours prévus, prolongations : la première photo achetée termine la partie.
+ * mini-jeu qui rapporte des pièces (10/5/3/1) et fixe l'ordre de passage. À son tour, on retourne
+ * une des 5 cartes face cachée de la rangée commune (ou on joue une carte de transport achetée)
+ * et on choisit sa case d'arrivée parmi celles situées à exactement ce nombre de cases, sur un
+ * réseau de chemins avec embranchements. Un voyage à thème propose 3 destinations : passer par
+ * l'une d'elles avec 10 pièces rapporte sa photo-souvenir. Quand les 3 sont visitées, un nouveau
+ * voyage commence. Après les tours prévus, prolongations : la première photo termine la partie.
  */
 export class GlobeGame extends BaseGame {
   protected readonly mode = "voyage" as const;
@@ -55,6 +53,9 @@ export class GlobeGame extends BaseGame {
   private hands = new Map<string, TravelCard[]>();
   private photos = new Map<string, GlobePhoto[]>();
   private hotspots: { space: number; photo: number }[] = [];
+  /** Rangée commune : valeurs cachées des cartes. */
+  private row: number[] = [];
+  private trip = 0;
   private order: string[];
   private globeRound = 0;
   private overtime = 0;
@@ -76,10 +77,11 @@ export class GlobeGame extends BaseGame {
     for (const p of host.room.players) {
       this.positions.set(p.id, 0);
       this.coins.set(p.id, GLOBE_START_COINS);
-      this.hands.set(p.id, [{ kind: "train", value: 5 }, this.randomCard()]);
+      this.hands.set(p.id, []);
       this.photos.set(p.id, []);
     }
     this.order = [...this.positions.keys()];
+    while (this.row.length < GLOBE_ROW) this.row.push(this.drawValue());
     this.refreshHotspots();
   }
 
@@ -101,6 +103,8 @@ export class GlobeGame extends BaseGame {
         hands: Object.fromEntries([...this.hands].map(([id, h]) => [id, h.map((c) => ({ ...c }))])),
         photos: Object.fromEntries([...this.photos].map(([id, p]) => [id, p.map((x) => ({ ...x }))])),
         hotspots: this.hotspots.map((h) => ({ ...h })),
+        row: this.row.length,
+        trip: this.trip,
         order: [...this.order],
         turn: this.turn ? structuredClone(this.turn) : null,
         round: this.globeRound,
@@ -132,6 +136,10 @@ export class GlobeGame extends BaseGame {
     return after - before;
   }
 
+  private drawValue(): number {
+    return ROW_VALUES[Math.floor(this.host.random() * ROW_VALUES.length)]!;
+  }
+
   private randomCard(): TravelCard {
     const r = this.host.random();
     if (r < 0.4) return { kind: "train", value: 4 + Math.floor(this.host.random() * 3) };
@@ -149,8 +157,9 @@ export class GlobeGame extends BaseGame {
     return true;
   }
 
-  /** Trois nouvelles destinations à la une, chacune avec une photo pas encore prise. */
+  /** Nouveau voyage à thème : trois destinations, chacune avec une photo pas encore prise. */
   private refreshHotspots(): void {
+    this.trip++;
     const occupied = new Set(this.positions.values());
     const pool = DESTINATION_SPACES.filter((s) => !occupied.has(s)).sort(() => this.host.random() - 0.5);
     this.hotspots = pool.slice(0, 3).map((space) => {
@@ -200,11 +209,13 @@ export class GlobeGame extends BaseGame {
     const choice: GlobeChoice =
       pending.kind === "card"
         ? { type: "card" }
-        : pending.kind === "shop"
-          ? { type: "shop", offers: pending.offers }
-          : pending.kind === "super"
-            ? { type: "super", options: pending.options }
-            : { type: pending.kind === "airport" ? "airport" : "port", options: pending.options, fee: pending.fee };
+        : pending.kind === "move"
+          ? { type: "move", steps: pending.steps, options: [...pending.options.keys()] }
+          : pending.kind === "shop"
+            ? { type: "shop", offers: pending.offers }
+            : pending.kind === "super"
+              ? { type: "super", options: pending.options }
+              : { type: pending.kind === "airport" ? "airport" : "port", options: pending.options, fee: pending.fee };
     turn.choice = choice;
     const bot = this.isBotOrAway(turn.playerId);
     const wait = bot ? GLOBE_TIMINGS.botThink : pending.kind === "card" ? GLOBE_TIMINGS.cardTimeout : GLOBE_TIMINGS.choiceTimeout;
@@ -214,20 +225,29 @@ export class GlobeGame extends BaseGame {
   }
 
   action(playerId: string, raw: unknown): void {
-    const a = raw as { type?: unknown; index?: unknown; dir?: unknown; steps?: unknown; space?: unknown } | null;
+    const a = raw as { type?: unknown; index?: unknown; slot?: unknown; steps?: unknown; space?: unknown } | null;
     const turn = this.turn;
     const pending = this.pending;
     if (this.stage !== "globe" || !turn || !pending || turn.playerId !== playerId || !a) throw new RoomError(ERRORS.notYourTurn);
+    const int = (v: unknown, max: number) => (Number.isInteger(v) && (v as number) >= 0 && (v as number) < max ? (v as number) : undefined);
+    if (pending.kind === "card" && a.type === "draw") {
+      const slot = int(a.slot, this.row.length);
+      if (slot === undefined) throw new RoomError(ERRORS.badRequest);
+      return this.draw(slot);
+    }
     if (pending.kind === "card" && a.type === "card") {
       const hand = this.hands.get(playerId)!;
-      const index = a.index === null ? null : Number.isInteger(a.index) && (a.index as number) >= 0 && (a.index as number) < hand.length ? (a.index as number) : undefined;
-      if (index === undefined || (index === null && hand.length > 0)) throw new RoomError(ERRORS.badRequest);
-      if (a.dir !== 1 && a.dir !== -1) throw new RoomError(ERRORS.badRequest);
-      const card = index === null ? null : hand[index]!;
+      const index = int(a.index, hand.length);
+      if (index === undefined) throw new RoomError(ERRORS.badRequest);
+      const card = hand[index]!;
       const steps = Number(a.steps);
-      if (card?.kind === "taxi" && !(steps >= 1 && steps <= 3 && Number.isInteger(steps))) throw new RoomError(ERRORS.badRequest);
-      if (card?.kind === "super" && (this.coins.get(playerId) ?? 0) < PHOTO_PRICE) throw new RoomError("Il te faut 10 pièces pour la photo !");
-      return this.playCard(index, a.dir, card?.kind === "taxi" ? steps : undefined);
+      if (card.kind === "taxi" && !(Number.isInteger(steps) && steps >= 1 && steps <= 3)) throw new RoomError(ERRORS.badRequest);
+      if (card.kind === "super" && (this.coins.get(playerId) ?? 0) < PHOTO_PRICE) throw new RoomError("Il te faut 10 pièces pour la photo !");
+      return this.playCard(index, card.kind === "taxi" ? steps : undefined);
+    }
+    if (pending.kind === "move" && a.type === "move") {
+      if (!pending.options.has(a.space as number)) throw new RoomError(ERRORS.badRequest);
+      return this.moveTo(a.space as number);
     }
     if ((pending.kind === "airport" || pending.kind === "port") && a.type === "travel") {
       if (a.space !== null && !pending.options.includes(a.space as number)) throw new RoomError(ERRORS.badRequest);
@@ -235,7 +255,7 @@ export class GlobeGame extends BaseGame {
     }
     if (pending.kind === "super" && a.type === "travel" && pending.options.includes(a.space as number)) return this.teleport(a.space as number, "🌟 Super voyage");
     if (pending.kind === "shop" && a.type === "shop") {
-      if (a.index !== null && !(Number.isInteger(a.index) && (a.index as number) >= 0 && (a.index as number) < pending.offers.length)) throw new RoomError(ERRORS.badRequest);
+      if (a.index !== null && int(a.index, pending.offers.length) === undefined) throw new RoomError(ERRORS.badRequest);
       return this.buy(a.index as number | null);
     }
     throw new RoomError(ERRORS.badRequest);
@@ -243,16 +263,20 @@ export class GlobeGame extends BaseGame {
 
   // ───────────── Décisions des bots (et choix automatiques) ─────────────
 
-  /** Valeur d'une case d'arrivée : près d'une destination à la une, c'est mieux. */
-  private spotValue(id: string, path: number[]): number {
+  /** Distance de la case à la destination à la une la plus proche. */
+  private nearHot(space: number): number {
+    return Math.min(...this.hotspots.map((h) => globeDistance(space, h.space)), GLOBE_SIZE);
+  }
+
+  /** Valeur d'une arrivée : une photo en chemin, sinon se rapprocher d'une destination à la une. */
+  private pathValue(id: string, path: number[]): number {
     const coins = this.coins.get(id) ?? 0;
     const hot = this.hotspots.map((h) => h.space);
     if (coins >= PHOTO_PRICE && path.some((s) => hot.includes(s))) return 100;
     const end = path.at(-1)!;
-    const near = Math.min(...hot.map((s) => ringDistance(end, s)), GLOBE_SIZE);
     const kind = GLOBE_MAP[end]!.kind;
-    const bonus = kind === "boulot" || kind === "gare" ? 3 : kind === "surprise" ? 1 : kind === "boutique" && coins >= 15 ? 2 : 0;
-    return 40 - near + bonus;
+    const bonus = kind === "boulot" || kind === "gare" ? 3 : kind === "surprise" ? 1 : kind === "boutique" && coins >= 15 ? 2 : kind === "aeroport" && coins >= 5 ? 2 : 0;
+    return 40 - this.nearHot(end) + bonus;
   }
 
   private autoDecide(): void {
@@ -262,32 +286,42 @@ export class GlobeGame extends BaseGame {
     const id = turn.playerId;
     const coins = this.coins.get(id) ?? 0;
     const pos = this.positions.get(id)!;
-    const hot = this.hotspots.map((h) => h.space);
-    const nearest = (spaces: number[]) => [...spaces].sort((a, b) => Math.min(...hot.map((h) => ringDistance(a, h))) - Math.min(...hot.map((h) => ringDistance(b, h))))[0]!;
+    const nearest = (spaces: number[]) => [...spaces].sort((a, b) => this.nearHot(a) - this.nearHot(b))[0]!;
     switch (pending.kind) {
       case "card": {
+        // Une carte de transport vraiment utile (photo à portée), sinon une carte de la rangée.
         const hand = this.hands.get(id)!;
-        let best: { score: number; index: number | null; dir: 1 | -1; steps?: number } = { score: -1e9, index: null, dir: 1 };
-        const consider = (score: number, index: number | null, dir: 1 | -1, steps?: number) => {
-          if (score > best.score) best = { score, index, dir, steps };
-        };
-        if (!hand.length) for (const dir of [1, -1] as const) consider(this.spotValue(id, walk(pos, 2, dir)), null, dir);
+        let best: { score: number; index: number; steps?: number } | null = null;
+        const best3 = (n: number) => Math.max(...[...globeReachable(pos, n).values()].map((p) => this.pathValue(id, p)));
         hand.forEach((card, i) => {
-          for (const dir of [1, -1] as const) {
-            if (card.kind === "taxi") for (const n of [1, 2, 3]) consider(this.spotValue(id, walk(pos, n, dir)) - 3, i, dir, n);
-            else if (card.kind === "train" || card.kind === "helico") consider(this.spotValue(id, walk(pos, card.value ?? 8, dir)), i, dir);
-            else if (card.kind === "montgolfiere") consider((this.spotValue(id, walk(pos, 5, dir)) + this.spotValue(id, walk(pos, 6, dir))) / 2 - 4, i, dir);
-            else if (card.kind === "avion") consider(dir === 1 ? 40 - Math.min(...hot.map((h) => ringDistance(nearest(AIRPORTS), h))) - 2 : -1e9, i, 1);
-            else if (card.kind === "super") consider(coins >= PHOTO_PRICE && dir === 1 ? 120 : -1e9, i, 1);
+          let score = -1e9;
+          let steps: number | undefined;
+          if (card.kind === "train" || card.kind === "helico") score = best3(card.value ?? 8);
+          else if (card.kind === "taxi") {
+            for (const n of [1, 2, 3]) if (best3(n) > score) (score = best3(n)), (steps = n);
           }
+          else if (card.kind === "avion") score = 40 - this.nearHot(nearest(AIRPORTS)) - 2;
+          else if (card.kind === "super") score = coins >= PHOTO_PRICE ? 120 : -1e9;
+          if (!best || score > best.score) best = { score, index: i, steps };
         });
-        return this.playCard(best.index, best.dir, best.steps);
+        const chosen = best as { score: number; index: number; steps?: number } | null;
+        if (chosen && chosen.score >= 100) return this.playCard(chosen.index, chosen.steps);
+        return this.draw(Math.floor(this.host.random() * this.row.length));
+      }
+      case "move": {
+        let target = [...pending.options.keys()][0]!;
+        let score = -1e9;
+        for (const [space, path] of pending.options) {
+          const v = this.pathValue(id, path) + this.host.random() * 0.5;
+          if (v > score) (score = v), (target = space);
+        }
+        return this.moveTo(target);
       }
       case "airport":
       case "port": {
-        const here = Math.min(...hot.map((h) => ringDistance(pos, h)));
+        const here = this.nearHot(pos);
         const target = nearest(pending.options);
-        const there = Math.min(...hot.map((h) => ringDistance(target, h)));
+        const there = this.nearHot(target);
         // Avion (carte déjà payée) : on part toujours, vers l'aéroport le plus utile.
         if (pending.fee === 0) return this.travel(target, pending.kind, 0);
         const worth = this.isBotOrAway(id) && coins >= pending.fee && there + 4 < here && (coins - pending.fee >= PHOTO_PRICE || coins < PHOTO_PRICE);
@@ -310,31 +344,51 @@ export class GlobeGame extends BaseGame {
 
   // ───────────── Déplacements ─────────────
 
-  private playCard(index: number | null, dir: 1 | -1, steps?: number): void {
+  /** Retourne une carte de la rangée : elle est remplacée, et on choisit sa case d'arrivée. */
+  private draw(slot: number): void {
+    const turn = this.turn!;
+    const value = this.row[slot]!;
+    this.row[slot] = this.drawValue();
+    turn.choice = null;
+    turn.endsAt = null;
+    this.pending = null;
+    turn.reveal = { slot, value };
+    turn.text = `retourne une carte : ${value} case${value > 1 ? "s" : ""} !`;
+    this.setStage("globe", GLOBE_TIMINGS.reveal);
+    this.goTo(GLOBE_TIMINGS.reveal, () => this.askMove(value, `avance de ${value} case${value > 1 ? "s" : ""}.`));
+  }
+
+  /** Propose les cases à exactement `steps` cases. */
+  private askMove(steps: number, label: string, maxSteps = steps): void {
+    const turn = this.turn!;
+    const pos = this.positions.get(turn.playerId)!;
+    const options = new Map<number, number[]>();
+    for (let n = steps; n <= maxSteps; n++) for (const [k, v] of globeReachable(pos, n)) if (!options.has(k)) options.set(k, v);
+    turn.text = `choisit sa case d'arrivée (${steps === maxSteps ? steps : `${steps} à ${maxSteps}`} case${maxSteps > 1 ? "s" : ""}).`;
+    this.ask({ kind: "move", steps: maxSteps, options, label });
+  }
+
+  private playCard(index: number, steps?: number): void {
     const turn = this.turn!;
     const id = turn.playerId;
     this.pending = null;
     turn.choice = null;
     turn.endsAt = null;
-    const hand = this.hands.get(id)!;
-    const card = index === null ? null : hand.splice(index, 1)[0]!;
+    turn.reveal = undefined;
+    const card = this.hands.get(id)!.splice(index, 1)[0]!;
     const pos = this.positions.get(id)!;
-    if (!card) {
-      const n = 1 + Math.floor(this.host.random() * 3);
-      return this.move(walk(pos, n, dir), `marche ${n} case${n > 1 ? "s" : ""} (plus de carte en main).`);
-    }
     switch (card.kind) {
       case "train":
       case "helico":
-        return this.move(walk(pos, card.value ?? 8, dir), `prend le ${cardLabel(card).toLowerCase()} : ${card.value} cases.`);
+        return this.askMove(card.value ?? 8, `prend le ${cardLabel(card).toLowerCase()} : ${card.value} cases.`);
       case "taxi":
-        return this.move(walk(pos, steps ?? 1, dir), `prend un taxi : ${steps} case${(steps ?? 1) > 1 ? "s" : ""}.`);
+        return this.askMove(steps ?? 1, `prend un taxi : ${steps} case${(steps ?? 1) > 1 ? "s" : ""}.`);
       case "montgolfiere": {
         const n = 3 + Math.floor(this.host.random() * 6);
         turn.spin = { kind: "montgolfiere", value: n, id: ++this.spinId };
         turn.text = "monte en montgolfière : la roue tourne…";
         this.setStage("globe", GLOBE_TIMINGS.spin);
-        this.goTo(GLOBE_TIMINGS.spin, () => this.move(walk(pos, n, dir), `vole en montgolfière : ${n} cases !`));
+        this.goTo(GLOBE_TIMINGS.spin, () => this.askMove(n, `vole en montgolfière : ${n} cases !`));
         return;
       }
       case "avion":
@@ -346,10 +400,20 @@ export class GlobeGame extends BaseGame {
     }
   }
 
+  private moveTo(space: number): void {
+    const pending = this.pending;
+    if (pending?.kind !== "move") return;
+    const path = pending.options.get(space)!;
+    this.move(path, pending.label);
+  }
+
   /** Avance case par case (animation), achète les photos en passant, puis applique la case d'arrivée. */
   private move(path: number[], text: string): void {
     const turn = this.turn!;
     const id = turn.playerId;
+    this.pending = null;
+    turn.choice = null;
+    turn.endsAt = null;
     turn.path = path;
     turn.moveId = ++this.moveId;
     turn.text = text;
@@ -550,6 +614,7 @@ export class GlobeGame extends BaseGame {
     turn.text = text;
     turn.choice = null;
     turn.spin = undefined;
+    turn.reveal = undefined;
     turn.endsAt = null;
     this.pending = null;
     this.setStage("globe", GLOBE_TIMINGS.result);

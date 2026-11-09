@@ -29,7 +29,9 @@ export type BoardAction =
   | { type: "word"; word: string | null }
   | { type: "vote"; ok: boolean }
   | { type: "pick"; game: string }
-  | { type: "card"; index: number | null; dir: 1 | -1; steps?: number }
+  | { type: "draw"; slot: number }
+  | { type: "card"; index: number; steps?: number }
+  | { type: "move"; space: number }
   | { type: "travel"; space: number | null }
   | { type: "shop"; index: number | null };
 
