@@ -3,7 +3,7 @@ import { myItems, onMyItems } from "./boardPrivate.ts";
 import { obfuscated } from "../ui/obfuscate.ts";
 
 /** Nom des dés bonus selon leur nombre de faces. */
-export const BONUS_DIE_NAMES: Record<number, string> = { 6: "dé d'or", 4: "dé d'argent", 3: "dé de fer" };
+export const BONUS_DIE_NAMES: Record<number, string> = { 6: "dé d'or", 3: "dé d'argent", 2: "dé de bronze" };
 import type { ViewLayout } from "@rzparty/minigames/client";
 import { request, ServerError } from "../net/connection.ts";
 import { append, clear, everyFrame, h, svg } from "../ui/dom.ts";
@@ -280,7 +280,7 @@ export class BoardView {
         h("button", {
           class: "btn btn--go btn--big bv-roll",
           attrs: { type: "button" },
-          text: bonus ? `Lancer les dés (+ ${BONUS_DIE_NAMES[bonus.sides] ?? "dé bonus"}, ${bonus.sides} faces)` : turn.rolls[0]?.kind === "douze" ? "Lancer le dé à 12 faces" : "Lancer le dé",
+          text: bonus ? `Lancer les dés (+ ${BONUS_DIE_NAMES[bonus.sides] ?? "dé bonus"}, 1 à ${bonus.sides})` : turn.rolls[0]?.kind === "douze" ? "Lancer le dé à 12 faces" : "Lancer le dé",
           on: { click: () => void this.act({ type: "roll" }) },
         }),
         h("p", { class: "muted bv-deadline", attrs: { "data-deadline": "1" } }),
@@ -400,7 +400,7 @@ export class BoardView {
             ? h("small", {
                 class: `bv-row__bonus bv-row__bonus--${pawn.bonusDie}`,
                 text: `+ ${BONUS_DIE_NAMES[pawn.bonusDie] ?? `dé ${pawn.bonusDie}`}`,
-                attrs: { title: `Dé bonus à ${pawn.bonusDie} faces au prochain lancer` },
+                attrs: { title: `Dé bonus (1 à ${pawn.bonusDie}) au prochain lancer` },
               })
             : null,
         ),

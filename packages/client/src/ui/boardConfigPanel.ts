@@ -109,7 +109,8 @@ export function boardConfigPanel(config: BoardConfig, update: (patch: Partial<Bo
       stepper("malusSteps", config.malusSteps, 1, (malusSteps) => update({ malusSteps })),
       stepper("miniGameEvery", config.miniGameEvery, 1, (miniGameEvery) => update({ miniGameEvery })),
       stepper("maxRounds", config.maxRounds, 5, (maxRounds) => update({ maxRounds })),
-      toggle("Dés bonus", "Après chaque mini-jeu : dé d'or (6 faces) au 1er, d'argent (4) au 2e, de fer (3) au 3e.", config.bonusDice, (bonusDice) => update({ bonusDice })),
+      toggle("Dés bonus", "Après chaque mini-jeu : dé d'or (1 à 6) au 1er, d'argent (1 à 3) au 2e, de bronze (1 ou 2) au 3e.", config.bonusDice, (bonusDice) => update({ bonusDice })),
+      toggle("Défi final", "Arrivé au sommet, il faut encore gagner un mini-jeu seul contre tous ; sinon on redescend de 6 cases.", config.finalChallenge, (finalChallenge) => update({ finalChallenge })),
       toggle("Doubles", "Si deux dés font le même chiffre, un 3e dé est lancé.", config.doubles, (doubles) => update({ doubles })),
     ),
     h(

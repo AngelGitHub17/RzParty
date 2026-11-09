@@ -83,7 +83,7 @@ export type RoomPhase = "salon" | "partie";
 export type GameStage = "intro" | "countdown" | "play" | "results" | "board" | "wheel" | "loto" | "quiz" | "mots" | "globe" | "trios" | "bateau" | "paires" | "amitie" | "podium";
 
 /** Pourquoi on joue ce mini-jeu : départager l'ordre de jeu, gagner des pièces, survivre. */
-export type MiniGamePurpose = "survie" | "ordre" | "pieces" | "duel" | "cagnotte" | "loto" | "duelroue" | "voyage" | "unvstous" | "bateau" | "paires" | "amitie";
+export type MiniGamePurpose = "survie" | "ordre" | "pieces" | "duel" | "cagnotte" | "loto" | "duelroue" | "voyage" | "unvstous" | "bateau" | "paires" | "amitie" | "defi";
 
 /** Fiche publique d'un mini-jeu (affichée avant la manche). */
 export interface MiniGameInfo {

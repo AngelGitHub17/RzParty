@@ -154,8 +154,19 @@ describe("modes Trios, Bateau, Paires, Test d'amitié", () => {
     const { manager, room } = setup((h) => new AmitieGame(h), { mode: "amitie", amitie: { rounds: 8 } }, 3, 2);
     const me = room.players.find((p) => !p.isBot)!.id;
     let who = 0;
+    let finals = 0;
+    let miniGames = 0;
+    let last = "";
     await untilPodium(room, () => {
-      const a = room.game!.snapshot().amitie;
+      const snap0 = room.game!.snapshot();
+      if (snap0.stage === "intro" && last !== "intro") {
+        miniGames++;
+        // Le mini-jeu arrive après la dernière question.
+        expect(snap0.amitie!.round).toBe(8);
+      }
+      last = snap0.stage;
+      if (snap0.amitie?.phase === "final") finals++;
+      const a = snap0.amitie;
       if (!a || a.phase !== "answer" || a.answered.includes(me)) return;
       if (a.kind === "qui") {
         who++;
@@ -167,9 +178,11 @@ describe("modes Trios, Bateau, Paires, Test d'amitié", () => {
     const snap = room.game!.snapshot();
     expect(snap.stage).toBe("podium");
     expect(who).toBeGreaterThanOrEqual(2);
+    expect(miniGames).toBe(1);
+    expect(finals).toBeGreaterThan(0);
     expect(snap.winners.length).toBeGreaterThanOrEqual(2);
     const a = snap.amitie!;
-    expect(a.asked).toBeGreaterThanOrEqual(8);
+    expect(a.asked).toBe(8 + 3);
     for (const v of Object.values(a.agree)) expect(v).toBeLessThanOrEqual(a.asked);
   }, 180_000);
 });

@@ -11,7 +11,7 @@ rester **équitable** entre un téléphone et un PC.
 
 | Idée d'origine | Nom RzParty | Adaptation | État |
 | --- | --- | --- | --- |
-| Board Game Island | **Plateau** | Course au sommet, mini-jeu qui fixe l'ordre, dés bonus, cases spéciales | ✅ |
+| Board Game Island | **Plateau** | Course au sommet, mini-jeu qui fixe l'ordre, dés bonus or (1-6) / argent (1-3) / bronze (1-2), cases spéciales, défi final seul contre tous au sommet | ✅ |
 | Spin-Off | **Grande Roue** | 500 médailles chacun et pour la banque, roue de 22 cases qui change 3 fois, Bataille / 1 contre tous / Duel / Chance, prolongations | ✅ |
 | Mode Libre / Bataille / Solo | **Mini-jeux au choix** + **Survie** | Le chef coche les mini-jeux (ou un seul) ; Survie en score = bataille ; bots pour jouer seul | ✅ |
 | Bingo | **Bingo des copains** | Choix d'une grille 4 × 4 parmi 6, on coche soi-même le personnage tiré avant la boule suivante, 10 boules « Mini-jeu » (le gagnant coche où il veut), première ligne de 4 | ✅ |

@@ -40,7 +40,7 @@ export const GAME_MODES: Record<GameModeId, { label: string; description: string
   },
   amitie: {
     label: "Test d'amitié",
-    description: "Des « plutôt ceci ou cela ? » et des « qui de nous… ? » auxquels chacun répond en secret. Plus vos réponses se ressemblent, plus votre duo monte. Avec quelques mini-jeux pour tester votre synchro !",
+    description: "Des « plutôt ceci ou cela ? » et des « qui de nous… ? » auxquels chacun répond en secret. Plus vos réponses se ressemblent, plus votre duo monte. Un mini-jeu final teste votre synchro, puis le taux d'amitié de chaque duo (de 0 à 100) est révélé !",
   },
   roue: {
     label: "Grande Roue",

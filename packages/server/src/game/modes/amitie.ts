@@ -1,6 +1,6 @@
 import {
   AMITIE_DILEMMAS,
-  AMITIE_MINIGAME_EVERY,
+  AMITIE_FINAL_WEIGHT,
   AMITIE_WHO,
   ERRORS,
   affinity,
@@ -19,13 +19,15 @@ export const AMITIE_TIMINGS = {
   answer: 20_000,
   reveal: 5000,
   botThink: 2500,
+  /** Révélation des taux d'amitié. */
+  final: 10_000,
 };
 
 /**
  * Mode « Test d'amitié » : chacun répond en secret à des « plutôt ceci ou cela ? » et à des « qui de nous… ? ».
  * Chaque fois que deux joueurs répondent pareil, leur duo marque un point d'accord.
- * Toutes les 4 questions, un mini-jeu « synchro » : les joueurs arrivés côte à côte au classement
- * marquent aussi un point. À la fin, le duo le plus en phase gagne (son affinité en %).
+ * Après la dernière question, un mini-jeu final « synchro » rapproche ceux qui finissent près l'un de
+ * l'autre. Puis le taux d'amitié (0 à 100) de chaque duo est révélé : le plus complice gagne.
  */
 export class AmitieGame extends BaseGame {
   protected readonly mode = "amitie" as const;
@@ -88,11 +90,11 @@ export class AmitieGame extends BaseGame {
   private next(): void {
     if (this.disposed) return;
     const players = this.players();
-    if (this.amitieRound >= this.rounds() || players.length < 2) return this.finish();
-    // Mini-jeu « synchro » toutes les 4 questions.
-    if (this.amitieRound > 0 && this.amitieRound % AMITIE_MINIGAME_EVERY === 0 && this.state?.round === this.amitieRound) {
-      this.state = { ...this.state, round: this.amitieRound + 0.5 };
-      if (this.startMiniGame(players, "amitie")) return;
+    if (players.length < 2) return this.finish();
+    // Après la dernière question : le mini-jeu final, puis le taux d'amitié.
+    if (this.amitieRound >= this.rounds()) {
+      if (!this.startMiniGame(players, "amitie")) this.showFinal();
+      return;
     }
     this.module = null;
     this.participants = [];
@@ -181,24 +183,33 @@ export class AmitieGame extends BaseGame {
     this.agree.set(key, (this.agree.get(key) ?? 0) + 1);
   }
 
-  /** Synchro : les joueurs voisins au classement du mini-jeu marquent un accord. */
+  /**
+   * Mini-jeu final « synchro » : plus deux joueurs finissent près l'un de l'autre au classement,
+   * plus leur duo se rapproche (même place : 3 accords, places voisines : 2, à deux places : 1).
+   * Il compte comme 3 questions.
+   */
   protected onMiniGameDone(ranking: string[][]): void {
-    const flat = ranking.map((g) => g.filter((id) => this.ids.includes(id))).filter((g) => g.length);
-    this.asked++;
-    const synced = new Set<string>();
-    flat.forEach((group, i) => {
-      const neighbours = [...group, ...(flat[i + 1] ?? [])];
-      for (let x = 0; x < neighbours.length; x++) {
-        for (let y = x + 1; y < neighbours.length; y++) {
-          const key = duoKey(neighbours[x]!, neighbours[y]!);
-          if (synced.has(key)) continue;
-          synced.add(key);
-          this.bump(neighbours[x]!, neighbours[y]!);
-        }
+    const groups = ranking.map((g) => g.filter((id) => this.ids.includes(id))).filter((g) => g.length);
+    const place = new Map<string, number>();
+    groups.forEach((g, i) => g.forEach((id) => place.set(id, i)));
+    const players = this.players().filter((id) => place.has(id));
+    this.asked += AMITIE_FINAL_WEIGHT;
+    for (let i = 0; i < players.length; i++) {
+      for (let j = i + 1; j < players.length; j++) {
+        const gap = Math.abs(place.get(players[i]!)! - place.get(players[j]!)!);
+        for (let k = 0; k < Math.max(0, AMITIE_FINAL_WEIGHT - gap); k++) this.bump(players[i]!, players[j]!);
       }
-    });
-    const changes: RoundResult["changes"] = [];
-    this.showResults(ranking, changes, () => this.next());
+    }
+    this.showResults(ranking, [], () => this.showFinal());
+  }
+
+  /** Le taux d'amitié de chaque duo, révélé avant le podium. */
+  private showFinal(): void {
+    this.module = null;
+    this.participants = [];
+    if (this.state) this.state = { ...this.state, phase: "final", endsAt: null };
+    this.setStage("amitie", AMITIE_TIMINGS.final);
+    this.goTo(AMITIE_TIMINGS.final, () => this.finish());
   }
 
   private finish(): void {
@@ -213,7 +224,6 @@ export class AmitieGame extends BaseGame {
         else if (v === best) duos.push([players[i]!, players[j]!]);
       }
     }
-    if (this.state) this.state = { ...this.state, phase: "reveal", endsAt: null };
     this.podium([...new Set(duos.flat())]);
   }
 }

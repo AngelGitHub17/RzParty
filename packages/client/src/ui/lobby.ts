@@ -144,6 +144,7 @@ function segmented<T extends string | number>(
   options: { value: T; label: string; note?: string }[],
   current: T,
   onPick: (v: T) => void,
+  extraClass = "",
 ): HTMLElement {
   return h(
     "fieldset",
@@ -151,7 +152,7 @@ function segmented<T extends string | number>(
     h("legend", { text: label }),
     h(
       "div",
-      { class: "segmented" },
+      { class: `segmented${extraClass ? ` ${extraClass}` : ""}` },
       ...options.map((o) =>
         h(
           "button",
@@ -202,7 +203,7 @@ export function renderChefPanel(snapshot: RoomSnapshot, actions: ChefActions): H
     "section",
     { class: "panel chef-panel", attrs: { "aria-label": "Réglages du chef" } },
     h("h2", { text: "Réglages de la partie" }),
-    segmented("Mode de jeu", modeOptions, s.mode, (mode) => actions.update({ mode })),
+    segmented("Mode de jeu", modeOptions, s.mode, (mode) => actions.update({ mode }), "segmented--modes"),
     h("p", { class: "muted field-help", text: GAME_MODES[s.mode].description }),
     s.mode === "survie"
       ? h(

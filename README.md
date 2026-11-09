@@ -86,8 +86,8 @@ gagne), dés bonus, doubles et variété des cases.
    Pas d'enchaînement : la case où l'on arrive après un bonus ou un malus ne s'active pas.
 4. Quand tout le monde a joué, un mini-jeu rapporte des pièces (20 au 1er, 10 au 2e, 5 au 3e,
    1 au dernier, 3 pour les places intermédiaires) et **son classement devient le nouvel ordre de passage**.
-5. Plateaux Long, Très long et Marathon : ce mini-jeu donne aussi un dé bonus, ajouté au prochain
-   lancer : dé d'or (6 faces) pour le 1er, d'argent (4) pour le 2e, de fer (3) pour le 3e, rien pour le dernier.
+5. Ce mini-jeu donne aussi un dé bonus, ajouté au prochain lancer : dé d'or (1 à 6) pour le 1er,
+   d'argent (1 à 3) pour le 2e, de bronze (1 ou 2) pour le 3e, rien pour le dernier.
 6. Double : si les deux dés (dé normal + dé bonus) font le même chiffre, un 3e dé est lancé.
 7. **Boutiques** (cases roses « $ ») : en passant dessus ou en s'y arrêtant, on peut acheter des
    objets. On en porte 2 au maximum, ils sont secrets (seul leur nombre est visible) et on en utilise
@@ -106,7 +106,9 @@ gagne), dés bonus, doubles et variété des cases.
 11. **Équipes** (2, 3 ou 4, tirées au hasard au lancement) : les coéquipiers partagent leurs pièces,
     les mini-jeux sont classés par équipe (place moyenne des membres), les duels opposent toujours deux
     équipes différentes, et toute l'équipe gagne dès qu'un de ses membres arrive.
-12. Le premier arrivé gagne.
+12. **Défi final** : arrivé au sommet, il faut encore gagner un mini-jeu seul contre tous (faire
+    mieux que la place moyenne des autres, ou battre son adversaire à deux). Raté : on redescend de
+    6 cases et la course continue. Le premier qui réussit son défi gagne (désactivable en Personnalisé).
 
 ### Mode Grande Roue
 
@@ -173,9 +175,10 @@ gagnant pour son prochain tour. Le plus de paires gagne (6, 10 ou 14 tours).
 ### Test d'amitié
 
 Des « Plutôt chat ou chien ? » et des « Qui de nous est le plus gourmand ? » auxquels chacun répond
-en secret. Deux joueurs qui répondent pareil rapprochent leur duo ; toutes les 4 questions, un
-mini-jeu « synchro » rapproche ceux qui finissent côte à côte au classement. À la fin, le duo le
-plus complice gagne, avec son affinité en pourcentage. 8, 12 ou 16 questions.
+en secret. Deux joueurs qui répondent pareil rapprochent leur duo. Après la dernière question, un mini-jeu
+final « synchro » rapproche ceux qui finissent près l'un de l'autre au classement (il compte comme
+3 questions). Enfin, le **taux d'amitié** de chaque duo, de 0 à 100, est révélé : le duo le plus
+complice gagne. 8, 12 ou 16 questions.
 
 ### Quiz entre amis
 

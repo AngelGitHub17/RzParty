@@ -40,8 +40,8 @@ describe("mode Plateau", () => {
   });
 
   it("dés bonus : 6, 4, 3 faces pour les trois premiers, rien pour le dernier", () => {
-    expect([0, 1, 2, 3].map((p) => bonusDieForPlace(p, 4))).toEqual([6, 4, 3, null]);
-    expect([0, 1, 2, 3, 4].map((p) => bonusDieForPlace(p, 5))).toEqual([6, 4, 3, null, null]);
+    expect([0, 1, 2, 3].map((p) => bonusDieForPlace(p, 4))).toEqual([6, 3, 2, null]);
+    expect([0, 1, 2, 3, 4].map((p) => bonusDieForPlace(p, 5))).toEqual([6, 3, 2, null, null]);
     expect([0, 1].map((p) => bonusDieForPlace(p, 2))).toEqual([6, null]);
   });
 
@@ -96,6 +96,41 @@ describe("mode Plateau", () => {
       expect(ended).toHaveBeenCalledOnce();
     }, 60_000);
   }
+
+  it("défi final : arrivé au sommet, il faut gagner un mini-jeu seul contre tous, sinon on redescend", async () => {
+    let defis = 0;
+    let falls = 0;
+    for (const seed of [3, 5, 8, 13]) {
+      const { manager, start } = setup(seed);
+      const seat = manager.createIndividualRoom("chef", "Chef");
+      for (const p of ["agressif", "glitch", "lent-precis"] as const) manager.addBot("chef", p);
+      manager.updateSettings("chef", { mode: "plateau", board: { size: "court" } });
+      const room = start("chef");
+      manager.watchRoom("tv", seat.code);
+      manager.disconnect("chef");
+      let inDefi = false;
+      for (let t = 0; t < 20000 && room.game!.snapshot().stage !== "podium"; t++) {
+        await vi.advanceTimersByTimeAsync(1000);
+        const snap = room.game!.snapshot();
+        if (snap.stage === "intro" && snap.purpose === "defi" && !inDefi) {
+          inDefi = true;
+          defis++;
+          expect(snap.participants).toHaveLength(4);
+          expect(snap.participants[0]).toBe(snap.board!.turn!.playerId);
+        }
+        if (snap.stage === "results" && snap.purpose === "defi" && inDefi) {
+          inDefi = false;
+          if (snap.lastResult!.changes[0]!.points === -1) falls++;
+        }
+      }
+      const snap = room.game!.snapshot();
+      expect(snap.stage).toBe("podium");
+      expect(snap.board!.pawns[snap.winners[0]!]!.cell).toBe(snap.board!.board.finish);
+      room.game!.dispose();
+    }
+    expect(defis).toBeGreaterThanOrEqual(4);
+    expect(falls).toBeGreaterThanOrEqual(1);
+  }, 120_000);
 
   it("seul le joueur dont c'est le tour peut lancer le dé", async () => {
     const { manager, start } = setup();
@@ -285,7 +320,7 @@ describe("objets du plateau", () => {
       const { manager, start } = setup(seed);
       const seat = manager.createIndividualRoom("chef", "Chef");
       manager.addBot("chef", "agressif");
-      manager.updateSettings("chef", { mode: "plateau", board: { size: "court" } });
+      manager.updateSettings("chef", { mode: "plateau", board: { size: "moyen" } });
       const room = start("chef");
       manager.watchRoom("tv", seat.code);
       const game = room.game as BoardGame;

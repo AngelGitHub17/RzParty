@@ -24,8 +24,10 @@ export interface BoardConfig {
   startCoins: number;
   /** Multiplie les pièces gagnées aux mini-jeux. */
   coinMultiplier: number;
-  /** Dés bonus (6, 4, 3 faces) pour les 3 premiers du mini-jeu. */
+  /** Dés bonus pour les 3 premiers du mini-jeu : or (1 à 6), argent (1 à 3), bronze (1 ou 2). */
   bonusDice: boolean;
+  /** Arrivée : il faut encore gagner le défi final (mini-jeu seul contre tous), sinon on redescend. */
+  finalChallenge: boolean;
   /** Double sur 2 dés : un 3e dé est lancé. */
   doubles: boolean;
   /** Objets portables en même temps (0 = boutiques fermées). */
@@ -67,6 +69,7 @@ const BASE: Omit<BoardConfig, "length" | "forks" | "bonusDice"> = {
   miniGameEvery: 1,
   maxRounds: 0,
   variety: true,
+  finalChallenge: true,
 };
 
 const PRESET_LENGTHS: Record<Exclude<BoardSize, "perso">, number> = { court: 30, moyen: 45, long: 60, "tres-long": 80, marathon: 100 };
@@ -78,7 +81,7 @@ export function presetConfig(size: Exclude<BoardSize, "perso">): BoardConfig {
     ...structuredClone(BASE),
     length,
     forks: Math.min(5, Math.max(3, Math.round(length / 18))),
-    bonusDice: size === "long" || size === "tres-long" || size === "marathon",
+    bonusDice: true,
   };
 }
 
@@ -102,7 +105,7 @@ export function patchConfig(current: BoardConfig, raw: unknown): BoardConfig {
   for (const key of Object.keys(CONFIG_LIMITS) as NumericKey[]) {
     if (key in p) next[key] = clampInt(p[key], CONFIG_LIMITS[key].min, CONFIG_LIMITS[key].max, next[key]);
   }
-  for (const key of ["bonusDice", "doubles", "variety"] as const) if (typeof p[key] === "boolean") next[key] = p[key] as boolean;
+  for (const key of ["bonusDice", "doubles", "variety", "finalChallenge"] as const) if (typeof p[key] === "boolean") next[key] = p[key] as boolean;
   if (p.weights && typeof p.weights === "object") {
     const w = p.weights as Record<string, unknown>;
     for (const cell of CONFIGURABLE_CELLS) if (cell in w) next.weights[cell] = clampInt(w[cell], 0, WEIGHT_MAX, next.weights[cell]);

@@ -74,13 +74,16 @@ export function magnet(coins: Record<string, number>, user: string, random: () =
 }
 
 /**
- * Dé bonus gagné selon la place au mini-jeu, sur les grands plateaux (Long et plus) :
- * dé à 6 faces pour le 1er, à 4 pour le 2e, à 3 pour le 3e, rien pour le dernier.
+ * Dé bonus gagné selon la place au mini-jeu :
+ * dé d'or (1 à 6) pour le 1er, d'argent (1 à 3) pour le 2e, de bronze (1 ou 2) pour le 3e, rien pour le dernier.
  */
 export function bonusDieForPlace(place: number, groups: number): number | null {
   if (place >= groups - 1) return null;
-  return [6, 4, 3][place] ?? null;
+  return [6, 3, 2][place] ?? null;
 }
+
+/** Défi final raté : on redescend de ce nombre de cases. */
+export const FINAL_FALL = 6;
 
 /** Pour tester la boutique : RZ_START_COINS=30 donne des pièces à tout le monde au départ. */
 const START_COINS = Math.max(0, Number(process.env.RZ_START_COINS) || 0);
@@ -296,6 +299,27 @@ export class BoardGame extends BaseGame {
         }
       }
       this.showResults(ranking, changes, () => this.resumeBoard());
+      return;
+    }
+    if (this.purpose === "defi") {
+      const solo = this.turn?.playerId;
+      const flat = ranking.map((g) => g.filter((id) => this.pawns.has(id))).filter((g) => g.length);
+      const place = (id: string) => flat.findIndex((g) => g.includes(id));
+      const others = this.participants.filter((id) => id !== solo);
+      // Gagné s'il fait mieux que la place moyenne des autres (en duel : s'il est devant).
+      const avg = others.reduce((s, id) => s + place(id), 0) / Math.max(1, others.length);
+      const won = solo !== undefined && place(solo) >= 0 && place(solo) < avg;
+      const changes: RoundResult["changes"] = solo ? [{ playerId: solo, points: won ? 1 : -1 }] : [];
+      this.showResults(ranking, changes, () => {
+        this.module = null;
+        this.participants = [];
+        if (!solo || !this.turn) return this.resumeBoard();
+        if (won) return this.finish(solo);
+        this.turn.phase = "effect";
+        this.turn.effect = { type: "malus", text: `rate le défi final et redescend de ${FINAL_FALL} cases !` };
+        this.setStage("board", BOARD_TIMINGS.effect);
+        this.goTo(BOARD_TIMINGS.effect, () => this.moveBack(FINAL_FALL, () => this.resumeBoard()));
+      });
       return;
     }
     if (this.purpose === "ordre") {
@@ -641,7 +665,7 @@ export class BoardGame extends BaseGame {
     }
     const next = () => (this.pendingSteps > 0 ? this.advance() : this.land());
     this.animate(path, () => {
-      if (pawn.cell === this.board.finish) return this.finish(turn.playerId);
+      if (pawn.cell === this.board.finish) return this.reachTop(turn.playerId);
       if (shop) return this.openShop(pawn.cell, next);
       next();
     });
@@ -752,7 +776,7 @@ export class BoardGame extends BaseGame {
       return show(`L'OVNI échange ta place avec ${this.nameOf(other)} !`, () => {
         [pawn.cell, them.cell] = [them.cell, pawn.cell];
         [pawn.trail, them.trail] = [them.trail, pawn.trail];
-        this.animate([pawn.cell], () => (pawn.cell === this.board.finish ? this.finish(turn.playerId) : this.land(true)));
+        this.animate([pawn.cell], () => (pawn.cell === this.board.finish ? this.reachTop(turn.playerId) : this.land(true)));
       });
     }
     const amount = (5 + Math.floor(this.host.random() * 11)) * this.config.coinMultiplier;
@@ -877,7 +901,7 @@ export class BoardGame extends BaseGame {
       pawn.trail.push(pawn.cell);
       path.push(pawn.cell);
     }
-    this.animate(path, () => (pawn.cell === this.board.finish ? this.finish(this.turn!.playerId) : then()));
+    this.animate(path, () => (pawn.cell === this.board.finish ? this.reachTop(this.turn!.playerId) : then()));
   }
 
   /** Malus : recule en refaisant son propre chemin à l'envers. */
@@ -901,6 +925,19 @@ export class BoardGame extends BaseGame {
     turn.endsAt = null;
     this.setStage("board", null);
     this.goTo(path.length * BOARD_TIMINGS.step + 250, then);
+  }
+
+  /** Arrivée au sommet : défi final (seul contre tous) si la règle est active, sinon victoire. */
+  private reachTop(id: string): void {
+    const others = this.players().filter((p) => p !== id && !(this.teamOf && this.teamOf.get(p) === this.teamOf.get(id)));
+    if (!this.config.finalChallenge || !others.length) return this.finish(id);
+    const turn = this.turn!;
+    turn.phase = "effect";
+    turn.effect = { type: "arrivee", text: "atteint le sommet ! Défi final : gagner le mini-jeu seul contre tous." };
+    this.setStage("board", BOARD_TIMINGS.effect);
+    this.goTo(BOARD_TIMINGS.effect, () => {
+      if (!this.startMiniGame([id, ...others], "defi")) this.finish(id);
+    });
   }
 
   private finish(winner: string): void {

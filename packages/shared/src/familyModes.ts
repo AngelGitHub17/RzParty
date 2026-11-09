@@ -161,8 +161,8 @@ export interface PairesState {
 // ───────────── Test d'amitié ─────────────
 
 export const AMITIE_ROUND_CHOICES = [8, 12, 16] as const;
-/** Un mini-jeu « synchro » toutes les 4 questions. */
-export const AMITIE_MINIGAME_EVERY = 4;
+/** Le mini-jeu final « synchro » compte comme 3 questions. */
+export const AMITIE_FINAL_WEIGHT = 3;
 
 export const AMITIE_DILEMMAS: [string, string, string][] = [
   ["Plutôt…", "Mer", "Montagne"],
@@ -223,7 +223,8 @@ export interface AmitieState {
   question: string;
   /** Propositions (pour « qui » : les identifiants des joueurs). */
   options: string[];
-  phase: "answer" | "reveal";
+  /** « final » : révélation du taux d'amitié de chaque duo (après le mini-jeu final). */
+  phase: "answer" | "reveal" | "final";
   endsAt: number | null;
   answered: string[];
   /** Révélation : la réponse de chacun. */

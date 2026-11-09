@@ -3,6 +3,13 @@
 Chaque version commence par « ## numéro — date ». La page de présentation et les serveurs
 locaux lisent ce fichier : pense à augmenter la version dans package.json à chaque publication.
 
+## 0.9.0 — 9 novembre 2026
+- Plateau plus proche de l'original : dés bonus sur tous les plateaux, or (1 à 6), argent (1 à 3) et bronze (1 ou 2).
+- Plateau : défi final au sommet, un mini-jeu seul contre tous à gagner pour remporter la partie, sinon on redescend de 6 cases (désactivable en Personnalisé).
+- Test d'amitié : un mini-jeu final de synchro, puis la révélation du taux d'amitié (0 à 100) de chaque duo.
+- Salon : le choix du mode s'affiche en grille, plus lisible avec 11 modes.
+- Petit écran : le bandeau des joueurs n'affiche plus que les avatars et scores des autres, pour tout voir sans défiler.
+
 ## 0.8.0 — 9 novembre 2026
 - Le Loto devient le Bingo des copains : choix d'une grille de 16 personnages parmi 6, on coche soi-même le personnage tiré avant la boule suivante, 10 boules Mini-jeu, première ligne de 4 gagnante.
 - Nouveau mode Trios : échange tes personnages avec ceux du centre pour aligner 3 tenues de la même couleur (couleurs cachées et joker arc-en-ciel), double trio à 10 points.

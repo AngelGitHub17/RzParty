@@ -15,6 +15,7 @@ export class AmitieView {
   private readonly hint = h("p", { class: "quiz__hint" });
   private readonly options = h("div", { class: "quiz__options friends__options" });
   private readonly duos = h("ol", { class: "friends__duos" });
+  private readonly final = h("section", { class: "friends__final", attrs: { hidden: true } });
   private room: RoomSnapshot | null = null;
   private chosen = -1;
   private round = 0;
@@ -24,7 +25,7 @@ export class AmitieView {
     this.el = h(
       "section",
       { class: `quiz quiz--${layout} friends` },
-      h("div", { class: "quiz__main" }, this.head, this.question, this.hint, this.options),
+      h("div", { class: "quiz__main" }, this.head, this.question, this.hint, this.options, this.final),
       layout === "pad" ? null : h("aside", { class: "bv-side" }, h("h3", { class: "friends__title", text: "Duos les plus complices" }), this.duos),
     );
     root.append(this.el);
@@ -77,6 +78,7 @@ export class AmitieView {
       );
     });
     this.renderDuos(a, room.players);
+    this.renderFinal(a, room.players);
     const total = Object.keys(room.game!.standings).length;
     this.hint.textContent =
       a.phase === "reveal"
@@ -91,6 +93,35 @@ export class AmitieView {
   private face(players: PublicPlayer[], id: string, size: number): SVGElement[] {
     const p = players.find((x) => x.id === id);
     return p ? [playerAvatar(p, { size })] : [];
+  }
+
+  /** Révélation finale : le taux d'amitié de chaque duo, du plus complice au moins complice. */
+  private renderFinal(a: AmitieState, players: PublicPlayer[]): void {
+    const show = a.phase === "final";
+    this.final.hidden = !show;
+    this.question.hidden = show;
+    this.options.hidden = show;
+    this.hint.hidden = show;
+    if (!show) return;
+    clear(this.head);
+    this.head.append(h("strong", { text: "Taux d'amitié" }));
+    const ids = players.filter((p) => this.room!.game!.standings.some((s) => s.playerId === p.id)).map((p) => p.id);
+    const duos: { a: string; b: string; v: number }[] = [];
+    for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++) duos.push({ a: ids[i]!, b: ids[j]!, v: affinity(a, ids[i]!, ids[j]!) });
+    duos.sort((x, y) => y.v - x.v);
+    const verdict = (v: number) => (v >= 85 ? "Amis pour la vie !" : v >= 65 ? "Très complices" : v >= 45 ? "Bons copains" : v >= 25 ? "Encore à découvrir" : "Opposés qui s'attirent ?");
+    clear(this.final);
+    duos.slice(0, this.layout === "pad" ? 3 : 6).forEach((d, i) => {
+      this.final.append(
+        h(
+          "div",
+          { class: `friends__score${i === 0 ? " is-best" : ""}`, style: { "--delay": `${i * 400}ms` } },
+          h("span", { class: "friends__pair" }, ...this.face(players, d.a, i === 0 ? 64 : 40), h("b", { text: "💞" }), ...this.face(players, d.b, i === 0 ? 64 : 40)),
+          h("strong", { class: "friends__pct", text: `${d.v}` }),
+          h("span", { class: "friends__verdict", text: `${players.find((p) => p.id === d.a)?.name ?? "?"} et ${players.find((p) => p.id === d.b)?.name ?? "?"} · ${verdict(d.v)}` }),
+        ),
+      );
+    });
   }
 
   private renderDuos(a: AmitieState, players: PublicPlayer[]): void {

@@ -171,7 +171,7 @@ export class GameStage {
         ),
       ),
       this.layout !== "tv" && me?.isChef && game.stage !== "podium"
-        ? h("button", { class: "btn btn--ghost btn--small gs__stop", attrs: { type: "button" }, text: "Arrêter la partie", on: { click: () => this.confirmStop() } })
+        ? h("button", { class: "btn btn--ghost btn--small gs__stop", attrs: { type: "button", "aria-label": "Arrêter la partie", title: "Arrêter la partie" }, on: { click: () => this.confirmStop() } }, h("span", { class: "gs__stop-icon", text: "✕" }), h("span", { class: "gs__stop-text", text: "Arrêter la partie" }))
         : null,
     ]);
   }
@@ -241,12 +241,14 @@ export class GameStage {
               ? `Qui commence ? Ce mini-jeu décide de l'ordre de jeu · ${CATEGORY_LABELS[mg.category] ?? mg.category}`
               : game.purpose === "loto"
                 ? `Boule Mini-jeu ! Le gagnant coche la case de son choix · ${CATEGORY_LABELS[mg.category] ?? mg.category}`
+                : game.purpose === "defi"
+                ? `Défi final ! ${room.players.find((p) => p.id === game.board?.turn?.playerId)?.name ?? "?"} doit faire mieux que la moyenne des autres pour gagner, sinon il redescend · ${CATEGORY_LABELS[mg.category] ?? mg.category}`
                 : game.purpose === "bateau"
                 ? `Le 1er reçoit un petit personnage à embarquer, le dernier un gros ! · ${CATEGORY_LABELS[mg.category] ?? mg.category}`
                 : game.purpose === "paires"
                 ? `Mini-jeu bonus : le gagnant gagne un cœur pour son prochain tour · ${CATEGORY_LABELS[mg.category] ?? mg.category}`
                 : game.purpose === "amitie"
-                ? `Test de synchro : ceux qui finissent côte à côte se rapprochent · ${CATEGORY_LABELS[mg.category] ?? mg.category}`
+                ? `Mini-jeu final de synchro : finir près de son ami fait monter le taux d'amitié · ${CATEGORY_LABELS[mg.category] ?? mg.category}`
                 : game.mode === "trios" && game.purpose === "ordre"
                 ? `Ce mini-jeu décide de l'ordre pour choisir au centre · ${CATEGORY_LABELS[mg.category] ?? mg.category}`
                 : game.purpose === "cagnotte"
@@ -373,6 +375,12 @@ export class GameStage {
               ? change?.points
                 ? "coche une case !"
                 : ""
+              : game.purpose === "defi"
+              ? change?.points === 1
+                ? "remporte le défi final !"
+                : change?.points === -1
+                ? "rate le défi final"
+                : ""
               : game.purpose === "bateau"
               ? change?.points
                 ? `embarque un ${["", "petit", "moyen", "gros"][change.points]} personnage`
@@ -402,7 +410,7 @@ export class GameStage {
                     const pos = (game.board?.order.indexOf(id) ?? -1) + 1 || place;
                     return pos === 1 ? "1er" : `${pos}e`;
                   })()}`,
-                  change?.bonusDie ? `${BONUS_DIE_NAMES[change.bonusDie] ?? "dé bonus"} (${change.bonusDie} faces)` : "",
+                  change?.bonusDie ? `${BONUS_DIE_NAMES[change.bonusDie] ?? "dé bonus"} (1 à ${change.bonusDie})` : "",
                 ].filter(Boolean).join(" · ")
               : change?.eliminated ? "Éliminé !" : change?.lives ? "−1 vie" : change?.points ? `+${change.points} pt${change.points > 1 ? "s" : ""}` : rule === "vies" ? "sauvé" : "";
         rows.push(
