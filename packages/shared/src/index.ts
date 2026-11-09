@@ -10,4 +10,5 @@ export * from "./board.ts";
 export * from "./items.ts";
 export * from "./boardConfig.ts";
 export * from "./wheel.ts";
+export * from "./globe.ts";
 export * from "./partyModes.ts";

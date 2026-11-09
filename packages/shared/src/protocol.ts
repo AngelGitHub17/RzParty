@@ -28,7 +28,10 @@ export type BoardAction =
   | { type: "answer"; option: number }
   | { type: "word"; word: string | null }
   | { type: "vote"; ok: boolean }
-  | { type: "pick"; game: string };
+  | { type: "pick"; game: string }
+  | { type: "card"; index: number | null; dir: 1 | -1; steps?: number }
+  | { type: "travel"; space: number | null }
+  | { type: "shop"; index: number | null };
 
 /** Qui rejoint : un profil (par son jeton) ou un invité (par un pseudo). */
 export interface JoinIdentity {

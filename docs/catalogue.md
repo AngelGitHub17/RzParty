@@ -15,7 +15,7 @@ rester **équitable** entre un téléphone et un PC.
 | Spin-Off | **Grande Roue** | 500 médailles chacun et pour la banque, roue de 22 cases qui change 3 fois, Bataille / 1 contre tous / Duel / Chance, prolongations | ✅ |
 | Mode Libre / Bataille / Solo | **Mini-jeux au choix** + **Survie** | Le chef coche les mini-jeux (ou un seul) ; Survie en score = bataille ; bots pour jouer seul | ✅ |
 | Bingo | **Loto des copains** | Grille de personnages, tirages, une boule « Mini-jeu » laisse le gagnant cocher | ✅ |
-| Globe Trot | **Tour du monde** | Carte, cartes de déplacement, photos de destinations achetées avec les pièces | 🟡 |
+| Globe Trot | **Tour du monde** | Boucle autour du monde, 12 destinations, 3 à la une, cartes Train/Taxi/Hélico/Avion/Montgolfière/Super voyage, surprises, 1 contre tous, prolongations | ✅ |
 | Mii of a Kind | **Trio de couleurs** | Récupérer des personnages pour former des trios de même couleur | 🟡 |
 | Buddy Quiz | **Quiz entre amis** | Un joueur répond en secret sur son téléphone, les autres devinent | ✅ |
 | Word Bomb | **Bombe à mots** | Donner un mot de la catégorie pour passer la bombe (validation par les autres) | ✅ |

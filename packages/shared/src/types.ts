@@ -1,6 +1,7 @@
 import type { ItemId } from "./items.ts";
 import type { BoardConfig } from "./boardConfig.ts";
 import type { WheelState } from "./wheel.ts";
+import type { GlobeState } from "./globe.ts";
 import type { LotoState, MotsState, QuizState } from "./partyModes.ts";
 import type { PlayerColorIndex } from "./constants.ts";
 import type { Avatar } from "./avatar.ts";
@@ -14,7 +15,7 @@ import type { Board, BoardSize, CellType } from "./board.ts";
 export type DisplayMode = "commun" | "individuel";
 
 /** Identifiant d'un mode de jeu. Les modes s'enregistrent côté serveur dans le registre des modes. */
-export type GameModeId = "survie" | "plateau" | "roue" | "loto" | "quiz" | "mots";
+export type GameModeId = "survie" | "plateau" | "roue" | "loto" | "quiz" | "mots" | "voyage";
 
 export type BotPersonality = "equilibre" | "agressif" | "lent-precis" | "glitch";
 
@@ -33,6 +34,8 @@ export interface RoomSettings {
   quiz: { rounds: number };
   /** Bombe à mots : nombre de bombes. */
   mots: { bombs: number };
+  /** Tour du monde : nombre de tours. */
+  voyage: { rounds: number };
   /** Mini-jeux autorisés (vide = tous). Le chef peut n'en garder qu'un seul. */
   miniGames: string[];
   /** Mode Plateau : nombre d'équipes (0 = chacun pour soi), réparties au hasard au lancement. */
@@ -68,10 +71,10 @@ export interface PublicPlayer {
 export type RoomPhase = "salon" | "partie";
 
 /** Étapes d'une manche, identiques pour tous les modes. */
-export type GameStage = "intro" | "countdown" | "play" | "results" | "board" | "wheel" | "loto" | "quiz" | "mots" | "podium";
+export type GameStage = "intro" | "countdown" | "play" | "results" | "board" | "wheel" | "loto" | "quiz" | "mots" | "globe" | "podium";
 
 /** Pourquoi on joue ce mini-jeu : départager l'ordre de jeu, gagner des pièces, survivre. */
-export type MiniGamePurpose = "survie" | "ordre" | "pieces" | "duel" | "cagnotte" | "loto" | "duelroue";
+export type MiniGamePurpose = "survie" | "ordre" | "pieces" | "duel" | "cagnotte" | "loto" | "duelroue" | "voyage" | "unvstous";
 
 /** Fiche publique d'un mini-jeu (affichée avant la manche). */
 export interface MiniGameInfo {
@@ -123,6 +126,7 @@ export interface GameSnapshot {
   loto?: LotoState | null;
   quiz?: QuizState | null;
   mots?: MotsState | null;
+  globe?: GlobeState | null;
 }
 
 export interface PawnState {

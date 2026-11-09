@@ -13,6 +13,7 @@ import {
   WHEEL_ROUND_CHOICES,
   QUIZ_ROUND_CHOICES,
   WORD_BOMB_CHOICES,
+  GLOBE_ROUND_CHOICES,
   type BotPersonality,
   type Difficulty,
   type GameModeId,
@@ -223,6 +224,13 @@ export function renderChefPanel(snapshot: RoomSnapshot, actions: ChefActions): H
           s.quiz.rounds,
           (rounds) => actions.update({ quiz: { rounds } }),
         )
+      : s.mode === "voyage"
+      ? segmented(
+          "Nombre de tours",
+          GLOBE_ROUND_CHOICES.map((n) => ({ value: n as number, label: `${n} tours` })),
+          s.voyage.rounds,
+          (rounds) => actions.update({ voyage: { rounds } }),
+        )
       : s.mode === "mots"
       ? segmented(
           "Nombre de bombes",
@@ -312,6 +320,7 @@ function baseSummary(snapshot: RoomSnapshot): string {
   const cells = s.board.size === "perso" ? s.board.custom.length : BOARD_SIZES[s.board.size].cells;
   if (s.mode === "loto") return `${mode}, bots ${DIFFICULTIES[s.botDifficulty].label.toLowerCase()}`;
   if (s.mode === "quiz") return `${mode}, ${s.quiz.rounds} questions, bots ${DIFFICULTIES[s.botDifficulty].label.toLowerCase()}`;
+  if (s.mode === "voyage") return `${mode}, ${s.voyage.rounds} tours, bots ${DIFFICULTIES[s.botDifficulty].label.toLowerCase()}`;
   if (s.mode === "mots") return `${mode}, ${s.mots.bombs} bombes, bots ${DIFFICULTIES[s.botDifficulty].label.toLowerCase()}`;
   if (s.mode === "roue") return `${mode}, ${s.wheel.rounds} tours, bots ${DIFFICULTIES[s.botDifficulty].label.toLowerCase()}`;
   const teams = s.teams ? `, ${s.teams} équipes` : "";

@@ -11,6 +11,7 @@ import { roueMode } from "../game/modes/roue.ts";
 import { lotoMode } from "../game/modes/loto.ts";
 import { quizMode } from "../game/modes/quiz.ts";
 import { motsMode } from "../game/modes/mots.ts";
+import { voyageMode } from "../game/modes/voyage.ts";
 
 const modes = new Map<GameModeId, GameModeModule>();
 
@@ -33,3 +34,4 @@ registerMode(roueMode);
 registerMode(lotoMode);
 registerMode(quizMode);
 registerMode(motsMode);
+registerMode(voyageMode);

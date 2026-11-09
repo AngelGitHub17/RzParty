@@ -22,6 +22,10 @@ export const GAME_MODES: Record<GameModeId, { label: string; description: string
     label: "Bombe à mots",
     description: "Pour passer la bombe, donne un mot de la catégorie (écrit ou dit à voix haute, validé par les autres). Celui qui la tient quand elle explose prend un BOUM.",
   },
+  voyage: {
+    label: "Tour du monde",
+    description: "Voyage autour de la carte avec des cartes de transport (train, taxi, avion…) et achète les photos-souvenirs des destinations à la une. Pièces au mini-jeu de chaque tour, surprises et 1 contre tous en route. Le plus de photos gagne !",
+  },
   roue: {
     label: "Grande Roue",
     description: "Joueurs et banque partent avec 500 médailles. La roue donne ou prend des médailles, gonfle la banque, ou lance une Bataille, un 1 contre tous ou un Duel. Elle change trois fois, et les prolongations durent jusqu'à la Bataille finale !",

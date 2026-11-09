@@ -3324,3 +3324,119 @@ button.quiz__option {
   font-size: 0.8rem;
   text-align: center;
 }
+
+/* ── Mode Tour du monde ── */
+.globe {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
+  gap: 18px;
+  align-items: start;
+  width: min(1400px, 100%);
+}
+.globe--pad {
+  grid-template-columns: 1fr;
+}
+.globe__main {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+}
+.globe__map-box {
+  width: 100%;
+  border-radius: var(--radius-l);
+  overflow: hidden;
+  box-shadow: 0 8px 0 #1e2a4a22;
+}
+.globe__map {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.globe__hotspot circle {
+  animation: rail-pulse 900ms ease-in-out infinite alternate;
+}
+.globe__pawn {
+  transition: transform 260ms ease;
+}
+.globe__hot {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border-radius: var(--radius-m);
+  background: var(--paper);
+}
+.globe__hot-title {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+.globe__hot-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.globe__hot-item span:last-child {
+  display: grid;
+}
+.globe__hot-item small {
+  color: var(--ink-soft);
+}
+.globe__flag {
+  font-size: 1.8rem;
+}
+.globe__hand {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+.globe__card {
+  display: grid;
+  gap: 2px;
+  justify-items: center;
+  padding: 10px 6px;
+  border: 3px solid var(--line);
+  border-radius: var(--radius-m);
+  background: var(--paper);
+  font: inherit;
+  cursor: pointer;
+  text-align: center;
+}
+.globe__card:disabled {
+  cursor: default;
+  opacity: 0.75;
+}
+.globe__card.is-selected {
+  border-color: var(--sun-deep);
+  background: #fff4cc;
+}
+.globe__card-icon {
+  font-size: 1.8rem;
+}
+.globe__card small {
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+}
+.globe__choice {
+  display: grid;
+  gap: 8px;
+}
+.globe__row {
+  display: flex;
+  gap: 8px;
+}
+.globe__row .btn {
+  flex: 1;
+}
+@media (max-width: 900px) {
+  .globe {
+    grid-template-columns: 1fr;
+  }
+}
+.globe__banner {
+  position: static;
+  transform: none;
+  white-space: normal;
+}
+.globe__banner small {
+  color: var(--ink-soft);
+}

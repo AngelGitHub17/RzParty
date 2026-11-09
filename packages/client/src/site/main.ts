@@ -21,7 +21,7 @@ const MODE_ART: Partial<Record<GameModeId, string>> = {
   mots: "/site/mots.webp",
   survie: "/site/tremplin.webp",
 };
-const MODE_ORDER: GameModeId[] = ["plateau", "survie", "roue", "loto", "quiz", "mots"];
+const MODE_ORDER: GameModeId[] = ["plateau", "voyage", "survie", "roue", "loto", "quiz", "mots"];
 
 const link = (href: string, text: string, cls = "") => h("a", { class: cls, attrs: { href }, text });
 
@@ -121,7 +121,7 @@ const ways = section(
 // ── Modes ──
 const modes = section(
   "modes",
-  "Six façons de faire la fête",
+  "Sept façons de faire la fête",
   "Le chef du salon choisit le mode et ses réglages : longueur du plateau, nombre de questions, de bombes, mini-jeux autorisés…",
   h(
     "div",

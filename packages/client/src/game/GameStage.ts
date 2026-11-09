@@ -10,6 +10,7 @@ import { WheelView } from "./WheelView.ts";
 import { LotoView } from "./LotoView.ts";
 import { QuizView } from "./QuizView.ts";
 import { MotsView } from "./MotsView.ts";
+import { GlobeView } from "./GlobeView.ts";
 
 /** Écrans des modes de jeu hors mini-jeux (une classe par étape). */
 interface ModeView {
@@ -21,6 +22,7 @@ const MODE_VIEWS: Record<string, new (root: HTMLElement, layout: ViewLayout, meI
   loto: LotoView,
   quiz: QuizView,
   mots: MotsView,
+  globe: GlobeView,
 };
 import { obfuscated } from "../ui/obfuscate.ts";
 
@@ -130,6 +132,8 @@ export class GameStage {
               ? h("strong", { class: "chip__score", text: `${s.score} pt${s.score > 1 ? "s" : ""}` })
               : game.mode === "mots"
               ? h("strong", { class: "chip__score", text: `💥 ${s.score}` })
+              : game.mode === "voyage"
+              ? h("strong", { class: "chip__score", text: `📷 ${s.score} · 🪙 ${game.globe?.coins[p.id] ?? 0}` })
               : game.mode === "plateau"
               ? h(
                   "span",
@@ -190,7 +194,8 @@ export class GameStage {
       case "wheel":
       case "loto":
       case "quiz":
-      case "mots": {
+      case "mots":
+      case "globe": {
         if (!this.modeView) this.modeView = { stage: game.stage, view: new MODE_VIEWS[game.stage]!(this.main, this.layout, this.meId) };
         this.modeView.view.update(room);
         return;
@@ -222,6 +227,10 @@ export class GameStage {
                 ? game.wheel?.battle?.kind === "bataille13"
                   ? `${room.players.find((p) => p.id === game.wheel?.battle?.solo)?.name ?? "?"} seul contre tous ! La banque de ${game.wheel?.pot ?? 0} médailles est en jeu · ${CATEGORY_LABELS[mg.category] ?? mg.category}`
                   : `Bataille ! Le gagnant rafle la banque de ${game.wheel?.pot ?? 0} médailles · ${CATEGORY_LABELS[mg.category] ?? mg.category}`
+                : game.purpose === "voyage"
+                ? `Pièces du tour (10, 5, 3, 1) et ordre de passage en jeu ! · ${CATEGORY_LABELS[mg.category] ?? mg.category}`
+                : game.purpose === "unvstous"
+                ? `${room.players.find((p) => p.id === game.globe?.turn?.playerId)?.name ?? "?"} seul contre tous ! Victoire : 15 pièces, défaite : 5 pièces pour chaque adversaire · ${CATEGORY_LABELS[mg.category] ?? mg.category}`
                 : game.purpose === "duelroue"
                 ? `Duel ! ${game.participants.map((id) => room.players.find((p) => p.id === id)?.name ?? "?").join(" contre ")} : si ${room.players.find((p) => p.id === game.wheel?.battle?.solo)?.name ?? "le lanceur"} gagne, il prend la moitié des médailles de l'autre · ${CATEGORY_LABELS[mg.category] ?? mg.category}`
                 : game.purpose === "duel"
@@ -337,6 +346,10 @@ export class GameStage {
             : game.purpose === "loto"
               ? change?.points
                 ? "coche une case !"
+                : ""
+              : game.purpose === "voyage" || game.purpose === "unvstous"
+              ? change?.points
+                ? `+${change.points} pièce${change.points > 1 ? "s" : ""}`
                 : ""
               : game.purpose === "cagnotte" || game.purpose === "duelroue"
               ? change?.points

@@ -125,6 +125,17 @@ et 1 contre tous, et en fin de partie le dernier au classement choisit le mini-j
 parmi trois. Après le dernier tour viennent les **prolongations** : la partie se termine après la
 première Bataille (jouée d'office au bout de 10 tours de prolongation). Le plus riche gagne.
 
+### Tour du monde
+
+Tout le monde part de Paris avec 10 pièces. Chaque tour commence par un mini-jeu qui rapporte
+10, 5, 3 ou 1 pièce et fixe l'ordre de passage. À son tour, on joue une **carte de transport**
+(Train 4-6, Taxi 1 à 3, Hélico 8, Montgolfière 3 à 8, Avion vers un aéroport, Super voyage vers
+une destination à la une) dans la direction de son choix ; sans carte, on marche de 1 à 3 cases.
+Passer ou s'arrêter sur l'une des **3 destinations à la une** permet d'acheter sa photo-souvenir
+(10 pièces). En route : boutiques, gares, aéroports et ports (5 pièces), petits boulots, surprises
+et 1 contre tous. Après les tours prévus (6, 10 ou 15), la première photo des prolongations termine
+la partie. Le plus de photos gagne, les pièces départagent.
+
 ### Loto des copains
 
 Chacun reçoit un carton de 24 personnages (la case du milieu est offerte). Les boules tombent et

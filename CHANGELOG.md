@@ -3,6 +3,11 @@
 Chaque version commence par « ## numéro — date ». La page de présentation et les serveurs
 locaux lisent ce fichier : pense à augmenter la version dans package.json à chaque publication.
 
+## 0.6.0 — 9 novembre 2026
+- Nouveau mode Tour du monde : une carte du monde en boucle, 12 destinations, des cartes de transport et des photos-souvenirs à acheter.
+- Mini-jeu de début de tour (10, 5, 3, 1 pièce et ordre de passage), boutiques, gares, aéroports, ports, petits boulots, surprises et 1 contre tous.
+- Prolongations : la première photo achetée termine la partie.
+
 ## 0.5.0 — 4 novembre 2026
 - Grande Roue refaite comme le mode d'origine : 500 médailles pour chacun et pour la banque, roue de 22 cases, 10 tours.
 - Nouvelles cases : +300, −300, ½, Banque +500/+600/+800, Banque ×2/×3, Bataille, 1 contre tous, Duel et Chance (petite roue).
