@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=RzParty
+Comment=Jeu de société multijoueur dans le navigateur
+Exec=rzparty
+Icon=rzparty
+Terminal=true
+Categories=Game;BoardGame;

@@ -5,7 +5,7 @@
 import "@fontsource-variable/fredoka";
 import "../styles.css";
 import "./site.css";
-import { GAME_MODES, type ChangelogEntry, type GameModeId, type ReleaseInfo } from "@rzparty/shared";
+import { GAME_MODES, type ChangelogEntry, type GameModeId, type InstallerInfo, type ReleaseInfo } from "@rzparty/shared";
 import { MINI_GAME_DEFINITIONS } from "@rzparty/minigames/catalog";
 import { h } from "../ui/dom.ts";
 import { wordmark } from "../ui/brand.ts";
@@ -80,7 +80,7 @@ const hero = h(
       "div",
       { class: "site-hero__cta" },
       link("/accueil", "Jouer en ligne", "btn btn--go site-btn-big"),
-      link("#chez-soi", "Installer chez soi", "btn btn--ghost site-btn-big"),
+      link("#chez-soi", "Installer chez soi (Windows, Linux, Mac)", "btn btn--ghost site-btn-big"),
     ),
     versionTag,
   ),
@@ -175,13 +175,59 @@ const older = h(
 );
 const step = (n: number, title: string, ...body: (Node | string)[]) =>
   h("li", { class: "site-step" }, h("span", { class: "site-step__n", text: String(n), attrs: { "aria-hidden": "true" } }), h("div", {}, h("h3", { text: title }), ...body));
+const OS_LABEL: Record<InstallerInfo["os"], { label: string; file: string; icon: string }> = {
+  windows: { label: "Windows", file: ".msi", icon: "🪟" },
+  linux: { label: "Linux", file: ".deb", icon: "🐧" },
+  mac: { label: "Mac", file: ".pkg", icon: "🍎" },
+};
+const installers = h("div", { class: "site-installers" }, h("p", { class: "muted", text: "Recherche des installeurs…" }));
+const installerNote = h("p", { class: "muted site-download__info" });
+
+function myOs(): InstallerInfo["os"] {
+  const ua = navigator.userAgent;
+  return /Mac/i.test(ua) && !/iPhone|iPad/i.test(ua) ? "mac" : /Linux|X11/i.test(ua) && !/Android/i.test(ua) ? "linux" : "windows";
+}
+
+function renderInstallers(files: InstallerInfo[]): void {
+  if (!files.length) {
+    installers.replaceChildren(h("p", { class: "muted", text: "Les installeurs de cette version sont en cours de fabrication : reviens dans quelques minutes, ou prends le .zip ci-dessous." }));
+    return;
+  }
+  const mine = myOs();
+  const sorted = [...files].sort((a, b) => Number(b.os === mine) - Number(a.os === mine));
+  installers.replaceChildren(
+    ...sorted.map((f) =>
+      h(
+        "a",
+        { class: `btn ${f.os === mine ? "btn--go" : "btn--ghost"} site-installer`, attrs: { href: f.url, download: "" } },
+        h("span", { class: "site-installer__icon", text: OS_LABEL[f.os].icon, attrs: { "aria-hidden": "true" } }),
+        h("span", {}, h("strong", { text: `${OS_LABEL[f.os].label} (${OS_LABEL[f.os].file})` }), h("small", { text: `${Math.round(f.size / 1e6)} Mo` })),
+      ),
+    ),
+  );
+  installerNote.textContent = "Node.js est inclus : rien d'autre à installer. Le jeu se met ensuite à jour tout seul, entre deux parties. Windows ou Mac peuvent avertir que l'éditeur est inconnu : choisis « Exécuter quand même » (Windows) ou clic droit puis « Ouvrir » (Mac).";
+}
+
 const home = section(
   "chez-soi",
   "Jouer chez soi, sans Internet",
   "Le serveur tourne sur un PC de la maison : les joueurs se connectent par le wifi, sans compte et sans rien installer.",
   h(
+    "div",
+    { class: "site-install-ways" },
+    h(
+      "article",
+      { class: "site-card site-install" },
+      h("h3", { text: "Le plus simple : l'installeur" }),
+      h("p", { text: "Télécharge, double-clique, c'est installé. RzParty apparaît dans le menu Démarrer, le Bureau ou les Applications." }),
+      installers,
+      installerNote,
+    ),
+  ),
+  h(
     "ol",
     { class: "site-steps" },
+    h("li", { class: "site-steps__title" }, h("h3", { text: "Ou bien : le dossier .zip" })),
     step(1, "Installe Node.js", h("p", {}, "Prends la version LTS sur ", h("a", { attrs: { href: "https://nodejs.org/fr", target: "_blank", rel: "noopener" }, text: "nodejs.org" }), ". Une seule fois suffit.")),
     step(2, "Télécharge RzParty", h("p", { text: "Décompresse le fichier .zip où tu veux, par exemple dans Documents." }), h("div", { class: "site-download" }, downloadBtn, downloadInfo), older),
     step(
@@ -192,7 +238,7 @@ const home = section(
     step(
       4,
       "Reste à jour",
-      h("p", {}, "Quand une nouvelle version sort, ton RzParty te prévient. Ferme-le puis double-clique sur ", h("code", { text: "mettre-a-jour.bat" }), " : tes profils et réglages sont conservés."),
+      h("p", {}, "Quand une nouvelle version sort, ton RzParty te prévient : installe-la depuis la page ", h("code", { text: "/hote" }), " ou double-clique sur ", h("code", { text: "mettre-a-jour.bat" }), ". Tes profils et réglages sont conservés."),
     ),
   ),
 );
@@ -260,7 +306,11 @@ const footer = h(
 
 root.append(header, h("main", { class: "site-main" }, hero, ways, modes, games, home, updates), footer);
 
-// Version en ligne, anciennes versions et journal, servis par le serveur.
+// Installeurs, version en ligne, anciennes versions et journal, servis par le serveur.
+void fetch("/api/installeurs")
+  .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+  .then((data: { files: InstallerInfo[] }) => renderInstallers(data.files))
+  .catch(() => renderInstallers([]));
 const releasesReady = fetch("/api/versions")
   .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
   .then((data: { releases: ReleaseInfo[] }) => renderReleases(data.releases))

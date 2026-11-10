@@ -6,7 +6,7 @@ import { GAME_NAME, type ServerInfo } from "@rzparty/shared";
 import { config, rootDir } from "./config.ts";
 import { lanAddresses } from "./network.ts";
 import { attachSockets } from "./socket.ts";
-import { availableUpdate, buildInfo, downloadArchive, downloadRelease, listReleases, readChangelog, version } from "./updater.ts";
+import { availableUpdate, buildInfo, downloadArchive, downloadRelease, listInstallers, listReleases, readChangelog, version } from "./updater.ts";
 import type { ProfileStore } from "./profiles/ProfileStore.ts";
 import type { AdminStore } from "./profiles/AdminStore.ts";
 
@@ -22,6 +22,8 @@ export class ClientNotBuiltError extends Error {}
 export interface RunningServer {
   port: number;
   stop(): Promise<void>;
+  /** Parties en cours (pour ne pas mettre à jour au milieu d'une partie). */
+  activity(): { rooms: number; games: number; players: number };
 }
 
 /**
@@ -52,6 +54,10 @@ export async function startServer(port: number, deps: { profiles: ProfileStore; 
   });
 
   if (config.site) {
+    app.get("/api/installeurs", async (_req, reply) => {
+      reply.header("access-control-allow-origin", "*").header("cache-control", "no-cache");
+      return { version, files: await listInstallers() };
+    });
     app.get("/api/versions", async (_req, reply) => {
       reply.header("access-control-allow-origin", "*").header("cache-control", "no-cache");
       return { current: version, releases: await listReleases().catch(() => []) };
@@ -118,6 +124,7 @@ export async function startServer(port: number, deps: { profiles: ProfileStore; 
 
   return {
     port,
+    activity: () => manager.activity(),
     async stop() {
       detach();
       manager.dispose();

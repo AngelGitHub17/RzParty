@@ -1,0 +1,150 @@
+# Construit les installeurs (.msi Windows, .deb Linux, .pkg Mac) à chaque nouvelle version
+# (changement de « version » dans package.json) et les publie dans une « release » GitHub v<version>.
+# La page de présentation (rzparty.fr) propose ensuite ces fichiers à côté du .zip.
+name: Installeurs
+
+on:
+  push:
+    branches: [main]
+    paths: [package.json]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  NODE_VERSION: "22.11.0"
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+      exists: ${{ steps.v.outputs.exists }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: v
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          v=$(node -p "require('./package.json').version")
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          if gh release view "v$v" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then echo "exists=true" >> "$GITHUB_OUTPUT"; else echo "exists=false" >> "$GITHUB_OUTPUT"; fi
+
+  windows:
+    needs: version
+    if: needs.version.outputs.exists != 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - run: npm ci --no-audit --no-fund
+      - run: npm run build
+      - name: Node.js pour Windows
+        shell: pwsh
+        run: |
+          Invoke-WebRequest "https://nodejs.org/dist/v$env:NODE_VERSION/node-v$env:NODE_VERSION-win-x64.zip" -OutFile node.zip
+          Expand-Archive node.zip -DestinationPath nodedist
+      - name: Préparation
+        shell: pwsh
+        run: node deploy/installeurs/preparer.mjs --kind msi --out build/msi --runtime "win-x64=$PWD/nodedist/node-v$env:NODE_VERSION-win-x64"
+      - name: Construction du .msi (WiX)
+        shell: pwsh
+        run: |
+          dotnet tool install --global wix --version 5.0.2
+          wix build deploy/installeurs/windows/RzParty.wxs -arch x64 -sval -d Version=${{ needs.version.outputs.version }} -d Source="$PWD\build\msi" -o "RzParty-${{ needs.version.outputs.version }}.msi"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: msi
+          path: RzParty-*.msi
+
+  linux:
+    needs: version
+    if: needs.version.outputs.exists != 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - run: npm ci --no-audit --no-fund
+      - run: npm run build
+      - name: Node.js pour Linux
+        run: |
+          curl -fsSL "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64.tar.xz" | tar xJ
+      - name: Construction du .deb
+        run: |
+          v=${{ needs.version.outputs.version }}
+          D=build/deb
+          node deploy/installeurs/preparer.mjs --kind deb --out $D/opt/rzparty --runtime "linux-x64=$PWD/node-v$NODE_VERSION-linux-x64"
+          mkdir -p $D/DEBIAN $D/usr/bin $D/usr/share/applications $D/usr/share/icons/hicolor/256x256/apps
+          sed "s/@VERSION@/$v/" deploy/installeurs/linux/control > $D/DEBIAN/control
+          cp deploy/installeurs/linux/rzparty $D/usr/bin/
+          cp deploy/installeurs/linux/rzparty.desktop $D/usr/share/applications/
+          cp deploy/installeurs/rzparty-256.png $D/usr/share/icons/hicolor/256x256/apps/rzparty.png
+          chmod 755 $D/usr/bin/rzparty $D/opt/rzparty/deploy/installeurs/commun/lanceur.sh
+          dpkg-deb --build --root-owner-group -Zxz $D "rzparty_${v}_amd64.deb"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deb
+          path: rzparty_*.deb
+
+  mac:
+    needs: version
+    if: needs.version.outputs.exists != 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - run: npm ci --no-audit --no-fund
+      - run: npm run build
+      - name: Node.js pour Mac (Apple Silicon et Intel)
+        run: |
+          for a in arm64 x64; do curl -fsSL "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-darwin-$a.tar.gz" | tar xz; done
+      - name: Construction du .pkg
+        run: |
+          v=${{ needs.version.outputs.version }}
+          APP=build/pkgroot/Applications/RzParty.app/Contents
+          node deploy/installeurs/preparer.mjs --kind pkg --out $APP/Resources/app \
+            --runtime "darwin-arm64=$PWD/node-v$NODE_VERSION-darwin-arm64" \
+            --runtime "darwin-x64=$PWD/node-v$NODE_VERSION-darwin-x64"
+          mkdir -p $APP/MacOS
+          sed "s/@VERSION@/$v/g" deploy/installeurs/mac/Info.plist > $APP/Info.plist
+          cp deploy/installeurs/mac/RzParty $APP/MacOS/RzParty
+          cp deploy/installeurs/mac/RzParty.command $APP/Resources/RzParty.command
+          chmod 755 $APP/MacOS/RzParty $APP/Resources/RzParty.command $APP/Resources/app/deploy/installeurs/commun/lanceur.sh
+          # Icône .icns à partir du PNG.
+          mkdir icone.iconset
+          for s in 16 32 128 256 512; do
+            sips -z $s $s deploy/installeurs/rzparty-256.png --out icone.iconset/icon_${s}x${s}.png >/dev/null
+          done
+          iconutil -c icns icone.iconset -o $APP/Resources/rzparty.icns
+          pkgbuild --root build/pkgroot --identifier fr.rzparty.app --version "$v" --install-location / "RzParty-$v.pkg"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pkg
+          path: RzParty-*.pkg
+
+  publication:
+    needs: [version, windows, linux, mac]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: installeurs
+          merge-multiple: true
+      - name: Release GitHub
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          v=${{ needs.version.outputs.version }}
+          ls -la installeurs
+          if gh release view "v$v" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "v$v" installeurs/* --clobber --repo "$GITHUB_REPOSITORY"
+          else
+            gh release create "v$v" installeurs/* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "RzParty $v" --notes "Installeurs de RzParty $v (Node.js inclus, mise à jour automatique). Journal : https://rzparty.fr/#mises-a-jour"
+          fi

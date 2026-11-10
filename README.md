@@ -239,6 +239,22 @@ En mode site (`RZ_SITE=1`), `/` affiche la page de présentation (modes, mini-je
 journal des versions) et le jeu est sur `/accueil`. Tout est expliqué dans [docs/hebergement.md](docs/hebergement.md) :
 création du conteneur en une commande, configuration NGINX, mise à jour depuis `/hote` ou avec `rzparty-maj`.
 
+### Installeurs (Windows, Linux, Mac)
+
+À chaque nouvelle version, GitHub Actions (`.github/workflows/installeurs.yml`) fabrique trois
+installeurs et les publie dans la « release » GitHub `v<version>` ; la page de présentation les propose
+à côté du .zip (`/api/installeurs`) :
+
+- **Windows (.msi)** : installé pour l'utilisateur dans `%LOCALAPPDATA%\Programs\RzParty` (pas besoin
+  d'être administrateur), raccourcis Menu Démarrer et Bureau ;
+- **Linux (.deb)** : installé dans `/opt/rzparty`, commande `rzparty` et entrée dans le menu ;
+- **Mac (.pkg)** : application `RzParty` dans Applications (Apple Silicon et Intel).
+
+Node.js est fourni avec le jeu. Sous Linux et Mac, le premier lancement recopie le jeu dans le dossier
+de l'utilisateur. Dans tous les cas, RzParty **se met à jour tout seul** : quand une nouvelle version
+est publiée, il l'installe dès qu'aucune partie n'est en cours, puis se relance (profils conservés).
+Les installeurs ne sont pas signés : Windows ou Mac peuvent demander une confirmation la première fois.
+
 ### Anciennes versions
 
 La page de présentation propose toujours la dernière version en premier (c'est la seule qui se met

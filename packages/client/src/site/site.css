@@ -381,3 +381,41 @@ html:has(body.site) {
   border-radius: 10px;
   background: #cde9fb;
 }
+
+.site-install-ways {
+  display: grid;
+  margin-bottom: 18px;
+}
+.site-install {
+  display: grid;
+  gap: 10px;
+  text-align: left;
+}
+.site-installers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.site-installer {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+}
+.site-installer span:last-child {
+  display: grid;
+}
+.site-installer small {
+  font-size: 0.78rem;
+  font-weight: 500;
+  opacity: 0.8;
+}
+.site-installer__icon {
+  font-size: 1.6rem;
+}
+.site-steps__title {
+  list-style: none;
+}
+.site-steps__title h3 {
+  margin: 0;
+}

@@ -1,0 +1,3 @@
+#!/bin/sh
+# Lance RzParty installé par le paquet .deb.
+exec /opt/rzparty/deploy/installeurs/commun/lanceur.sh /opt/rzparty

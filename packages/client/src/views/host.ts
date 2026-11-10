@@ -286,9 +286,35 @@ export const hostView: View = (root, { navigate }) => {
         lines.push(h("p", { class: "muted", text: "RzParty est à jour." }));
       }
     } else if (st.update) {
+      const out = h("p", { class: "muted" });
+      const btn = h("button", {
+        class: "btn btn--go",
+        attrs: { type: "button" },
+        text: "Installer la mise à jour",
+        on: {
+          click: async () => {
+            btn.setAttribute("disabled", "");
+            btn.textContent = "Téléchargement et installation… (1 à 3 minutes)";
+            try {
+              const res = await request("admin:updateInstall", { token: session });
+              out.textContent = res.log.at(-1) ?? "Terminé.";
+              btn.textContent = res.restarting ? "Redémarrage…" : "Installée";
+              if (res.restarting) setTimeout(() => window.location.reload(), 10000);
+            } catch (err) {
+              out.textContent = err instanceof ServerError ? err.message : "La mise à jour a échoué.";
+              btn.removeAttribute("disabled");
+              btn.textContent = "Réessayer";
+            }
+          },
+        },
+      });
       lines.push(
         h("p", { text: `La version ${st.update.version} est disponible.` }),
-        h("p", { class: "muted", text: "Ferme RzParty, puis double-clique sur « mettre-a-jour.bat » dans le dossier du jeu. Tes profils sont conservés." }),
+        st.method === "installeur"
+          ? h("p", { class: "muted", text: "Elle s'installe toute seule dès qu'aucune partie n'est en cours. Tu peux aussi l'installer tout de suite. Tes profils sont conservés." })
+          : h("p", { class: "muted", text: "Installe-la ici, ou ferme RzParty et double-clique sur « mettre-a-jour.bat » dans le dossier du jeu. Tes profils sont conservés." }),
+        btn,
+        out,
         h("a", { class: "btn btn--ghost btn--small", attrs: { href: `${st.update.url}/#mises-a-jour`, target: "_blank", rel: "noopener" }, text: "Voir les nouveautés" }),
       );
     } else {

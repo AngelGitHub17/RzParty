@@ -1,0 +1,4 @@
+#!/bin/sh
+# Application Mac : ouvre une fenêtre de Terminal qui lance RzParty (on y voit l'adresse à donner aux joueurs).
+APP="$(cd "$(dirname "$0")/.." && pwd)"
+open -a Terminal "$APP/Resources/RzParty.command"

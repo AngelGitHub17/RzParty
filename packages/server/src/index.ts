@@ -8,7 +8,7 @@ import { ClientNotBuiltError, startServer, version, type RunningServer } from ".
 import { HostConsole } from "./console.ts";
 import { lanAddresses } from "./network.ts";
 import { log } from "./log.ts";
-import { isGitInstall, watchForUpdates } from "./updater.ts";
+import { RESTART_EXIT_CODE, availableUpdate, installKind, installUpdate, isGitInstall, restartRequested, watchForUpdates } from "./updater.ts";
 
 const hostConsole = new HostConsole();
 /** Profils des joueurs : un seul magasin, conservé même quand le port change. */
@@ -137,7 +137,8 @@ async function shutdown(code = 0): Promise<never> {
   log("Arrêt du serveur…");
   await server?.stop().catch(() => {});
   profiles.flush();
-  process.exit(code);
+  // Lanceur des installeurs : un code spécial lui demande de relancer la nouvelle version.
+  process.exit(restartRequested() && process.env.RZ_LAUNCHER === "1" ? RESTART_EXIT_CODE : code);
 }
 
 async function main(): Promise<void> {
@@ -169,11 +170,25 @@ async function main(): Promise<void> {
   watchForUpdates((u) => {
     console.log("");
     console.log(`  ★ Nouvelle version de ${GAME_NAME} disponible : ${u.version} (tu as la ${version}).`);
-    console.log(isGitInstall
-      ? "    Installe-la depuis la page /hote, rubrique « Mise à jour »."
-      : `    Ferme ${GAME_NAME}, puis double-clique sur « mettre-a-jour.bat » (journal : ${u.url}/#mises-a-jour).`);
+    console.log(installKind
+      ? "    Elle s'installera toute seule dès qu'aucune partie n'est en cours."
+      : isGitInstall
+        ? "    Installe-la depuis la page /hote, rubrique « Mise à jour »."
+        : `    Installe-la depuis la page /hote, ou ferme ${GAME_NAME} et double-clique sur « mettre-a-jour.bat » (journal : ${u.url}/#mises-a-jour).`);
     console.log("");
   });
+
+  // Version installée par un installeur : la mise à jour s'installe toute seule, entre deux parties.
+  if (installKind && process.env.RZ_LAUNCHER === "1") {
+    const auto = setInterval(() => {
+      const a = server?.activity();
+      if (!availableUpdate() || !a || a.games > 0 || a.players > 0) return;
+      clearInterval(auto);
+      log(`Installation automatique de la version ${availableUpdate()!.version}…`);
+      installUpdate(() => void shutdown(0)).catch((err) => log("Mise à jour automatique impossible :", (err as Error).message));
+    }, 60_000);
+    auto.unref();
+  }
 }
 
 main().catch((err) => {

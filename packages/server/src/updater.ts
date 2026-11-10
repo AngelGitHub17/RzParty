@@ -1,10 +1,11 @@
 import { execFile } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { chmodSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { dirname, resolve, sep } from "node:path";
 import { promisify } from "node:util";
-import type { ChangelogEntry, ReleaseInfo, UpdateStatus } from "@rzparty/shared";
+import type { ChangelogEntry, InstallerInfo, ReleaseInfo, UpdateStatus } from "@rzparty/shared";
 import { config, rootDir } from "./config.ts";
 import { log } from "./log.ts";
+import { readZip } from "./unzip.ts";
 
 const run = promisify(execFile);
 const isWindows = process.platform === "win32";
@@ -14,6 +15,24 @@ export const version = (JSON.parse(readFileSync(resolve(rootDir, "package.json")
 
 /** Le dossier est-il un clone git (mise à jour par « git pull ») ? */
 export const isGitInstall = existsSync(resolve(rootDir, ".git"));
+
+/** Installé par un installeur (.msi, .deb, .pkg) : il dépose runtime/installation.json à côté de Node.js. */
+export const installKind: string | null = (() => {
+  try {
+    return (JSON.parse(readFileSync(resolve(rootDir, "runtime/installation.json"), "utf8")) as { kind?: string }).kind ?? "installeur";
+  } catch {
+    return null;
+  }
+})();
+
+let restartAsked = false;
+/** Une mise à jour vient d'être installée : le lanceur doit relancer le jeu. */
+export function restartRequested(): boolean {
+  return restartAsked;
+}
+
+/** Code de sortie qui demande au lanceur (installeurs) de relancer RzParty. */
+export const RESTART_EXIT_CODE = 75;
 
 async function git(...args: string[]): Promise<string> {
   const { stdout } = await run("git", args, { cwd: rootDir, timeout: 60_000, windowsHide: true, maxBuffer: 16 * 1024 * 1024 });
@@ -153,13 +172,16 @@ export async function updateStatus(): Promise<UpdateStatus> {
   const base: UpdateStatus = {
     version,
     commit: buildInfo.commit,
-    method: isGitInstall ? "git" : "archive",
+    method: isGitInstall ? "git" : installKind ? "installeur" : "archive",
     update: (await checkForUpdate()) ?? null,
     pending: [],
     canInstall: false,
     autoRestart: underServiceManager(),
   };
-  if (!isGitInstall) return base;
+  if (!isGitInstall) {
+    base.canInstall = Boolean(base.update);
+    return base;
+  }
   try {
     await git("fetch", "--quiet");
     const lines = await git("log", "--format=%h%x09%s", "HEAD..@{u}");
@@ -185,7 +207,7 @@ function underServiceManager(): boolean {
  * Renvoie true si le serveur va redémarrer tout seul.
  */
 export async function installUpdate(onRestart: () => void): Promise<{ restarting: boolean; log: string[] }> {
-  if (!isGitInstall) throw new Error("Ce dossier n'a pas été installé avec git : utilise « mettre-a-jour.bat ».");
+  if (!isGitInstall) return installFromArchive(onRestart);
   if (busy) throw new Error("Une mise à jour est déjà en cours.");
   busy = true;
   const out: string[] = [];
@@ -319,4 +341,102 @@ export async function downloadRelease(wanted: string): Promise<{ file: string; n
     rmSync(tmp, { force: true });
   }
   return { file, name };
+}
+
+// ─────────────────────────── Mise à jour d'un dossier .zip ou installé ───────────────────────────
+
+/** Ce que la mise à jour ne touche jamais : profils, réglages, Node.js fourni par l'installeur, dépendances. */
+const KEEP = new Set(["data", "node_modules", "runtime", ".git", "rzparty.config.json"]);
+
+/** Écrit les fichiers d'une archive du jeu par-dessus le dossier (exporté pour les tests). */
+export function applyArchive(zip: Buffer, target: string): { files: number; lockChanged: boolean; version: string } {
+  const entries = readZip(zip);
+  const pkg = entries.find((e) => /^[^/]+\/package\.json$/.test(e.name));
+  if (!pkg) throw new Error("Archive inattendue : package.json introuvable.");
+  const prefix = pkg.name.slice(0, pkg.name.indexOf("/") + 1);
+  const newVersion = (JSON.parse(pkg.data.toString("utf8")) as { version: string }).version;
+  const lockPath = resolve(target, "package-lock.json");
+  const oldLock = existsSync(lockPath) ? readFileSync(lockPath, "utf8") : "";
+  let files = 0;
+  for (const e of entries) {
+    if (!e.name.startsWith(prefix)) continue;
+    const rel = e.name.slice(prefix.length);
+    if (!rel || rel.split("/").some((part) => part === ".." || part === "")) continue;
+    if (KEEP.has(rel.split("/")[0]!)) continue;
+    const dest = resolve(target, ...rel.split("/"));
+    if (!dest.startsWith(resolve(target) + sep)) continue;
+    mkdirSync(dirname(dest), { recursive: true });
+    writeFileSync(dest, e.data);
+    if (e.mode & 0o111 && !isWindows) chmodSync(dest, 0o755);
+    files++;
+  }
+  const lockChanged = existsSync(lockPath) && readFileSync(lockPath, "utf8") !== oldLock;
+  return { files, lockChanged, version: newVersion };
+}
+
+async function installFromArchive(onRestart: () => void): Promise<{ restarting: boolean; log: string[] }> {
+  if (busy) throw new Error("Une mise à jour est déjà en cours.");
+  const base = config.updateUrl;
+  if (!base) throw new Error("Les mises à jour sont désactivées sur cette version (version archivée ou RZ_UPDATE_URL=off).");
+  busy = true;
+  const out: string[] = [];
+  try {
+    const update = await checkForUpdate();
+    if (!update) throw new Error("RzParty est déjà à jour.");
+    out.push(`Téléchargement de la version ${update.version}…`);
+    const res = await fetch(`${base}/telecharger`, { signal: AbortSignal.timeout(10 * 60_000), headers: { "user-agent": `RzParty/${version}` } });
+    if (!res.ok) throw new Error(`Téléchargement impossible (${res.status}).`);
+    const zip = Buffer.from(await res.arrayBuffer());
+    out.push("Installation des fichiers…");
+    const { files, lockChanged } = applyArchive(zip, rootDir);
+    out.push(`${files} fichiers mis à jour.`);
+    const npm = isWindows ? "npm.cmd" : "npm";
+    const npmRun = (args: string[]) => run(npm, args, { cwd: rootDir, timeout: 10 * 60_000, windowsHide: true, shell: isWindows });
+    if (lockChanged || !existsSync(resolve(rootDir, "node_modules"))) {
+      out.push("Installation des dépendances…");
+      await npmRun(["ci", "--no-audit", "--no-fund"]);
+    }
+    out.push("Compilation du client…");
+    await npmRun(["run", "build"]);
+    const restarting = underServiceManager();
+    if (restarting) {
+      restartAsked = true;
+      setTimeout(onRestart, 800);
+    }
+    out.push(restarting ? "Redémarrage de RzParty…" : "Terminé : relance RzParty pour utiliser la nouvelle version.");
+    log(`Mise à jour installée : ${update.version}.`);
+    return { restarting, log: out };
+  } finally {
+    busy = false;
+  }
+}
+
+// ─────────────────────────── Installeurs (publiés sur GitHub) ───────────────────────────
+
+/** Dépôt GitHub où GitHub Actions publie les installeurs de chaque version. */
+const GITHUB_REPO = process.env.RZ_GITHUB_REPO || "AngelGitHub17/RzParty";
+let installersCache: { at: number; files: InstallerInfo[] } | null = null;
+
+/** Rangement d'un fichier publié : .msi → Windows, .deb → Linux, .pkg → Mac. */
+export function installerOf(name: string, url: string, size: number): InstallerInfo | null {
+  const os = name.endsWith(".msi") ? "windows" : name.endsWith(".deb") ? "linux" : name.endsWith(".pkg") ? "mac" : null;
+  return os ? { os, name, url, size } : null;
+}
+
+/** Les installeurs de la version en ligne (vide tant que GitHub Actions ne les a pas publiés). */
+export async function listInstallers(): Promise<InstallerInfo[]> {
+  const fresh = installersCache && Date.now() - installersCache.at < (installersCache.files.length ? 15 * 60_000 : 2 * 60_000);
+  if (fresh) return installersCache!.files;
+  try {
+    const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/tags/v${version}`, {
+      signal: AbortSignal.timeout(8000),
+      headers: { "user-agent": `RzParty/${version}`, accept: "application/vnd.github+json" },
+    });
+    const body = res.ok ? ((await res.json()) as { assets?: { name: string; browser_download_url: string; size: number }[] }) : { assets: [] };
+    const files = (body.assets ?? []).map((a) => installerOf(a.name, a.browser_download_url, a.size)).filter((f): f is InstallerInfo => f !== null);
+    installersCache = { at: Date.now(), files };
+  } catch {
+    installersCache = { at: Date.now(), files: installersCache?.files ?? [] };
+  }
+  return installersCache.files;
 }

@@ -1,6 +1,6 @@
 {
   "name": "rzparty",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "private": true,
   "description": "RzParty — party game multijoueur dans le navigateur, servi en réseau local",
   "type": "module",

@@ -3,6 +3,11 @@
 Chaque version commence par « ## numéro — date ». La page de présentation et les serveurs
 locaux lisent ce fichier : pense à augmenter la version dans package.json à chaque publication.
 
+## 0.10.1 — 10 novembre 2026
+- Installeurs Windows (.msi), Linux (.deb) et Mac (.pkg) avec Node.js inclus, proposés sur la page de présentation à côté du .zip.
+- La version installée se met à jour toute seule entre deux parties, puis se relance (profils conservés).
+- La page /hote peut aussi installer la mise à jour d'un dossier .zip, sans passer par mettre-a-jour.bat.
+
 ## 0.10.0 — 10 novembre 2026
 - Nouveau mode Île aux défis, fidèle au mode d'origine : 72 cases en spirale, dés bonus or/argent/bronze, double = un dé de plus, six défis (liane, mur du dragon, caisses ou tonneaux, volcan ou pas, boule à pointes, défi final à 6), volcan, éruption, statues, dino, tornade, OVNI, 1 contre tous et duels.
 - Test d'amitié : 5 questions par défaut, comme le mode d'origine (ou 10, 15).

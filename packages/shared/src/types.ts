@@ -258,8 +258,11 @@ export interface ChangelogEntry {
 export interface UpdateStatus {
   version: string;
   commit: string | null;
-  /** « git » : mise à jour possible depuis la page ; « archive » : via mettre-a-jour.bat. */
-  method: "git" | "archive";
+  /**
+   * « git » : mise à jour possible depuis la page ; « archive » : dossier .zip (depuis la page ou
+   * mettre-a-jour.bat) ; « installeur » : installé par le .msi, .deb ou .pkg (mise à jour toute seule).
+   */
+  method: "git" | "archive" | "installeur";
   /** Version plus récente annoncée par le site. */
   update: { version: string; url: string } | null;
   /** Modifications qui attendent sur GitHub (installation git). */
@@ -305,4 +308,13 @@ export interface ReleaseInfo {
   commit: string;
   /** La version en ligne : la seule qui se met à jour toute seule. */
   latest: boolean;
+}
+
+/** Un installeur publié (GitHub Actions) pour la version en ligne. */
+export interface InstallerInfo {
+  os: "windows" | "linux" | "mac";
+  name: string;
+  url: string;
+  /** Taille en octets. */
+  size: number;
 }

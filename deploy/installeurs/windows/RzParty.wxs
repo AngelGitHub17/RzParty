@@ -1,0 +1,36 @@
+<!--
+  Installeur Windows (.msi) de RzParty, construit par GitHub Actions avec WiX 5 :
+    wix build RzParty.wxs -d Version=x.y.z -d Source=<dossier préparé> -sval -o RzParty-x.y.z.msi
+  Installation « par utilisateur » dans %LOCALAPPDATA%\Programs\RzParty : pas besoin d'être
+  administrateur, et RzParty peut se mettre à jour tout seul (le dossier lui appartient).
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Name="RzParty" Manufacturer="DidiKaria" Version="$(Version)" UpgradeCode="6C3B0E58-8E2F-4D7B-9E64-2B8A6F2B7C11" Scope="perUser" Compressed="yes" Language="1036" Codepage="1252">
+    <SummaryInformation Description="RzParty — jeu de société multijoueur" Manufacturer="DidiKaria" />
+    <MajorUpgrade AllowSameVersionUpgrades="yes" DowngradeErrorMessage="Une version plus récente de RzParty est déjà installée." />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <Icon Id="rzparty.ico" SourceFile="$(Source)\deploy\installeurs\rzparty.ico" />
+    <Property Id="ARPPRODUCTICON" Value="rzparty.ico" />
+    <Property Id="ARPURLINFOABOUT" Value="https://rzparty.fr" />
+
+    <StandardDirectory Id="LocalAppDataFolder">
+      <Directory Id="ProgramsDir" Name="Programs">
+        <Directory Id="INSTALLFOLDER" Name="RzParty" />
+      </Directory>
+    </StandardDirectory>
+
+    <Feature Id="RzParty" Title="RzParty">
+      <Files Directory="INSTALLFOLDER" Include="$(Source)\**" />
+      <ComponentRef Id="Raccourcis" />
+    </Feature>
+
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Component Id="Raccourcis" Guid="2F0A6B6D-1E7C-4F55-9B0E-6C5D2E8A9F31">
+        <Shortcut Id="MenuDemarrer" Name="RzParty" Description="Lancer RzParty" Target="[INSTALLFOLDER]RzParty.cmd" WorkingDirectory="INSTALLFOLDER" Icon="rzparty.ico" />
+        <Shortcut Id="Bureau" Directory="DesktopFolder" Name="RzParty" Description="Lancer RzParty" Target="[INSTALLFOLDER]RzParty.cmd" WorkingDirectory="INSTALLFOLDER" Icon="rzparty.ico" />
+        <RegistryValue Root="HKCU" Key="Software\RzParty" Name="installe" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </StandardDirectory>
+  </Package>
+</Wix>

@@ -1,0 +1,10 @@
+Package: rzparty
+Version: @VERSION@
+Section: games
+Priority: optional
+Architecture: amd64
+Maintainer: DidiKaria <contact@rzparty.fr>
+Homepage: https://rzparty.fr
+Description: RzParty, jeu de société multijoueur dans le navigateur
+ La télé ou le PC affiche la partie, les téléphones servent de manettes.
+ Node.js est fourni : rien d'autre à installer. Le jeu se met à jour tout seul.
