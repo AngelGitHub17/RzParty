@@ -54,3 +54,45 @@
   color: var(--ink);
   transform: translateY(5px);
 }
+
+.land__gauge {
+  position: relative;
+  flex-basis: 100%;
+  max-width: 360px;
+  height: 16px;
+  margin: 0 auto;
+  border-radius: 999px;
+  background: #f0483e;
+  overflow: hidden;
+}
+.land__gauge-ok {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: #2db866;
+  transition: width 200ms;
+}
+.land__gauge-needle {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 5px;
+  margin-left: -2px;
+  border-radius: 3px;
+  background: #1e2a4a;
+  box-shadow: 0 0 0 2px #fff;
+}
+.land__advice {
+  flex-basis: 100%;
+  margin: 0;
+  text-align: center;
+  font-size: 1.15rem;
+}
+.land__advice.is-danger {
+  color: var(--danger);
+  animation: land-blink 400ms infinite alternate;
+}
+@keyframes land-blink {
+  to {
+    opacity: 0.55;
+  }
+}

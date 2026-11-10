@@ -1,11 +1,11 @@
 /** Données échangées par le mini-jeu « Chrono à l'aveugle ». */
 
 export const CHRONO_ROUNDS = 3;
-export const CHRONO_READY_MS = 2200;
+export const CHRONO_READY_MS = 3200;
 /** Le chrono reste visible au début, puis disparaît. */
-export const CHRONO_VISIBLE_MS = 2500;
+export const CHRONO_VISIBLE_MS = 3000;
 export const CHRONO_MARGIN_MS = 5000;
-export const CHRONO_RESULT_MS = 3000;
+export const CHRONO_RESULT_MS = 4000;
 
 export interface ChronoState {
   round: number;

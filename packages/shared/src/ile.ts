@@ -29,23 +29,24 @@ export type IleGateKind = "liane" | "dragon" | "caisses" | "volcan" | "boule" | 
 
 /** Les 6 défis, placés juste après une case (on s'arrête devant pour le tenter). */
 export const ILE_GATES: { after: number; kind: IleGateKind; label: string; help: string }[] = [
-  { after: 5, kind: "liane", label: "Saut à la liane", help: "Un dé décide jusqu'où tu sautes : on passe toujours." },
-  { after: 21, kind: "dragon", label: "Mur du dragon", help: "Fais 4 ou plus pour briser la statue. Une fois brisée, le passage est ouvert à tous." },
+  { after: 5, kind: "liane", label: "Saut à la liane", help: "Lance un dé : il décide jusqu'où tu sautes. On passe toujours." },
+  { after: 21, kind: "dragon", label: "Mur du dragon", help: "Lance un dé : 4 ou plus brise la statue (le passage reste ouvert à tous). Sinon, le dragon crache du feu et tu recules de 3 cases." },
   { after: 38, kind: "caisses", label: "Caisses ou tonneaux", help: "Choisis un chemin sur la cascade : s'il casse, tu nages et tu perds le reste de ton déplacement." },
-  { after: 45, kind: "volcan", label: "Volcan ou pas", help: "Fais 3 ou plus. Sinon, tu tombes dans le volcan !" },
-  { after: 55, kind: "boule", label: "Boule à pointes", help: "Fais 5 ou plus (un de moins à chaque échec). Raté : la boule dévale et fait reculer de 11 cases ceux qui sont entre le 4e et le 5e défi." },
-  { after: ILE_LAST_CELL, kind: "final", label: "Défi final", help: "Au sommet : au tour suivant, fais 6 ou plus avec tes dés pour briser la statue et gagner." },
+  { after: 45, kind: "volcan", label: "Volcan ou pas", help: "Lance un dé : 3 ou plus pour passer. Sinon, tu tombes dans le volcan !" },
+  { after: 55, kind: "boule", label: "Boule à pointes", help: "Lance un dé : 5 ou plus (un de moins à chaque échec). Raté : la boule dévale et fait reculer de 11 cases ceux qui sont entre le 4e et le 5e défi." },
+  { after: ILE_LAST_CELL, kind: "final", label: "Défi final", help: "En arrivant au sommet, lance un dé : un 6 brise la statue et fait gagner. Sinon, retente aux tours suivants avec tes dés (dé bonus compris) : 6 ou plus." },
 ];
 
-/** Le volcan : 10 cases à part ; la sortie (ou la case « Cri ») ramène sur l'île juste après le 4e défi. */
+/** Le volcan : 10 cases à part ; la sortie (ou la case « Cri ») ramène sur l'île, à la case d'où l'on est tombé. */
 export type IleVolcanoCell = "entree" | "plus4" | "vide" | "cri" | "sortie";
 export const ILE_VOLCANO: IleVolcanoCell[] = ["entree", "plus4", "vide", "plus4", "cri", "vide", "vide", "vide", "vide", "sortie"];
-export const ILE_VOLCANO_EXIT = 46;
+/** Case devant le défi « Volcan ou pas » (on y retourne en sortant du volcan si on est tombé là). */
+export const ILE_VOLCANO_GATE_CELL = 45;
 
 /** Spike ball : les joueurs entre le 4e et le 5e défi reculent de tant de cases. */
 export const ILE_SPIKE_BACK = 11;
-/** Éruption : les cases spéciales deviennent des « −4 » pendant ce nombre de tours. */
-export const ILE_ERUPTION_ROUNDS = 3;
+/** Éruption : jusqu'à la fin du tour, les cases spéciales font reculer de 4 cases par éruption (elles se cumulent). */
+export const ILE_ERUPTION_BACK = 4;
 
 export const ILE_CELL_INFO: Record<IleCellType, { label: string; symbol: string; color: string; help: string }> = {
   depart: { label: "Départ", symbol: "D", color: "#FFFFFF", help: "Tout le monde part d'ici." },
@@ -61,7 +62,7 @@ export const ILE_CELL_INFO: Record<IleCellType, { label: string; symbol: string;
   dino: { label: "Dino", symbol: "🦖", color: "#7BCB3A", help: "Ptérodactyle : avance de 10. T-rex : recule de 4 à 9." },
   "statue-bleue": { label: "Statue bleue", symbol: "🗿", color: "#1E5BC6", help: "Elle te propulse de 16 à 18 cases en avant !" },
   "statue-rouge": { label: "Statue rouge", symbol: "🗿", color: "#B3261E", help: "Elle te renvoie 18 cases en arrière !" },
-  eruption: { label: "Éruption", symbol: "🌋", color: "#FF8A1F", help: "Le volcan entre en éruption : pendant 3 tours, toutes les cases spéciales font reculer de 4." },
+  eruption: { label: "Éruption", symbol: "🌋", color: "#FF8A1F", help: "Le volcan entre en éruption : jusqu'à la fin du tour, toutes les cases spéciales font reculer de 4 (−8 après deux éruptions, etc.)." },
   crane: { label: "Crâne", symbol: "💀", color: "#3C3C46", help: "Direction le volcan !" },
 };
 
@@ -146,7 +147,8 @@ export interface IleRoll {
 
 export interface IleTurn {
   playerId: string;
-  phase: "roll" | "move" | "challenge" | "choose" | "effect" | "done";
+  /** « gate » : devant un défi, on attend le lancer d'un seul dé (bouton « Lancer le dé »). */
+  phase: "roll" | "move" | "gate" | "challenge" | "choose" | "effect" | "done";
   roll: IleRoll | null;
   /** Défi en cours : jet demandé et résultat. */
   challenge: { gate: number; need: number | null; value: number | null; ok: boolean | null; choice?: number; broken?: number } | null;
@@ -154,6 +156,8 @@ export interface IleTurn {
   choose: { kind: "chemin" | "duel"; options: string[] } | null;
   /** Ce qui vient de se passer, en une phrase. */
   message: string;
+  /** Change à chaque lancer (dés de déplacement ou dé de défi) : sert à animer les dés. */
+  rollId: number;
   endsAt: number | null;
 }
 
@@ -167,7 +171,7 @@ export interface IleState {
   dragonBroken: boolean;
   /** Jet demandé à chacun pour la boule à pointes (5, puis un de moins à chaque échec). */
   spikeNeed: Record<string, number>;
-  /** Tours d'éruption restants. */
+  /** Éruptions de ce tour (les cases spéciales font reculer de 4 × ce nombre ; remis à 0 au tour suivant). */
   eruption: number;
   turn: IleTurn | null;
   /** Dernière case touchée par un effet (animation). */

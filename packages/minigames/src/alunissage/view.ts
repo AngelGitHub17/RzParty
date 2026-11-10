@@ -4,7 +4,7 @@ import { PLAYER_COLORS } from "@rzparty/shared";
 import { clear, everyFrame, h, scoreLanes, svg } from "../kit.ts";
 import type { MiniGameView, MiniGameViewContext } from "../client.ts";
 import { localStart } from "../timing.ts";
-import { FUEL, SAFE_SPEED, START_ALT, STEP_MS, simulate, type AlunissageState } from "./types.ts";
+import { FUEL, SAFE_SPEED, START_ALT, STEP_MS, advisedSpeed, simulate, type AlunissageState } from "./types.ts";
 
 const NS = "http://www.w3.org/2000/svg";
 const GROUND = 286;
@@ -25,13 +25,27 @@ export function alunissageView(root: HTMLElement, ctx: MiniGameViewContext): Min
     ${Array.from({ length: 40 }, (_, i) => `<circle cx="${(i * 97) % 640}" cy="${(i * 53) % 230}" r="${i % 3 ? 1.2 : 2}" fill="#fff" opacity="${0.4 + (i % 4) * 0.15}"/>`).join("")}
     <path d="M0 ${GROUND} Q 80 ${GROUND - 14} 160 ${GROUND} T 320 ${GROUND} T 480 ${GROUND} T 640 ${GROUND} V320 H0Z" fill="#c9ced8"/>
     <circle cx="90" cy="304" r="9" fill="#aab1bf"/><circle cx="420" cy="306" r="12" fill="#aab1bf"/><circle cx="560" cy="300" r="6" fill="#aab1bf"/>
+    <rect x="0" y="${GROUND - 3}" width="640" height="5" fill="#2db866" opacity="0.7"/>
     <g class="land__ships"></g>
   </svg>`);
   const ships = scene.querySelector<SVGGElement>(".land__ships")!;
   const hudAlt = h("span", {});
   const hudSpeed = h("span", {});
   const fuelFill = h("span", { class: "land__fuel-fill" });
-  const hud = h("div", { class: "land__hud" }, hudAlt, hudSpeed, h("span", { class: "land__fuel", attrs: { "aria-label": "Carburant" } }, "⛽", h("span", { class: "land__fuel-track" }, fuelFill)));
+  // Jauge de vitesse : vert = bonne vitesse pour l'altitude, rouge = trop vite.
+  const gaugeNeedle = h("span", { class: "land__gauge-needle" });
+  const gaugeOk = h("span", { class: "land__gauge-ok" });
+  const gauge = h("div", { class: "land__gauge", attrs: { "aria-hidden": "true" } }, gaugeOk, gaugeNeedle);
+  const advice = h("p", { class: "land__advice", attrs: { "aria-live": "polite" } });
+  const hud = h(
+    "div",
+    { class: "land__hud" },
+    hudAlt,
+    hudSpeed,
+    h("span", { class: "land__fuel", attrs: { "aria-label": "Carburant" } }, "⛽", h("span", { class: "land__fuel-track" }, fuelFill)),
+    gauge,
+    advice,
+  );
   const button = h("button", {
     class: "tm__btn land__btn",
     attrs: { type: "button" },
@@ -111,6 +125,18 @@ export function alunissageView(root: HTMLElement, ctx: MiniGameViewContext): Min
         hudSpeed.textContent = f.speed >= 0 ? `Chute ${f.speed.toFixed(1)} m/s` : `Montée ${(-f.speed).toFixed(1)} m/s`;
         hudSpeed.classList.toggle("is-danger", f.speed > SAFE_SPEED);
         fuelFill.style.width = `${(f.fuel / FUEL) * 100}%`;
+        // Jauge : 0 à 15 m/s ; zone verte jusqu'à la vitesse conseillée.
+        const max = 15;
+        const ok = advisedSpeed(f.alt);
+        gaugeOk.style.width = `${(Math.min(ok, max) / max) * 100}%`;
+        gaugeNeedle.style.left = `${(Math.max(0, Math.min(max, f.speed)) / max) * 100}%`;
+        const fast = f.speed > ok;
+        gauge.classList.toggle("is-fast", fast);
+        if (f.landedAt !== null) advice.textContent = f.speed > SAFE_SPEED ? "💥 Trop vite…" : "✔ Posé !";
+        else if (fast) advice.textContent = "🔥 Freine ! (maintiens MOTEUR)";
+        else if (f.speed < ok - 3 && f.thrust) advice.textContent = "Lâche un peu le moteur…";
+        else advice.textContent = f.alt < 12 ? "Doucement… presque posé !" : "Bonne vitesse 👍";
+        advice.classList.toggle("is-danger", fast);
         if (f.landedAt !== null && holding) {
           holding = false;
           button.classList.remove("is-on");

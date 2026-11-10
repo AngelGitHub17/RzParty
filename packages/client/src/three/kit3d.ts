@@ -204,6 +204,9 @@ export class Character3D {
   private cheerUntil = 0;
   private ring: THREE.Mesh | null = null;
   hopMs = 260;
+  /** Appelé à chaque atterrissage (poussière, son…). */
+  onLand: ((at: THREE.Vector3) => void) | null = null;
+  private squash = 0;
   constructor(avatar: Avatar, opts: { bot?: boolean; scale?: number; ring?: THREE.ColorRepresentation } = {}) {
     this.key = JSON.stringify(avatar) + Boolean(opts.bot);
     this.model = buildAvatar3D(avatar, { bot: opts.bot });
@@ -260,11 +263,20 @@ export class Character3D {
       const t = Math.min(1, (now - this.hop.start) / dur);
       this.group.position.lerpVectors(this.hop.from, this.hop.to, t);
       this.group.position.y = this.hop.from.y + (this.hop.to.y - this.hop.from.y) * t + Math.sin(t * Math.PI) * Math.min(1.2, 0.35 + dist * 0.08);
-      if (t >= 1) this.hop = null;
+      if (t >= 1) {
+        const at = this.hop.to.clone();
+        this.hop = null;
+        this.squash = now;
+        this.onLand?.(at);
+      }
     }
     // Petite respiration, ou saut de joie.
     const cheering = now < this.cheerUntil;
     this.model.position.y = cheering ? Math.abs(Math.sin(now / 130)) * 0.35 : Math.sin(now / 420 + this.group.id) * 0.015;
+    // Petit écrasement en touchant le sol.
+    const sq = Math.max(0, 1 - (now - this.squash) / 180);
+    const base = this.model.userData.baseScale ?? (this.model.userData.baseScale = this.model.scale.x);
+    this.model.scale.set(base * (1 + sq * 0.12), base * (1 - sq * 0.16), base * (1 + sq * 0.12));
     if (this.ring) this.ring.visible = !cheering;
   }
   dispose(): void {
@@ -456,6 +468,159 @@ export function tree(scale = 1, color: THREE.ColorRepresentation = 0x3fae49): TH
   const crown = new THREE.Mesh(new THREE.SphereGeometry(0.42, 12, 10), toon(color));
   crown.position.y = 0.7;
   g.add(trunk, crown);
+  g.scale.setScalar(scale);
+  return g;
+}
+
+// ───────────── Effets : particules et textes qui s'envolent ─────────────
+
+interface Particle {
+  sprite: THREE.Sprite;
+  vel: THREE.Vector3;
+  born: number;
+  life: number;
+  gravity: number;
+  spin: number;
+  size: number;
+}
+
+let dotTexture: THREE.CanvasTexture | null = null;
+function dot(): THREE.CanvasTexture {
+  if (dotTexture) return dotTexture;
+  const c = document.createElement("canvas");
+  c.width = c.height = 64;
+  const ctx = c.getContext("2d")!;
+  const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  g.addColorStop(0, "rgba(255,255,255,1)");
+  g.addColorStop(0.55, "rgba(255,255,255,0.9)");
+  g.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 64, 64);
+  dotTexture = new THREE.CanvasTexture(c);
+  return dotTexture;
+}
+
+export interface BurstOptions {
+  count?: number;
+  colors?: THREE.ColorRepresentation[];
+  speed?: number;
+  /** Direction privilégiée (sinon dans tous les sens, vers le haut). */
+  up?: number;
+  gravity?: number;
+  life?: number;
+  size?: number;
+  spread?: number;
+}
+
+/** Petites particules (poussière, étincelles, confettis, fumée, lave). */
+export class Particles {
+  readonly group = new THREE.Group();
+  private items: Particle[] = [];
+
+  burst(at: THREE.Vector3, o: BurstOptions = {}): void {
+    const colors = o.colors ?? [0xffffff];
+    const count = Math.min(o.count ?? 12, 160 - this.items.length);
+    for (let k = 0; k < count; k++) {
+      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: dot(), color: colors[k % colors.length], transparent: true, depthWrite: false }));
+      sprite.position.copy(at);
+      const spread = o.spread ?? 1;
+      const vel = new THREE.Vector3((Math.random() - 0.5) * 2 * spread, (o.up ?? 1) * (0.6 + Math.random() * 0.8), (Math.random() - 0.5) * 2 * spread).multiplyScalar(o.speed ?? 2);
+      const size = (o.size ?? 0.18) * (0.7 + Math.random() * 0.6);
+      sprite.scale.setScalar(size);
+      this.group.add(sprite);
+      this.items.push({ sprite, vel, born: performance.now(), life: (o.life ?? 900) * (0.7 + Math.random() * 0.6), gravity: o.gravity ?? 4, spin: 0, size });
+    }
+  }
+
+  tick(now: number, dt: number): void {
+    this.items = this.items.filter((p) => {
+      const t = (now - p.born) / p.life;
+      if (t >= 1) {
+        this.group.remove(p.sprite);
+        p.sprite.material.dispose();
+        return false;
+      }
+      p.vel.y -= p.gravity * dt;
+      p.sprite.position.addScaledVector(p.vel, dt);
+      p.sprite.material.opacity = 1 - t * t;
+      p.sprite.scale.setScalar(p.size * (1 + t * 0.4));
+      return true;
+    });
+  }
+}
+
+/** Texte qui s'envole et disparaît (« +4 », « −4 »…). */
+export class FloatTexts {
+  readonly group = new THREE.Group();
+  private items: { sprite: THREE.Sprite; born: number; from: THREE.Vector3 }[] = [];
+
+  add(text: string, at: THREE.Vector3, color = "#ffffff", scale = 0.7): void {
+    const sprite = label(text, { scale, width: 320, height: 128, color });
+    sprite.position.copy(at);
+    this.group.add(sprite);
+    this.items.push({ sprite, born: performance.now(), from: at.clone() });
+  }
+
+  tick(now: number): void {
+    this.items = this.items.filter((it) => {
+      const t = (now - it.born) / 1700;
+      if (t >= 1) {
+        this.group.remove(it.sprite);
+        it.sprite.material.map?.dispose();
+        it.sprite.material.dispose();
+        return false;
+      }
+      const pop = t < 0.15 ? 0.6 + (t / 0.15) * 0.5 : 1.1 - Math.min(0.1, (t - 0.15) * 0.4);
+      it.sprite.position.copy(it.from).add(new THREE.Vector3(0, t * 1.4, 0));
+      it.sprite.material.opacity = t > 0.7 ? 1 - (t - 0.7) / 0.3 : 1;
+      it.sprite.scale.set((it.sprite.userData.w ??= it.sprite.scale.x) * pop, (it.sprite.userData.h ??= it.sprite.scale.y) * pop, 1);
+      return true;
+    });
+  }
+}
+
+/** Nuage stylisé (quelques boules blanches). */
+export function cloud(scale = 1): THREE.Group {
+  const g = new THREE.Group();
+  const mat = toon(0xffffff);
+  for (const [x, y, r] of [[0, 0, 0.8], [0.8, -0.1, 0.6], [-0.8, -0.15, 0.55], [0.3, 0.35, 0.55]] as const) {
+    const b = new THREE.Mesh(new THREE.SphereGeometry(r, 12, 10), mat);
+    b.position.set(x, y, 0);
+    g.add(b);
+  }
+  g.scale.setScalar(scale);
+  return g;
+}
+
+/** Palmier (tronc courbé, palmes). */
+export function palm(scale = 1): THREE.Group {
+  const g = new THREE.Group();
+  const trunkMat = toon(0xa8774a);
+  for (let k = 0; k < 5; k++) {
+    const seg = new THREE.Mesh(new THREE.CylinderGeometry(0.07 - k * 0.006, 0.08 - k * 0.006, 0.32, 7), trunkMat);
+    seg.position.set(k * k * 0.012, 0.16 + k * 0.3, 0);
+    seg.rotation.z = -k * 0.05;
+    g.add(seg);
+  }
+  const crown = new THREE.Group();
+  crown.position.set(0.2, 1.55, 0);
+  const leafMat = toon(0x2f9a44);
+  for (let k = 0; k < 7; k++) {
+    // Chaque palme part du sommet et retombe un peu.
+    const pivot = new THREE.Group();
+    pivot.rotation.y = (k / 7) * Math.PI * 2;
+    const leaf = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.04, 0.22), leafMat);
+    leaf.position.x = 0.38;
+    leaf.rotation.z = -0.45;
+    leaf.position.y = -0.15;
+    pivot.add(leaf);
+    crown.add(pivot);
+  }
+  const nut = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), toon(0x7a4a22));
+  nut.position.y = -0.1;
+  crown.add(nut);
+  g.add(crown);
+  g.userData.crown = crown;
   g.scale.setScalar(scale);
   return g;
 }

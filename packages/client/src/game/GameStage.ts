@@ -1,4 +1,4 @@
-import { MINI_GAME_VIEWS, type MiniGameView, type ViewLayout } from "@rzparty/minigames/client";
+import { MINI_GAME_VIEWS, celebrate, type MiniGameView, type ViewLayout } from "@rzparty/minigames/client";
 import { GAME_MODES, PLAYER_COLORS, TEAMS, normalizeAvatar, type GameSnapshot, type PublicPlayer, type RoomSnapshot } from "@rzparty/shared";
 import { request, socket, ServerError } from "../net/connection.ts";
 import { append, clear, everyFrame, h, svg } from "../ui/dom.ts";
@@ -58,6 +58,8 @@ const CATEGORY_LABELS: Record<string, string> = {
  */
 export class GameStage {
   private room: RoomSnapshot | null = null;
+  /** Dernier résultat fêté (confettis une seule fois). */
+  private celebrated = "";
   private stageKey = "";
   private view: MiniGameView | null = null;
   private viewRound = -1;
@@ -223,8 +225,16 @@ export class GameStage {
         this.modeView.view.update(room);
         return;
       }
-      case "podium":
-        return this.renderPodium(room, game);
+      case "podium": {
+        this.renderPodium(room, game);
+        // Pluie de confettis sur le podium, une fois.
+        if (this.celebrated !== "podium") {
+          this.celebrated = "podium";
+          const winners = [...this.main.querySelectorAll(".podium__winner")];
+          for (let k = 0; k < 3; k++) winners.forEach((el, i) => setTimeout(() => el.isConnected && celebrate(el, { count: 34 }), 300 + k * 600 + i * 120));
+        }
+        return;
+      }
     }
   }
 
@@ -473,6 +483,13 @@ export class GameStage {
         h("p", { class: "muted results__next", text: game.mode === "plateau" ? "Retour au plateau dans un instant…" : game.mode === "roue" ? "Retour à la roue dans un instant…" : game.mode === "loto" ? "Retour au bingo dans un instant…" : game.mode === "bateau" ? "Retour au bateau dans un instant…" : game.mode === "trios" ? "Au centre, chacun son tour…" : game.mode === "paires" ? "Retour aux paires dans un instant…" : game.mode === "amitie" ? "Question suivante dans un instant…" : game.mode === "ile" ? "Retour sur l’île dans un instant…" : "Prochaine manche dans un instant…" }),
       ),
     );
+    // Confettis sur le ou les gagnants de la manche (une seule fois par résultat).
+    const key = `${game.miniGame?.id}:${result.ranking.map((g) => g.join("+")).join(",")}:${game.round ?? ""}`;
+    if (key !== this.celebrated) {
+      this.celebrated = key;
+      const winners = [...this.main.querySelectorAll(".results__list .result")].slice(0, Math.max(1, result.ranking[0]?.length ?? 1));
+      winners.forEach((el, i) => setTimeout(() => el.isConnected && celebrate(el, { count: 26 }), 350 + i * 150));
+    }
   }
 
   private renderPodium(room: RoomSnapshot, game: GameSnapshot): void {

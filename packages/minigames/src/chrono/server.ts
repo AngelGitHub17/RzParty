@@ -32,7 +32,8 @@ export default defineMiniGame<ChronoState, null, ChronoInput>({
       gen++;
       stops = {};
       state.phase = "ready";
-      state.target = (5 + Math.floor(ctx.random() * 6)) * 1000 + (ctx.random() < 0.5 ? 500 : 0);
+      // Des temps courts (3 à 7,5 s) : plus facile à compter dans sa tête.
+      state.target = (3 + Math.floor(ctx.random() * 5)) * 1000 + (ctx.random() < 0.5 ? 500 : 0);
       state.stops = null;
       state.stopped = [];
       state.phaseEndsAt = ctx.now() + CHRONO_READY_MS;

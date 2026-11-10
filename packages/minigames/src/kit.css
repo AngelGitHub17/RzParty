@@ -56,3 +56,62 @@
 [class*="--tv"] .lanes__row {
   font-size: 1.25rem;
 }
+
+/* Animations communes des mini-jeux */
+.lanes__fill {
+  transition: width 450ms cubic-bezier(0.3, 1.2, 0.5, 1);
+}
+.lanes__score.is-up {
+  animation: lanes-up 520ms cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+.lanes__score.is-down {
+  animation: lanes-down 420ms ease;
+}
+@keyframes lanes-up {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.45);
+    color: #2db866;
+  }
+}
+@keyframes lanes-down {
+  0%,
+  60% {
+    color: #f0483e;
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  50% {
+    transform: translateX(4px);
+  }
+}
+.fx-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 60;
+  overflow: hidden;
+}
+.fx-bit {
+  position: absolute;
+  width: 10px;
+  height: 14px;
+  border-radius: 3px;
+}
+.fx-bit.is-symbol {
+  width: auto;
+  height: auto;
+  font-size: 22px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lanes__fill {
+    transition: none;
+  }
+  .lanes__score.is-up,
+  .lanes__score.is-down {
+    animation: none;
+  }
+}

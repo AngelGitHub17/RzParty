@@ -3,6 +3,18 @@
 Chaque version commence par « ## numéro — date ». La page de présentation et les serveurs
 locaux lisent ce fichier : pense à augmenter la version dans package.json à chaque publication.
 
+## 0.11.1 — 10 novembre 2026
+- Île aux défis : à chaque défi (sauf la cascade), on relance un seul dé avec le bouton « Lancer le dé du défi ». Mur du dragon raté : le feu fait reculer de 3 cases.
+- Île aux défis : défi final tenté dès l'arrivée au sommet (un 6 au dé) ; sinon, aux tours suivants, 6 ou plus avec ses dés, dé bonus compris.
+- Île aux défis : l'éruption ne dure que jusqu'à la fin du tour, et les éruptions se cumulent (−4, −8, −12…).
+- Île aux défis : en sortant du volcan, on revient à la case d'où l'on est tombé (plus de saut plus loin sur l'île).
+- Île aux défis en 3D : île plus grande, cases espacées et posées sur des piliers (plus dans la montagne), caméra plus proche du joueur, dés bonus qui roulent et affichent leur résultat.
+- Île aux défis : bien plus d'animations (palmiers, nuages, oiseaux, fumée et lave du volcan, défis animés, poussière à chaque saut, « +N / −N » qui s'envolent, boule à pointes qui dévale, confettis au sommet).
+- Mini-jeux : barres de score qui glissent, scores qui sautent, confettis sur le gagnant de chaque manche et sur le podium.
+- Alunissage simplifié : chute plus courte et plus lente, plus de carburant, jauge de vitesse verte/rouge avec « Freine ! ».
+- Chrono à l'aveugle plus clair : objectif affiché en grand, explications pas à pas, temps plus courts (3 à 7,5 s), barre de progression, « trop tôt / trop tard » au résultat.
+- Page de présentation : nouvelles images des modes en 3D (Île aux défis, Grande Roue, Bateau, Tour du monde) et des mini-jeux Alunissage et Chrono à l'aveugle.
+
 ## 0.11.0 — 10 novembre 2026
 - Passage en 3D, première étape : l'Île aux défis devient une vraie île en pente, avec son chemin en spirale, ses six défis, le volcan qui gronde, les dés qui roulent au-dessus du joueur et la caméra qui le suit.
 - Grande Roue en 3D : une roue de jeu télévisé sur une scène, avec ses picots, son clapet, la banque en pile de médailles et les joueurs alignés devant.

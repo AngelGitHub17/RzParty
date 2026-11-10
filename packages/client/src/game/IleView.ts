@@ -1,5 +1,6 @@
 import {
   ILE_BONUS_NAMES,
+  ILE_ERUPTION_BACK,
   ILE_CELL_INFO,
   ILE_GATES,
   ILE_SUMMIT,
@@ -105,7 +106,7 @@ export class IleView {
   }
 
   private drawCells(s: IleState): void {
-    const key = `${s.cells.join(",")}|${s.eruption > 0}|${s.dragonBroken}`;
+    const key = `${s.cells.join(",")}|${s.eruption}|${s.dragonBroken}`;
     if (key === this.cellsDrawn) return;
     this.cellsDrawn = key;
     this.cellLayer.replaceChildren();
@@ -113,7 +114,7 @@ export class IleView {
     s.cells.forEach((type, i) => {
       const p = LAYOUT[i]!;
       const erupted = s.eruption > 0 && type !== "vide" && type !== "depart";
-      const info = ILE_CELL_INFO[erupted ? "moins4" : type];
+      const info = erupted ? { ...ILE_CELL_INFO.moins4, symbol: `−${ILE_ERUPTION_BACK * s.eruption}` } : ILE_CELL_INFO[type];
       const g = el("g", { class: `ile__cell${erupted ? " is-erupted" : ""}` });
       const title = el("title", {}, `Case ${i} · ${info.label} : ${info.help}`);
       g.append(title, el("circle", { cx: p.x, cy: p.y, r: 17, fill: info.color, stroke: "#fff", "stroke-width": 3 }));
@@ -206,7 +207,7 @@ export class IleView {
     const t = s.turn;
     const who = t ? players.find((p) => p.id === t.playerId) : undefined;
     clear(this.banner);
-    if (s.eruption > 0) this.banner.append(h("span", { class: "ile__eruption", text: `🌋 Éruption : ${s.eruption} tour${s.eruption > 1 ? "s" : ""}` }));
+    if (s.eruption > 0) this.banner.append(h("span", { class: "ile__eruption", text: `🌋 Éruption${s.eruption > 1 ? ` ×${s.eruption}` : ""} : −${ILE_ERUPTION_BACK * s.eruption} jusqu'à la fin du tour` }));
     if (who && t) this.banner.append(playerAvatar(who, { size: 30 }), h("strong", { text: who.name }), h("span", { text: ` ${t.message}` }));
     else this.banner.append(h("span", { text: s.round ? "Mini-jeu : il décide de l'ordre et des dés bonus !" : "Cap sur le sommet de l'île !" }));
     clear(this.dice);
@@ -216,11 +217,19 @@ export class IleView {
       if (t.roll.extra !== null) this.dice.append(h("span", { class: "ile__die is-extra", text: String(t.roll.extra) }));
       this.dice.append(h("strong", { class: "ile__total", text: `= ${t.roll.total}` }));
     }
-    if (t?.challenge && t.challenge.value !== null && t.challenge.need !== null && !t.roll?.total) this.dice.append(h("strong", { text: `${t.challenge.value} / ${t.challenge.need}` }));
+    if (t?.challenge && t.challenge.value !== null && !t.roll) {
+      this.dice.append(h("span", { class: "ile__die", text: String(t.challenge.value) }));
+      if (t.challenge.need !== null) this.dice.append(h("strong", { class: "ile__total", text: `${t.challenge.ok === null ? "…" : t.challenge.ok ? "✔" : "✘"} il fallait ${t.challenge.need}` }));
+    }
     clear(this.controls);
     const mine = this.layout !== "tv" && this.meId !== null && t?.playerId === this.meId;
     if (!mine || !t) return;
-    if (t.phase === "roll") {
+    if (t.phase === "gate") {
+      this.controls.append(
+        h("button", { class: "btn btn--go", attrs: { type: "button" }, text: "Lancer le dé du défi", on: { click: () => void sendAction({ type: "roll" }) } }),
+        h("span", { class: "muted", attrs: { "data-deadline": "" } }),
+      );
+    } else if (t.phase === "roll") {
       const bonus = s.bonus[this.meId!];
       this.controls.append(
         h("button", {

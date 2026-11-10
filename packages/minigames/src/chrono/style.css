@@ -68,3 +68,45 @@
 .chrono__results small {
   color: var(--ink-soft);
 }
+
+.chrono__target {
+  margin: 0;
+  padding: 6px 20px;
+  border-radius: 999px;
+  background: var(--sun);
+  color: var(--ink);
+  font-weight: 800;
+  font-size: clamp(1.4rem, 5vw, 2.2rem);
+  box-shadow: 0 4px 0 var(--sun-deep, #b9850b);
+}
+.chrono__hint {
+  margin: 0;
+  min-height: 1.4em;
+  font-weight: 700;
+  text-align: center;
+}
+.chrono__bar {
+  position: relative;
+  width: min(420px, 86vw);
+  height: 14px;
+  border-radius: 999px;
+  background: #1e2a4a22;
+  overflow: hidden;
+  transition: opacity 400ms;
+}
+.chrono__bar.is-hidden {
+  opacity: 0.15;
+}
+.chrono__bar-fill {
+  display: block;
+  height: 100%;
+  background: #2db866;
+}
+.chrono__bar-goal {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--danger);
+}

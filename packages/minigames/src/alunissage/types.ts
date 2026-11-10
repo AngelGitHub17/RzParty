@@ -5,13 +5,13 @@ export const LAND_READY_MS = 2500;
 export const LAND_MAX_MS = 32_000;
 export const LAND_RESULT_MS = 3200;
 
-export const START_ALT = 100;
-export const START_SPEED = 4;
+export const START_ALT = 60;
+export const START_SPEED = 2;
 export const GRAVITY = 1.62;
-export const THRUST = 5;
+export const THRUST = 3.4;
 /** Carburant : secondes de moteur. */
-export const FUEL = 9;
-export const SAFE_SPEED = 3;
+export const FUEL = 16;
+export const SAFE_SPEED = 5;
 export const STEP_MS = 20;
 export const MAX_TOGGLES = 300;
 
@@ -52,11 +52,16 @@ export function simulate(toggles: readonly number[], untilMs: number): Flight {
   return { alt, speed, fuel, thrust: thrust && fuel > 0, landedAt: null };
 }
 
-/** Points d'un atterrissage : 0 si crash, sinon de 40 à 100 selon la douceur et le carburant restant. */
+/** Points d'un atterrissage : 0 si crash, sinon de 50 à 100 selon la douceur (et un peu le carburant restant). */
 export function landingScore(f: Flight): number {
   if (f.landedAt === null || f.speed > SAFE_SPEED) return 0;
   const soft = Math.max(0, (SAFE_SPEED - Math.max(0, f.speed)) / SAFE_SPEED);
-  return Math.round(40 + soft * 45 + (f.fuel / FUEL) * 15);
+  return Math.round(50 + soft * 40 + (f.fuel / FUEL) * 10);
+}
+
+/** Vitesse de chute conseillée à cette altitude (l'aiguille doit rester sous ce repère). */
+export function advisedSpeed(alt: number): number {
+  return Math.min(SAFE_SPEED + 6, 2 + alt * 0.12);
 }
 
 export function landingLabel(f: Flight | null): string {

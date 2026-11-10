@@ -38,6 +38,8 @@ import { cadeauxView } from "./cadeaux/view.ts";
 
 import type { Avatar } from "@rzparty/shared";
 
+export { celebrate } from "./kit.ts";
+
 export type ViewLayout = "tv" | "pad" | "solo";
 
 export interface ViewPlayer {

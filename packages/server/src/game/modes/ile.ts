@@ -1,13 +1,12 @@
 import {
   ERRORS,
   ILE_BONUS_NAMES,
-  ILE_ERUPTION_ROUNDS,
+  ILE_ERUPTION_BACK,
   ILE_GATES,
   ILE_LAST_CELL,
   ILE_SPIKE_BACK,
   ILE_SUMMIT,
   ILE_VOLCANO,
-  ILE_VOLCANO_EXIT,
   clampForward,
   gateAfter,
   generateIsland,
@@ -34,6 +33,8 @@ export const ILE_TIMINGS = {
   step: 300,
   /** Affichage du résultat d'un défi ou d'un effet. */
   show: 1900,
+  /** Le dé d'un défi roule avant le résultat. */
+  gateDice: 1300,
   choiceTimeout: 20_000,
 };
 
@@ -64,6 +65,9 @@ export class IleGame extends BaseGame {
   private duelTarget: string | null = null;
   /** Pas restants quand on s'arrête devant les caisses et tonneaux. */
   private remainingSteps: number | null = null;
+  private rollId = 0;
+  /** Défi qui attend son lancer de dé. */
+  private pendingGate: { gate: number; steps: number } | null = null;
 
   constructor(host: GameHost) {
     super(host);
@@ -82,7 +86,7 @@ export class IleGame extends BaseGame {
   }
 
   protected standings(): Standing[] {
-    return [...this.pawns].map(([playerId, p]) => ({ playerId, lives: 0, score: p.volcano !== null ? ILE_VOLCANO_EXIT - 10 + p.volcano : p.cell, eliminated: !this.host.room.findPlayer(playerId) }));
+    return [...this.pawns].map(([playerId, p]) => ({ playerId, lives: 0, score: p.cell, eliminated: !this.host.room.findPlayer(playerId) }));
   }
 
   protected extraSnapshot(): Partial<GameSnapshot> {
@@ -133,7 +137,8 @@ export class IleGame extends BaseGame {
       const best = Math.max(...players.map((id) => this.pawns.get(id)!.cell));
       return this.podium(players.filter((id) => this.pawns.get(id)!.cell === best && this.pawns.get(id)!.volcano === null));
     }
-    if (this.ileRound > 0 && this.eruption > 0) this.eruption--;
+    // L'éruption ne dure que jusqu'à la fin du tour.
+    this.eruption = 0;
     this.ileRound++;
     this.turn = null;
     this.flash = null;
@@ -186,8 +191,9 @@ export class IleGame extends BaseGame {
       roll: null,
       challenge: atSummit ? { gate: ILE_GATES.length - 1, need: 6, value: null, ok: null } : null,
       choose: null,
-      message: atSummit ? "est au sommet : il faut faire 6 ou plus pour briser la statue !" : pawn.volcano !== null ? "est dans le volcan…" : "lance les dés",
+      message: atSummit ? "est au sommet : il faut faire 6 ou plus avec ses dés pour briser la statue !" : pawn.volcano !== null ? "est dans le volcan…" : "lance les dés",
       endsAt: null,
+      rollId: this.rollId,
     };
     const wait = this.isBotOrAway(id) ? ILE_TIMINGS.botThink : ILE_TIMINGS.rollTimeout;
     this.turn.endsAt = this.host.now() + wait;
@@ -208,6 +214,7 @@ export class IleGame extends BaseGame {
     const turn = this.turn;
     if (!turn || turn.playerId !== id || turn.phase !== "roll") return;
     turn.roll = this.rollDice(id);
+    turn.rollId = ++this.rollId;
     turn.endsAt = null;
     const bonusName = turn.roll.bonusMax ? ` + ${ILE_BONUS_NAMES[turn.roll.bonusMax] ?? "dé bonus"}` : "";
     const pawn = this.pawns.get(id)!;
@@ -265,9 +272,9 @@ export class IleGame extends BaseGame {
     const pawn = this.pawns.get(id)!;
     const cell = ILE_VOLCANO[pawn.volcano!]!;
     if (cell === "cri" || cell === "sortie") {
+      // Retour sur l'île, à la case d'où l'on est tombé (pas plus loin).
       pawn.volcano = null;
-      pawn.cell = ILE_VOLCANO_EXIT;
-      return this.effect(id, cell === "cri" ? "pousse un grand cri et ressort du volcan !" : "voit la lumière et ressort du volcan !", () => this.endTurn());
+      return this.effect(id, cell === "cri" ? "pousse un grand cri et ressort du volcan, là où il était tombé !" : "voit la lumière et ressort du volcan, là où il était tombé !", () => this.endTurn());
     }
     this.endTurn();
   }
@@ -282,19 +289,22 @@ export class IleGame extends BaseGame {
     this.goTo(ILE_TIMINGS.show, then);
   }
 
+  /** Chute dans le volcan : `cell` reste la case d'où l'on est tombé (on y revient en sortant). */
   private toVolcano(id: string): void {
-    const pawn = this.pawns.get(id)!;
-    pawn.volcano = 0;
-    pawn.cell = ILE_VOLCANO_EXIT - 1;
+    this.pawns.get(id)!.volcano = 0;
   }
 
   /** Arrivée sur une case (après le dé ou un saut de liane). Les effets ne s'enchaînent pas. */
   private land(id: string): void {
     const pawn = this.pawns.get(id)!;
     if (pawn.cell >= ILE_LAST_CELL && gateAfter(pawn.cell) < 0) return this.endTurn();
-    let type = this.cells[pawn.cell]!;
+    const type = this.cells[pawn.cell]!;
     const erupted = this.eruption > 0 && type !== "vide" && type !== "depart";
-    if (erupted) type = "moins4";
+    if (erupted) {
+      const n = ILE_ERUPTION_BACK * this.eruption;
+      pawn.cell = Math.max(0, pawn.cell - n);
+      return this.effect(id, `subit l'éruption : recule de ${n} cases !`, () => this.endTurn());
+    }
     const back = (n: number) => (pawn.cell = Math.max(0, pawn.cell - n));
     const forward = (n: number) => (pawn.cell = clampForward(pawn.cell, pawn.cell + n, this.dragonBroken));
     const done = () => this.endTurn();
@@ -308,7 +318,7 @@ export class IleGame extends BaseGame {
       }
       case "moins4":
         back(4);
-        return this.effect(id, erupted ? "subit l'éruption : recule de 4 cases !" : "recule de 4 cases…", done);
+        return this.effect(id, "recule de 4 cases…", done);
       case "statue-bleue": {
         const n = 16 + Math.floor(this.host.random() * 3);
         forward(n);
@@ -344,8 +354,14 @@ export class IleGame extends BaseGame {
         return this.effect(id, `est échangé avec ${this.name(other)} par l'OVNI !`, done);
       }
       case "eruption":
-        this.eruption += ILE_ERUPTION_ROUNDS;
-        return this.effect(id, "réveille le volcan : éruption ! Toutes les cases spéciales font reculer de 4 pendant 3 tours.", done);
+        this.eruption++;
+        return this.effect(
+          id,
+          this.eruption > 1
+            ? `réveille encore le volcan : les éruptions se cumulent ! Jusqu'à la fin du tour, les cases spéciales font reculer de ${ILE_ERUPTION_BACK * this.eruption}.`
+            : `réveille le volcan : éruption ! Jusqu'à la fin du tour, toutes les cases spéciales font reculer de ${ILE_ERUPTION_BACK}.`,
+          done,
+        );
       case "crane":
         this.toVolcano(id);
         return this.effect(id, "tombe sur le crâne… direction le volcan !", done);
@@ -369,32 +385,82 @@ export class IleGame extends BaseGame {
     const turn = this.turn!;
     const pawn = this.pawns.get(id)!;
     const kind = ILE_GATES[gate]!.kind;
+    if (kind === "caisses") {
+      this.remainingSteps = steps;
+      turn.phase = "choose";
+      turn.choose = { kind: "chemin", options: ["Les caisses", "Les tonneaux"] };
+      turn.message = "choisit son chemin sur la cascade : les caisses ou les tonneaux ?";
+      const bot = this.isBotOrAway(id);
+      const wait = bot ? ILE_TIMINGS.botThink : ILE_TIMINGS.choiceTimeout;
+      turn.endsAt = this.host.now() + wait;
+      this.setStage("ile", null);
+      return this.goTo(wait, () => this.crossFalls(id, Math.floor(this.host.random() * 2), steps));
+    }
+    if (kind === "final") pawn.cell = ILE_SUMMIT;
+    // Les autres défis se jouent avec un nouveau lancer, d'un seul dé.
+    const need = kind === "dragon" ? 4 : kind === "volcan" ? 3 : kind === "boule" ? (this.spikeNeed.get(id) ?? 5) : kind === "final" ? 6 : null;
+    turn.phase = "gate";
+    turn.roll = null;
+    turn.challenge = { gate, need, value: null, ok: null };
+    turn.message =
+      kind === "liane"
+        ? "attrape la liane : lance le dé pour savoir jusqu'où il saute !"
+        : kind === "final"
+          ? "arrive au sommet ! Lance le dé : un 6 brise la statue et fait gagner !"
+          : `est devant « ${ILE_GATES[gate]!.label} » : lance le dé, il faut ${need} ou plus !`;
+    const wait = this.isBotOrAway(id) ? ILE_TIMINGS.botThink : ILE_TIMINGS.rollTimeout;
+    turn.endsAt = this.host.now() + wait;
+    this.pendingGate = { gate, steps };
+    this.setStage("ile", null);
+    this.goTo(wait, () => this.gateRoll(id));
+  }
+
+  /** Lancer du dé de défi, puis résultat après l'animation. */
+  private gateRoll(id: string): void {
+    const turn = this.turn;
+    const pending = this.pendingGate;
+    if (!turn || turn.playerId !== id || turn.phase !== "gate" || !pending || !turn.challenge) return;
+    this.pendingGate = null;
+    const value = this.die();
+    turn.rollId = ++this.rollId;
+    turn.challenge.value = value;
     turn.phase = "challenge";
+    turn.endsAt = null;
+    turn.message = "lance le dé…";
+    this.setStage("ile", null);
+    this.goTo(ILE_TIMINGS.gateDice, () => this.resolveGate(id, pending.gate, pending.steps, value));
+  }
+
+  private resolveGate(id: string, gate: number, steps: number, value: number): void {
+    const turn = this.turn!;
+    const pawn = this.pawns.get(id)!;
+    const kind = ILE_GATES[gate]!.kind;
     const show = (then: () => void) => {
       this.setStage("ile", null);
       this.goTo(ILE_TIMINGS.show + 300, then);
     };
     switch (kind) {
       case "liane": {
-        const jump = this.die();
-        turn.challenge = { gate, need: null, value: jump, ok: true };
-        turn.message = `s'élance à la liane : saut de ${jump} case${jump > 1 ? "s" : ""} !`;
+        turn.challenge = { gate, need: null, value, ok: true };
+        turn.message = `s'élance à la liane : saut de ${value} case${value > 1 ? "s" : ""} !`;
         return show(() => {
-          pawn.cell = Math.min(ILE_LAST_CELL, pawn.cell + jump);
+          pawn.cell = Math.min(ILE_LAST_CELL, pawn.cell + value);
           this.host.changed();
           this.goTo(ILE_TIMINGS.step * 2, () => this.land(id));
         });
       }
       case "dragon": {
-        const value = this.die();
         const ok = value >= 4;
         turn.challenge = { gate, need: 4, value, ok };
-        turn.message = ok ? `fait ${value} et brise le mur du dragon ! Le passage est ouvert.` : `fait ${value}… la statue crache du feu, il faudra réessayer.`;
+        turn.message = ok ? `fait ${value} et brise le mur du dragon ! Le passage est ouvert.` : `fait ${value}… le dragon crache du feu : recule de 3 cases !`;
         if (ok) this.dragonBroken = true;
-        return show(() => (ok ? this.continueAfter(id, steps) : this.endTurn()));
+        return show(() => {
+          if (ok) return this.continueAfter(id, steps);
+          pawn.cell = Math.max(0, pawn.cell - 3);
+          this.endTurn();
+        });
       }
       case "volcan": {
-        const value = this.die();
         const ok = value >= 3;
         turn.challenge = { gate, need: 3, value, ok };
         turn.message = ok ? `fait ${value} et passe à côté du volcan !` : `fait ${value}… et tombe dans le volcan !`;
@@ -406,7 +472,6 @@ export class IleGame extends BaseGame {
       }
       case "boule": {
         const need = this.spikeNeed.get(id) ?? 5;
-        const value = this.die();
         const ok = value >= need;
         turn.challenge = { gate, need, value, ok };
         if (ok) {
@@ -428,22 +493,14 @@ export class IleGame extends BaseGame {
           this.endTurn();
         });
       }
-      case "caisses": {
-        this.remainingSteps = steps;
-        turn.phase = "choose";
-        turn.choose = { kind: "chemin", options: ["Les caisses", "Les tonneaux"] };
-        turn.message = "choisit son chemin sur la cascade : les caisses ou les tonneaux ?";
-        const bot = this.isBotOrAway(id);
-        const wait = bot ? ILE_TIMINGS.botThink : ILE_TIMINGS.choiceTimeout;
-        turn.endsAt = this.host.now() + wait;
-        this.setStage("ile", null);
-        return this.goTo(wait, () => this.crossFalls(id, Math.floor(this.host.random() * 2), steps));
+      case "final": {
+        const ok = value >= 6;
+        turn.challenge = { gate, need: 6, value, ok };
+        turn.message = ok ? "fait 6 et brise la statue du sommet !" : `fait ${value}… pas de 6. Au prochain tour, il faudra 6 ou plus avec ses dés (dé bonus compris).`;
+        return show(() => (ok ? this.podium([id]) : this.endTurn()));
       }
-      case "final":
-        pawn.cell = ILE_SUMMIT;
-        turn.challenge = { gate, need: 6, value: null, ok: null };
-        turn.message = "arrive au sommet ! Au prochain tour : 6 ou plus pour gagner.";
-        return show(() => this.endTurn());
+      default:
+        return this.endTurn();
     }
   }
 
@@ -561,6 +618,7 @@ export class IleGame extends BaseGame {
     const turn = this.turn;
     if (this.stage !== "ile" || !turn || turn.playerId !== playerId) throw new RoomError(ERRORS.notYourTurn);
     if (action?.type === "roll") {
+      if (turn.phase === "gate") return this.gateRoll(playerId);
       if (turn.phase !== "roll") throw new RoomError(ERRORS.notYourTurn);
       return this.roll(playerId);
     }

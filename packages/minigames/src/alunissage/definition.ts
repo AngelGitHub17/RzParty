@@ -8,5 +8,5 @@ export const definition: MiniGameDefinition = {
   players: { min: 2, max: 8 },
   durationSec: 100,
   records: [{ key: "atterrissage", label: "Meilleur alunissage", better: "higher", unit: "pts" }],
-  rules: "Ta capsule tombe vers la Lune : maintiens le bouton (ou la barre Espace) pour allumer le moteur et freiner. Touche le sol le plus doucement possible, sans gaspiller le carburant. Trop vite, c'est le crash ! 2 essais, le meilleur compte.",
+  rules: "Ta capsule tombe vers la Lune. Maintiens le bouton MOTEUR (ou la barre Espace) pour freiner, lâche pour tomber. Garde la jauge de vitesse dans le vert : « Freine ! » s'affiche quand tu vas trop vite. Pose-toi à moins de 5 m/s pour ne pas t'écraser ; plus c'est doux, plus ça rapporte. 2 essais, le meilleur compte.",
 };

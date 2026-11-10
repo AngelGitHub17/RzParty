@@ -117,19 +117,23 @@ Une course de 72 cases en spirale jusqu'au sommet d'une île, fidèle au mode d'
 1. Chaque tour commence par un mini-jeu qui fixe l'ordre de passage et donne un dé bonus :
    or (1 à 6) au 1er, argent (1 à 3) au 2e, bronze (1 ou 2) au 3e, rien au dernier.
 2. On lance le dé normal et son dé bonus ; s'ils font le même chiffre, un dé de plus s'ajoute.
-3. Six défis barrent la route (on s'arrête devant pour les tenter) :
-   - **Saut à la liane** (après la case 5) : un dé décide de la longueur du saut ;
+3. Six défis barrent la route : on s'arrête devant et, sauf pour la cascade, on relance **un seul dé** :
+   - **Saut à la liane** (après la case 5) : le dé décide de la longueur du saut ;
    - **Mur du dragon** (après 21) : 4 ou plus pour briser la statue, qui reste ensuite ouverte pour tous ;
+     raté, le dragon crache du feu et on recule de 3 cases ;
    - **Caisses ou tonneaux** (après 38) : un des deux chemins casse ; mauvais choix = on nage et on s'arrête ;
    - **Volcan ou pas** (après 45) : 3 ou plus, sinon on tombe dans le volcan ;
    - **Boule à pointes** (après 55) : 5 ou plus (un de moins à chaque échec) ; raté, la boule fait
      reculer de 11 cases tous ceux qui sont entre le 4e et le 5e défi ;
-   - **Défi final** au sommet : au tour suivant, 6 ou plus avec ses dés pour gagner.
+   - **Défi final** au sommet : dès l'arrivée, un 6 au dé fait gagner ; sinon, aux tours suivants,
+     6 ou plus avec ses dés (dé bonus compris).
 4. Cases : +4, +5, +6, −4, tornade (un adversaire recule de 4 à 6), OVNI (échange de place),
    1 contre tous (+10 si l'on fait mieux que la moyenne des autres), duel (+7 / −7), dino
    (ptérodactyle +10 ou T-rex −4 à −9), statue bleue (+16 à 18), statue rouge (−18),
-   éruption (toutes les cases spéciales font −4 pendant 3 tours) et crâne (direction le volcan).
-5. Le volcan est une petite piste à part : la case « Cri » ou la sortie ramènent sur l'île après le 4e défi.
+   éruption (jusqu'à la fin du tour, toutes les cases spéciales font reculer de 4 ; les éruptions
+   se cumulent : −8, −12…) et crâne (direction le volcan).
+5. Le volcan est une petite piste à part : la case « Cri » ou la sortie ramènent sur l'île, à la case
+   d'où l'on est tombé.
 
 ### Mode Grande Roue
 

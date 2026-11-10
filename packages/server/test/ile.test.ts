@@ -55,6 +55,9 @@ describe("mode Île aux défis", () => {
       let bonusSeen = false;
       let volcano = false;
       let lastRoll: unknown = null;
+      let gateRolls = 0;
+      let lastRound = 0;
+      const fellFrom = new Map<string, number>();
       for (let t = 0; t < 30000 && room.game!.snapshot().stage !== "podium"; t++) {
         await vi.advanceTimersByTimeAsync(500);
         const s = room.game!.snapshot().ile!;
@@ -69,10 +72,26 @@ describe("mode Île aux défis", () => {
           if (turn.roll.extra !== null) expect(turn.roll.bonus).toBe(turn.roll.std);
         }
         if (turn?.challenge) kinds.add(ILE_GATES[turn.challenge.gate]!.kind);
-        for (const p of Object.values(s.pawns)) {
+        // Devant un défi (sauf la cascade), on attend un lancer d'un seul dé.
+        if (turn?.phase === "gate") {
+          gateRolls++;
+          expect(turn.roll).toBeNull();
+          expect(turn.challenge!.value).toBeNull();
+        }
+        // L'éruption ne dure que jusqu'à la fin du tour.
+        if (s.round !== lastRound) {
+          lastRound = s.round;
+          expect(s.eruption).toBe(0);
+        }
+        for (const [id, p] of Object.entries(s.pawns)) {
           expect(p.cell).toBeGreaterThanOrEqual(0);
           expect(p.cell).toBeLessThanOrEqual(ILE_SUMMIT);
-          if (p.volcano !== null) volcano = true;
+          if (p.volcano !== null) {
+            volcano = true;
+            if (!fellFrom.has(id)) fellFrom.set(id, p.cell);
+            // Dans le volcan, on garde la case d'où l'on est tombé, et on y revient en sortant.
+            expect(p.cell).toBe(fellFrom.get(id));
+          } else fellFrom.delete(id);
         }
       }
       const snap = room.game!.snapshot();
@@ -85,6 +104,7 @@ describe("mode Île aux défis", () => {
       expect(kinds.has("liane")).toBe(true);
       expect(kinds.has("final")).toBe(true);
       expect(kinds.size).toBeGreaterThanOrEqual(5);
+      expect(gateRolls).toBeGreaterThan(0);
       void volcano;
     }, 240_000);
   }
@@ -106,7 +126,7 @@ describe("mode Île aux défis", () => {
           refused = true;
         }
         if (turn.playerId !== me) continue;
-        if (turn.phase === "roll") manager.gameAction("chef", { type: "roll" });
+        if (turn.phase === "roll" || turn.phase === "gate") manager.gameAction("chef", { type: "roll" });
         else if (turn.choose?.kind === "chemin") {
           expect(() => manager.gameAction("chef", { type: "path", option: 3 })).toThrow();
           manager.gameAction("chef", { type: "path", option: 1 });
