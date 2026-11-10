@@ -52,19 +52,19 @@ function symbolTexture(symbol: string, ink: string, outline: string): THREE.Canv
 }
 
 /**
- * Style d'un dé : classique blanc, dés bonus métalliques (or = 6 faces, argent = 4, fer = 3),
+ * Style d'un dé : classique blanc, dés bonus métalliques (or = 1 à 6, argent = 1 à 3, bronze = 1 à 2),
  * ou dé bleu à 12 faces (chiffres).
  */
-type DieStyle = "normal" | "or" | "argent" | "fer" | "douze";
+type DieStyle = "normal" | "or" | "argent" | "bronze" | "douze";
 const DIE_LOOK: Record<DieStyle, { light: string; dark: string; ink: string }> = {
   normal: { light: "#FFFFFF", dark: "#FFFFFF", ink: "#1E2A4A" },
   or: { light: "#FFE58A", dark: "#D99A0B", ink: "#5A3A00" },
   argent: { light: "#FFFFFF", dark: "#A9B1BD", ink: "#2B313B" },
-  fer: { light: "#A7ADB3", dark: "#4E5459", ink: "#15181B" },
+  bronze: { light: "#F2B98A", dark: "#A8612D", ink: "#3B1D07" },
   douze: { light: "#5D9BFF", dark: "#2F7BEF", ink: "#FFFFFF" },
 };
 const styleOf = (r: { kind: DieRoll["kind"]; sides: number }): DieStyle =>
-  r.kind === "douze" ? "douze" : r.kind === "bonus" ? (r.sides >= 6 ? "or" : r.sides === 4 ? "argent" : "fer") : "normal";
+  r.kind === "douze" ? "douze" : r.kind === "bonus" ? (r.sides >= 6 ? "or" : r.sides >= 3 ? "argent" : "bronze") : "normal";
 
 function dieFaceTexture(value: number, style: DieStyle): THREE.CanvasTexture {
   const canvas = document.createElement("canvas");
@@ -429,7 +429,7 @@ export class BoardScene {
     if (!m) {
       const map = dieFaceTexture(value, style);
       // Les dés bonus brillent comme du métal ; les autres gardent le rendu « dessin animé ».
-      m = style === "or" || style === "argent" || style === "fer" ? new THREE.MeshStandardMaterial({ map, metalness: 0.45, roughness: 0.3 }) : toon(0xffffff);
+      m = style === "or" || style === "argent" || style === "bronze" ? new THREE.MeshStandardMaterial({ map, metalness: 0.45, roughness: 0.3 }) : toon(0xffffff);
       m.map = map;
       this.faceMats.set(key, m);
     }

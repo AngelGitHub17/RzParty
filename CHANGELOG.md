@@ -3,6 +3,15 @@
 Chaque version commence par « ## numéro — date ». La page de présentation et les serveurs
 locaux lisent ce fichier : pense à augmenter la version dans package.json à chaque publication.
 
+## 0.11.0 — 10 novembre 2026
+- Passage en 3D, première étape : l'Île aux défis devient une vraie île en pente, avec son chemin en spirale, ses six défis, le volcan qui gronde, les dés qui roulent au-dessus du joueur et la caméra qui le suit.
+- Grande Roue en 3D : une roue de jeu télévisé sur une scène, avec ses picots, son clapet, la banque en pile de médailles et les joueurs alignés devant.
+- Bateau d'équilibre en 3D : un voilier qui penche vraiment sur la mer ; on pose son personnage en touchant une place sur la vergue (rouge = risqué).
+- Tour du monde en 3D : un globe qui tourne vers le joueur dont c'est le tour ; les cases possibles se touchent directement sur le globe.
+- Les dés bonus du plateau ont enfin leur bonne couleur : or (1 à 6), argent (1 à 3), bronze (1 ou 2).
+- Sans WebGL, ces modes restent jouables avec l'affichage 2D d'avant.
+- Installeur Windows : correction de la construction du .msi.
+
 ## 0.10.1 — 10 novembre 2026
 - Installeurs Windows (.msi), Linux (.deb) et Mac (.pkg) avec Node.js inclus, proposés sur la page de présentation à côté du .zip.
 - La version installée se met à jour toute seule entre deux parties, puis se relance (profils conservés).

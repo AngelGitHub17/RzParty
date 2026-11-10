@@ -3,7 +3,8 @@ import type { ViewLayout } from "@rzparty/minigames/client";
 import { clear, everyFrame, h } from "../ui/dom.ts";
 import { avatarSvg, playerAvatar } from "../ui/avatar.ts";
 import { serverNow } from "./clock.ts";
-import { scoreTable, sendAction } from "./modeKit.ts";
+import { scoreTable, sendAction, with3D } from "./modeKit.ts";
+import type { BateauScene } from "../three/bateauScene.ts";
 
 const YARD_NAMES = ["vergue verte (en haut)", "vergue jaune (au milieu)", "vergue violette (en bas)"];
 const YARD_CLASS = ["is-green", "is-yellow", "is-purple"];
@@ -19,19 +20,31 @@ export class BateauView {
   private readonly table = h("div", {});
   private room: RoomSnapshot | null = null;
   private stop: () => void;
+  private scene: BateauScene | null = null;
+  private destroyed = false;
+  private readonly board: HTMLElement = h("div", { class: "boat__board" }, this.ship);
 
   constructor(root: HTMLElement, private readonly layout: ViewLayout, private readonly meId: string | null) {
     this.el = h(
       "section",
       { class: `boat boat--${layout}` },
-      h("div", { class: "boat__main" }, this.head, this.text, this.hand, this.ship, this.gauge),
+      h("div", { class: "boat__main" }, this.head, this.text, this.hand, this.board, this.gauge),
       layout === "pad" ? null : h("aside", { class: "bv-side" }, this.table),
     );
     root.append(this.el);
     this.stop = everyFrame(() => this.tick());
+    with3D(this.board, () => import("../three/bateauScene.ts"), ({ BateauScene }, host) => {
+      if (this.destroyed) return false;
+      this.scene = new BateauScene(host, (slot) => void sendAction({ type: "place", slot }));
+      const b = this.room?.game?.bateau;
+      if (b) this.scene.update(b, this.myTurn(b));
+      return true;
+    });
   }
 
   destroy(): void {
+    this.destroyed = true;
+    this.scene?.destroy();
     this.stop();
     this.el.remove();
   }
@@ -46,7 +59,8 @@ export class BateauView {
     if (!b) return;
     clear(this.head);
     this.head.append(h("strong", { text: `${b.sailors.length}/${b.goal} à bord` }), h("span", { class: "muted", text: `Tour ${Math.max(1, b.round)}` }));
-    this.renderShip(b);
+    if (this.scene) this.scene.update(b, this.myTurn(b));
+    else this.renderShip(b);
     this.renderHand(b, room);
     const needle = this.gauge.firstElementChild as HTMLElement;
     needle.style.left = `${50 + Math.max(-1, Math.min(1, b.tilt / BOAT_LIMIT)) * 50}%`;

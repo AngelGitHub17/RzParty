@@ -4310,3 +4310,94 @@ button.quiz__option {
   background: #ffffffaa;
   font-size: 0.92rem;
 }
+
+/* Scènes 3D des modes */
+.has-3d {
+  position: relative;
+}
+.has-3d > :not(.mode3d):is(svg, .ile__map, .wheel__svg) {
+  visibility: hidden;
+}
+.mode3d {
+  position: absolute;
+  inset: 0;
+}
+.mode3d .stage3d__canvas,
+.stage3d__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: manipulation;
+}
+.ile__board.has-3d {
+  background: linear-gradient(#bfe8ff, #7fd3ff);
+  aspect-ratio: 1000 / 720;
+}
+.ile--pad .ile__board.has-3d {
+  aspect-ratio: 4 / 5;
+}
+.ile__board.has-3d > .ile__map {
+  position: absolute;
+  inset: 0;
+}
+.wheel__stage.has-3d {
+  min-height: min(620px, 72vh);
+  background: radial-gradient(circle at 50% 30%, #4a2f86, #1d1240);
+}
+.wheel__stage.has-3d > .wheel__rotor,
+.wheel__stage.has-3d > .wheel__pointer {
+  visibility: hidden;
+}
+.wheel__stage.has-3d > .wheel__result,
+.wheel__stage.has-3d > .wheel__lucky {
+  position: relative;
+  z-index: 1;
+}
+.wheel__stage.has-3d > .wheel__banner {
+  z-index: 1;
+}
+.wheel__stage.has-3d > .wheel__result {
+  align-self: end;
+}
+.boat__board {
+  width: min(640px, 100%);
+}
+.boat__board.has-3d {
+  width: min(820px, 100%);
+  aspect-ratio: 16 / 11;
+  border-radius: var(--radius-m);
+  overflow: hidden;
+  background: linear-gradient(#8fd3ff, #d9f1ff 70%);
+}
+.boat--pad .boat__board.has-3d {
+  aspect-ratio: 4 / 5;
+}
+.boat__board.has-3d > .boat__ship {
+  display: none;
+}
+.globe__map-box.has-3d {
+  background: radial-gradient(circle at 50% 45%, #2a3d7a, #0d1433);
+  border-radius: var(--radius-l);
+  overflow: hidden;
+}
+.globe--pad .globe__map-box.has-3d > .globe__map {
+  aspect-ratio: 1;
+}
+.ile__board.has-3d,
+.boat__board.has-3d {
+  aspect-ratio: auto;
+  height: clamp(320px, 62vh, 640px);
+}
+.wheel--pad .wheel__stage.has-3d,
+.ile--pad .ile__board.has-3d,
+.boat--pad .boat__board.has-3d {
+  height: clamp(300px, 52vh, 520px);
+  min-height: 0;
+}
+.globe--pad .globe__map-box.has-3d {
+  height: clamp(300px, 52vh, 520px);
+}
+.globe--pad .globe__map-box.has-3d > .globe__map {
+  position: absolute;
+  inset: 0;
+}

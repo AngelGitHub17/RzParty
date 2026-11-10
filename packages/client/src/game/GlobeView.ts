@@ -6,12 +6,13 @@ import type { ViewLayout } from "@rzparty/minigames/client";
 import { clear, everyFrame, h } from "../ui/dom.ts";
 import { playerAvatar } from "../ui/avatar.ts";
 import { serverNow } from "./clock.ts";
-import { scoreTable, sendAction } from "./modeKit.ts";
+import { scoreTable, sendAction, with3D } from "./modeKit.ts";
+import type { GlobeScene } from "../three/globeScene.ts";
 
 const NS = "http://www.w3.org/2000/svg";
 const STEP_MS = 320;
 
-const ICONS: Record<SpaceKind, string> = {
+export const ICONS: Record<SpaceKind, string> = {
   depart: "🏁",
   destination: "",
   boutique: "🛍️",
@@ -35,7 +36,7 @@ const KIND_NAMES: Record<SpaceKind, string> = {
 };
 
 /** Continents, très simplifiés (positions sur la carte stylisée 1000 × 560). */
-const CONTINENTS: string[] = [
+export const CONTINENTS: string[] = [
   "40,90 150,60 330,50 360,110 300,170 250,250 230,320 180,300 140,240 70,200 40,140",
   "300,330 380,330 430,380 400,460 360,530 320,500 310,420",
   "350,20 430,15 420,60 360,70",
@@ -83,6 +84,9 @@ export class GlobeView {
   private pawns = new Map<string, SVGGElement>();
   private taxi: { index: number; steps: number } | null = null;
   private stop: () => void;
+  private scene: GlobeScene | null = null;
+  private destroyed = false;
+  private readonly mapBox: HTMLElement = h("div", { class: "globe__map-box" }, this.map);
 
   constructor(root: HTMLElement, private readonly layout: ViewLayout, private readonly meId: string | null) {
     this.map.setAttribute("viewBox", "0 0 1000 560");
@@ -92,14 +96,27 @@ export class GlobeView {
     this.el = h(
       "section",
       { class: `globe globe--${layout}` },
-      h("div", { class: "globe__main" }, this.banner, h("div", { class: "globe__map-box" }, this.map), this.row, this.text),
+      h("div", { class: "globe__main" }, this.banner, this.mapBox, this.row, this.text),
       h("aside", { class: "bv-side" }, this.hot, this.controls, this.table),
     );
     root.append(this.el);
     this.stop = everyFrame(() => this.tick());
+    with3D(this.mapBox, () => import("../three/globeScene.ts"), ({ GlobeScene }, host) => {
+      if (this.destroyed) return false;
+      this.scene = new GlobeScene(host, layout === "tv", { continents: CONTINENTS, icons: ICONS }, (space) => void sendAction({ type: "move", space }));
+      const g = this.room?.game?.globe;
+      if (g) this.scene.update(g, this.room!.players, this.mine(g));
+      return true;
+    });
+  }
+
+  private mine(g: GlobeState): boolean {
+    return this.layout !== "tv" && g.turn?.playerId === this.meId;
   }
 
   destroy(): void {
+    this.destroyed = true;
+    this.scene?.destroy();
     this.stop();
     this.el.remove();
   }
@@ -109,6 +126,7 @@ export class GlobeView {
     const g = room.game?.globe;
     if (!g) return;
     if (!this.builtMap) this.buildMap(g);
+    this.scene?.update(g, room.players, this.mine(g));
     const turn = g.turn;
     if (turn && turn.moveId !== this.shownMove) {
       this.shownMove = turn.moveId;

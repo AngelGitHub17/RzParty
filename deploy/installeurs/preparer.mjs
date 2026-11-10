@@ -43,6 +43,9 @@ cpSync(join(root, "node_modules"), join(out, "node_modules"), {
     const rel = src.slice(join(root, "node_modules").length + 1).split(/[\\/]/);
     // Outils de développement inutiles pour jouer et pour compiler une mise à jour.
     if (["typescript", "vitest", "@vitest", "@types", "concurrently", "rxjs", ".cache"].includes(rel[0])) return false;
+    // Fichiers de test des dépendances (inutiles, et certains ont des noms que l'installeur Windows refuse).
+    if (rel.includes("test") && rel.includes("fixtures")) return false;
+    if (/[^\x00-\xff]/.test(rel.at(-1) ?? "")) return false;
     return !(kind === "msi" && rel[0] === "@rzparty");
   },
 });

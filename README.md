@@ -326,3 +326,4 @@ valide, calcule, puis diffuse l'état du salon à tout le monde.
 | 5 | Duels, équipes, OVNI, événements | Fait |
 | 6 | Contenu : mini-jeux (13 à ce jour), bots avancés | En cours |
 | 7 | Finition : sons, animations, lanceur | À venir |
+| 8 | Tout en 3D : Île aux défis, Grande Roue, Bateau, Tour du monde (0.11) ; Bingo, Trios, Paires, Amitié, Quiz, Mots (0.12) ; mini-jeux par lots | En cours |

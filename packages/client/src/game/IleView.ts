@@ -14,7 +14,8 @@ import type { ViewLayout } from "@rzparty/minigames/client";
 import { clear, everyFrame, h } from "../ui/dom.ts";
 import { playerAvatar } from "../ui/avatar.ts";
 import { serverNow } from "./clock.ts";
-import { sendAction } from "./modeKit.ts";
+import { sendAction, with3D } from "./modeKit.ts";
+import type { IleScene } from "../three/ileScene.ts";
 
 const NS = "http://www.w3.org/2000/svg";
 const LAYOUT = ileLayout();
@@ -45,6 +46,9 @@ export class IleView {
   private cellsDrawn = "";
   private room: RoomSnapshot | null = null;
   private stop: () => void;
+  private scene: IleScene | null = null;
+  private readonly board: HTMLElement = h("div", { class: "ile__board" }, this.map);
+  private destroyed = false;
 
   constructor(root: HTMLElement, private readonly layout: ViewLayout, private readonly meId: string | null) {
     this.drawBackground();
@@ -52,14 +56,22 @@ export class IleView {
     this.el = h(
       "section",
       { class: `ile ile--${layout}` },
-      h("div", { class: "ile__main" }, this.banner, h("div", { class: "ile__board" }, this.map), h("div", { class: "ile__bar" }, this.dice, this.controls)),
+      h("div", { class: "ile__main" }, this.banner, this.board, h("div", { class: "ile__bar" }, this.dice, this.controls)),
       layout === "pad" ? null : h("aside", { class: "bv-side" }, this.side),
     );
     root.append(this.el);
     this.stop = everyFrame(() => this.tick());
+    with3D(this.board, () => import("../three/ileScene.ts"), ({ IleScene }, host) => {
+      if (this.destroyed) return false;
+      this.scene = new IleScene(host, layout === "tv");
+      if (this.room?.game?.ile) this.scene.update(this.room.game.ile, this.room.players);
+      return true;
+    });
   }
 
   destroy(): void {
+    this.destroyed = true;
+    this.scene?.destroy();
     this.stop();
     this.el.remove();
   }
@@ -181,8 +193,11 @@ export class IleView {
     this.room = room;
     const s = room.game?.ile;
     if (!s) return;
-    this.drawCells(s);
-    this.drawPawns(s, room.players);
+    if (this.scene) this.scene.update(s, room.players);
+    else {
+      this.drawCells(s);
+      this.drawPawns(s, room.players);
+    }
     this.renderTurn(s, room.players);
     this.renderSide(s, room.players);
   }

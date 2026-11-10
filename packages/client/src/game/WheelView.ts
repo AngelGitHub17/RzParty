@@ -5,6 +5,8 @@ import { clear, everyFrame, h } from "../ui/dom.ts";
 import { playerAvatar } from "../ui/avatar.ts";
 import { toast } from "../ui/toast.ts";
 import { serverNow } from "./clock.ts";
+import { with3D } from "./modeKit.ts";
+import type { WheelScene } from "../three/wheelScene.ts";
 
 const NS = "http://www.w3.org/2000/svg";
 const MEDAL = "🏅";
@@ -92,19 +94,30 @@ export class WheelView {
   private luckyShownAt = 0;
   private luckySpin = -1;
   private stopTicker: () => void;
+  private scene: WheelScene | null = null;
+  private destroyed = false;
+  private readonly stage: HTMLElement = h("div", { class: "wheel__stage" }, this.banner, h("div", { class: "wheel__pointer", attrs: { "aria-hidden": "true" } }), this.rotor, this.lucky, this.result);
 
   constructor(root: HTMLElement, private readonly layout: ViewLayout, private readonly meId: string | null) {
     this.el = h(
       "section",
       { class: `wheel wheel--${layout}` },
-      h("div", { class: "wheel__stage" }, this.banner, h("div", { class: "wheel__pointer", attrs: { "aria-hidden": "true" } }), this.rotor, this.lucky, this.result),
+      this.stage,
       h("aside", { class: "bv-side" }, this.pot, this.controls, this.table, layout === "pad" ? null : this.legend),
     );
     root.append(this.el);
     this.stopTicker = everyFrame(() => this.tick());
+    with3D(this.stage, () => import("../three/wheelScene.ts"), ({ WheelScene }, host) => {
+      if (this.destroyed) return false;
+      this.scene = new WheelScene(host, layout === "tv");
+      if (this.room?.game?.wheel) this.scene.update(this.room.game.wheel, this.room.players);
+      return true;
+    });
   }
 
   destroy(): void {
+    this.destroyed = true;
+    this.scene?.destroy();
     this.stopTicker();
     this.el.remove();
   }
@@ -122,6 +135,7 @@ export class WheelView {
       if (w.round > 1) this.rotor.classList.add("is-new");
       this.renderLegend(w);
     }
+    this.scene?.update(w, room.players);
     const turn = w.turn;
     // Nouveau lancer : la roue tourne plusieurs fois puis s'arrête sur la case tirée (sous le repère, en haut).
     if (turn && turn.segment !== null && turn.spinId !== this.shownSpin) {
