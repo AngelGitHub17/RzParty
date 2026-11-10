@@ -3,6 +3,12 @@
 Chaque version commence par « ## numéro — date ». La page de présentation et les serveurs
 locaux lisent ce fichier : pense à augmenter la version dans package.json à chaque publication.
 
+## 0.10.0 — 10 novembre 2026
+- Nouveau mode Île aux défis, fidèle au mode d'origine : 72 cases en spirale, dés bonus or/argent/bronze, double = un dé de plus, six défis (liane, mur du dragon, caisses ou tonneaux, volcan ou pas, boule à pointes, défi final à 6), volcan, éruption, statues, dino, tornade, OVNI, 1 contre tous et duels.
+- Test d'amitié : 5 questions par défaut, comme le mode d'origine (ou 10, 15).
+- Page de présentation : une capture pour chaque mode et pour chacun des 30 mini-jeux.
+- Anciennes versions téléchargeables sur la page de présentation (figées, sans mise à jour automatique) ; la dernière version, qui se met à jour, reste proposée en premier.
+
 ## 0.9.0 — 9 novembre 2026
 - Plateau plus proche de l'original : dés bonus sur tous les plateaux, or (1 à 6), argent (1 à 3) et bronze (1 ou 2).
 - Plateau : défi final au sommet, un mini-jeu seul contre tous à gagner pour remporter la partie, sinon on redescend de 6 cases (désactivable en Personnalisé).

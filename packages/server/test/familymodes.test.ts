@@ -151,7 +151,7 @@ describe("modes Trios, Bateau, Paires, Test d'amitié", () => {
   }, 180_000);
 
   it("Test d'amitié : les réponses identiques rapprochent les duos, le duo le plus complice gagne", async () => {
-    const { manager, room } = setup((h) => new AmitieGame(h), { mode: "amitie", amitie: { rounds: 8 } }, 3, 2);
+    const { manager, room } = setup((h) => new AmitieGame(h), { mode: "amitie", amitie: { rounds: 10 } }, 3, 2);
     const me = room.players.find((p) => !p.isBot)!.id;
     let who = 0;
     let finals = 0;
@@ -162,7 +162,7 @@ describe("modes Trios, Bateau, Paires, Test d'amitié", () => {
       if (snap0.stage === "intro" && last !== "intro") {
         miniGames++;
         // Le mini-jeu arrive après la dernière question.
-        expect(snap0.amitie!.round).toBe(8);
+        expect(snap0.amitie!.round).toBe(10);
       }
       last = snap0.stage;
       if (snap0.amitie?.phase === "final") finals++;
@@ -182,7 +182,7 @@ describe("modes Trios, Bateau, Paires, Test d'amitié", () => {
     expect(finals).toBeGreaterThan(0);
     expect(snap.winners.length).toBeGreaterThanOrEqual(2);
     const a = snap.amitie!;
-    expect(a.asked).toBe(8 + 3);
+    expect(a.asked).toBe(10 + 3);
     for (const v of Object.values(a.agree)) expect(v).toBeLessThanOrEqual(a.asked);
   }, 180_000);
 });

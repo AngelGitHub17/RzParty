@@ -6,6 +6,7 @@ puis le rend accessible sur **https://rzparty.fr** :
 - `https://rzparty.fr/` : page de présentation (modes, mini-jeux, téléchargement, journal des versions) ;
 - `https://rzparty.fr/accueil` : le jeu ;
 - `https://rzparty.fr/telecharger` : le jeu en .zip pour l'installer chez soi (créé à partir de la version en ligne) ;
+- `https://rzparty.fr/telecharger/0.7.0` (par exemple) : une ancienne version, figée (sans mise à jour automatique), liste dans `/api/versions` ;
 - `https://rzparty.fr/api/version` : interrogé par les serveurs installés chez les joueurs pour signaler les nouvelles versions.
 
 ## 1. Créer le conteneur (une seule commande)

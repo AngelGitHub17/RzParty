@@ -110,6 +110,27 @@ gagne), dés bonus, doubles et variété des cases.
     mieux que la place moyenne des autres, ou battre son adversaire à deux). Raté : on redescend de
     6 cases et la course continue. Le premier qui réussit son défi gagne (désactivable en Personnalisé).
 
+### Île aux défis
+
+Une course de 72 cases en spirale jusqu'au sommet d'une île, fidèle au mode d'origine :
+
+1. Chaque tour commence par un mini-jeu qui fixe l'ordre de passage et donne un dé bonus :
+   or (1 à 6) au 1er, argent (1 à 3) au 2e, bronze (1 ou 2) au 3e, rien au dernier.
+2. On lance le dé normal et son dé bonus ; s'ils font le même chiffre, un dé de plus s'ajoute.
+3. Six défis barrent la route (on s'arrête devant pour les tenter) :
+   - **Saut à la liane** (après la case 5) : un dé décide de la longueur du saut ;
+   - **Mur du dragon** (après 21) : 4 ou plus pour briser la statue, qui reste ensuite ouverte pour tous ;
+   - **Caisses ou tonneaux** (après 38) : un des deux chemins casse ; mauvais choix = on nage et on s'arrête ;
+   - **Volcan ou pas** (après 45) : 3 ou plus, sinon on tombe dans le volcan ;
+   - **Boule à pointes** (après 55) : 5 ou plus (un de moins à chaque échec) ; raté, la boule fait
+     reculer de 11 cases tous ceux qui sont entre le 4e et le 5e défi ;
+   - **Défi final** au sommet : au tour suivant, 6 ou plus avec ses dés pour gagner.
+4. Cases : +4, +5, +6, −4, tornade (un adversaire recule de 4 à 6), OVNI (échange de place),
+   1 contre tous (+10 si l'on fait mieux que la moyenne des autres), duel (+7 / −7), dino
+   (ptérodactyle +10 ou T-rex −4 à −9), statue bleue (+16 à 18), statue rouge (−18),
+   éruption (toutes les cases spéciales font −4 pendant 3 tours) et crâne (direction le volcan).
+5. Le volcan est une petite piste à part : la case « Cri » ou la sortie ramènent sur l'île après le 4e défi.
+
 ### Mode Grande Roue
 
 Fidèle au principe du mode « Spin-Off » : tout le monde **et la banque** part avec 500 médailles.
@@ -178,7 +199,7 @@ Des « Plutôt chat ou chien ? » et des « Qui de nous est le plus gourmand ? �
 en secret. Deux joueurs qui répondent pareil rapprochent leur duo. Après la dernière question, un mini-jeu
 final « synchro » rapproche ceux qui finissent près l'un de l'autre au classement (il compte comme
 3 questions). Enfin, le **taux d'amitié** de chaque duo, de 0 à 100, est révélé : le duo le plus
-complice gagne. 8, 12 ou 16 questions.
+complice gagne. 5 questions comme dans le jeu d’origine, ou 10 ou 15.
 
 ### Quiz entre amis
 
@@ -217,6 +238,14 @@ RzParty peut tourner en continu dans un conteneur LXC et être joué depuis Inte
 En mode site (`RZ_SITE=1`), `/` affiche la page de présentation (modes, mini-jeux, téléchargement,
 journal des versions) et le jeu est sur `/accueil`. Tout est expliqué dans [docs/hebergement.md](docs/hebergement.md) :
 création du conteneur en une commande, configuration NGINX, mise à jour depuis `/hote` ou avec `rzparty-maj`.
+
+### Anciennes versions
+
+La page de présentation propose toujours la dernière version en premier (c'est la seule qui se met
+à jour toute seule), puis toutes les anciennes versions dans « Anciennes versions » et dans le
+journal des mises à jour. Une version archivée (`/telecharger/0.7.0` par exemple) est fabriquée à
+partir de l'historique git : ses lanceurs désactivent la mise à jour automatique
+(`RZ_UPDATE_URL=off`) et les scripts « mettre à jour » sont retirés.
 
 ### Publier une nouvelle version
 

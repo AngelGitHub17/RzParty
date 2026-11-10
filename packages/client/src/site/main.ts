@@ -5,7 +5,7 @@
 import "@fontsource-variable/fredoka";
 import "../styles.css";
 import "./site.css";
-import { GAME_MODES, type ChangelogEntry, type GameModeId } from "@rzparty/shared";
+import { GAME_MODES, type ChangelogEntry, type GameModeId, type ReleaseInfo } from "@rzparty/shared";
 import { MINI_GAME_DEFINITIONS } from "@rzparty/minigames/catalog";
 import { h } from "../ui/dom.ts";
 import { wordmark } from "../ui/brand.ts";
@@ -20,8 +20,15 @@ const MODE_ART: Partial<Record<GameModeId, string>> = {
   quiz: "/site/quiz.webp",
   mots: "/site/mots.webp",
   survie: "/site/tremplin.webp",
+  ile: "/site/ile.webp",
+  voyage: "/site/voyage.webp",
+  loto: "/site/loto.webp",
+  trios: "/site/trios.webp",
+  bateau: "/site/bateau.webp",
+  paires: "/site/paires.webp",
+  amitie: "/site/amitie.webp",
 };
-const MODE_ORDER: GameModeId[] = ["plateau", "voyage", "survie", "roue", "loto", "trios", "bateau", "paires", "amitie", "quiz", "mots"];
+const MODE_ORDER: GameModeId[] = ["plateau", "ile", "voyage", "survie", "roue", "loto", "trios", "bateau", "paires", "amitie", "quiz", "mots"];
 
 const link = (href: string, text: string, cls = "") => h("a", { class: cls, attrs: { href }, text });
 
@@ -67,7 +74,7 @@ const hero = h(
     h("h1", { text: "Le jeu de société à plusieurs, directement dans le navigateur." }),
     h("p", {
       class: "site-hero__sub",
-      text: "Un plateau plein de surprises, une trentaine de mini-jeux, un tour du monde, un bingo, un bateau à équilibrer, des paires à retrouver et un quiz entre amis. La télé affiche la partie, les téléphones servent de manettes. Rien à installer pour les joueurs.",
+      text: "Un plateau plein de surprises, une île aux six défis, une trentaine de mini-jeux, un tour du monde, un bingo, un bateau à équilibrer, des paires à retrouver et un quiz entre amis. La télé affiche la partie, les téléphones servent de manettes. Rien à installer pour les joueurs.",
     }),
     h(
       "div",
@@ -121,7 +128,7 @@ const ways = section(
 // ── Modes ──
 const modes = section(
   "modes",
-  "Onze façons de faire la fête",
+  "Douze façons de faire la fête",
   "Le chef du salon choisit le mode et ses réglages : longueur du plateau, nombre de questions, de bombes, mini-jeux autorisés…",
   h(
     "div",
@@ -149,13 +156,23 @@ const games = section(
   h(
     "ul",
     { class: "site-games" },
-    ...MINI_GAME_DEFINITIONS.map((g) => h("li", { class: "site-game" }, h("strong", { text: g.name }), h("span", { text: g.rules }))),
+    ...MINI_GAME_DEFINITIONS.map((g) =>
+      h("li", { class: "site-game" }, shot(`/site/mg/${g.id}.webp`, `Capture du mini-jeu ${g.name}`, "site-game__shot"), h("strong", { text: g.name }), h("span", { text: g.rules })),
+    ),
   ),
 );
 
 // ── Jouer chez soi ──
 const downloadBtn = link("/telecharger", "Télécharger RzParty", "btn btn--go site-btn-big");
 const downloadInfo = h("p", { class: "muted site-download__info" });
+const olderList = h("ul", { class: "site-older__list" });
+const older = h(
+  "details",
+  { class: "site-older", attrs: { hidden: true } },
+  h("summary", { text: "Anciennes versions" }),
+  h("p", { class: "muted", text: "Pour rejouer une version précise. Une version archivée reste telle quelle : elle ne se met jamais à jour toute seule." }),
+  olderList,
+);
 const step = (n: number, title: string, ...body: (Node | string)[]) =>
   h("li", { class: "site-step" }, h("span", { class: "site-step__n", text: String(n), attrs: { "aria-hidden": "true" } }), h("div", {}, h("h3", { text: title }), ...body));
 const home = section(
@@ -166,7 +183,7 @@ const home = section(
     "ol",
     { class: "site-steps" },
     step(1, "Installe Node.js", h("p", {}, "Prends la version LTS sur ", h("a", { attrs: { href: "https://nodejs.org/fr", target: "_blank", rel: "noopener" }, text: "nodejs.org" }), ". Une seule fois suffit.")),
-    step(2, "Télécharge RzParty", h("p", { text: "Décompresse le fichier .zip où tu veux, par exemple dans Documents." }), h("div", { class: "site-download" }, downloadBtn, downloadInfo)),
+    step(2, "Télécharge RzParty", h("p", { text: "Décompresse le fichier .zip où tu veux, par exemple dans Documents." }), h("div", { class: "site-download" }, downloadBtn, downloadInfo), older),
     step(
       3,
       "Lance le jeu",
@@ -184,6 +201,26 @@ const home = section(
 const changelog = h("div", { class: "site-changelog" }, h("p", { class: "muted", text: "Chargement du journal…" }));
 const updates = section("mises-a-jour", "Mises à jour", "Ce qui a changé dans chaque version de RzParty.", changelog);
 
+let releases: ReleaseInfo[] = [];
+const formatDate = (iso: string) => new Date(`${iso}T12:00:00`).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+
+function renderReleases(list: ReleaseInfo[]): void {
+  releases = list;
+  const old = list.filter((r) => !r.latest);
+  older.hidden = !old.length;
+  olderList.replaceChildren(
+    ...old.map((r) =>
+      h(
+        "li",
+        { class: "site-older__item" },
+        h("strong", { text: `Version ${r.version}` }),
+        h("span", { class: "muted", text: formatDate(r.date) }),
+        h("a", { class: "btn btn--ghost btn--small", attrs: { href: `/telecharger/${r.version}`, download: "" }, text: "Télécharger (archivée)" }),
+      ),
+    ),
+  );
+}
+
 function renderChangelog(entries: ChangelogEntry[], current: string): void {
   if (!entries.length) {
     changelog.replaceChildren(h("p", { class: "muted", text: "Le journal des versions n'est pas disponible pour le moment." }));
@@ -198,7 +235,14 @@ function renderChangelog(entries: ChangelogEntry[], current: string): void {
         e.date ? h("span", { class: "muted", text: e.date }) : null,
         e.version === current ? h("span", { class: "site-badge", text: "en ligne" }) : null,
       );
-      const box = h("details", { class: "site-release" }, summary, h("ul", {}, ...e.items.map((it) => h("li", { text: it }))));
+      const archived = e.version !== current && releases.some((r) => r.version === e.version);
+      const box = h(
+        "details",
+        { class: "site-release" },
+        summary,
+        h("ul", {}, ...e.items.map((it) => h("li", { text: it }))),
+        archived ? h("a", { class: "site-release__dl", attrs: { href: `/telecharger/${e.version}`, download: "" }, text: `Télécharger la version ${e.version} (archivée, sans mise à jour automatique)` }) : null,
+      );
       if (i < 2) box.setAttribute("open", "");
       return box;
     }),
@@ -216,14 +260,18 @@ const footer = h(
 
 root.append(header, h("main", { class: "site-main" }, hero, ways, modes, games, home, updates), footer);
 
-// Version en ligne et journal, servis par le serveur.
+// Version en ligne, anciennes versions et journal, servis par le serveur.
+const releasesReady = fetch("/api/versions")
+  .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+  .then((data: { releases: ReleaseInfo[] }) => renderReleases(data.releases))
+  .catch(() => renderReleases([]));
 void fetch("/api/mises-a-jour")
   .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
   .then((data: { version: string; entries: ChangelogEntry[] }) => {
     versionTag.textContent = `Version ${data.version}`;
-    downloadInfo.textContent = `Version ${data.version} · fichier .zip · Windows, Linux et Mac`;
+    downloadInfo.textContent = `Version ${data.version} · se met à jour toute seule · fichier .zip · Windows, Linux et Mac`;
     downloadBtn.setAttribute("download", "");
-    renderChangelog(data.entries, data.version);
+    void releasesReady.then(() => renderChangelog(data.entries, data.version));
   })
   .catch(() => renderChangelog([], ""));
 

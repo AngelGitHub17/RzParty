@@ -6,7 +6,7 @@ import { GAME_NAME, type ServerInfo } from "@rzparty/shared";
 import { config, rootDir } from "./config.ts";
 import { lanAddresses } from "./network.ts";
 import { attachSockets } from "./socket.ts";
-import { availableUpdate, buildInfo, downloadArchive, readChangelog, version } from "./updater.ts";
+import { availableUpdate, buildInfo, downloadArchive, downloadRelease, listReleases, readChangelog, version } from "./updater.ts";
 import type { ProfileStore } from "./profiles/ProfileStore.ts";
 import type { AdminStore } from "./profiles/AdminStore.ts";
 
@@ -52,6 +52,24 @@ export async function startServer(port: number, deps: { profiles: ProfileStore; 
   });
 
   if (config.site) {
+    app.get("/api/versions", async (_req, reply) => {
+      reply.header("access-control-allow-origin", "*").header("cache-control", "no-cache");
+      return { current: version, releases: await listReleases().catch(() => []) };
+    });
+    app.get<{ Params: { version: string } }>("/telecharger/:version", async (req, reply) => {
+      const wanted = req.params.version;
+      if (!/^\d+\.\d+\.\d+$/.test(wanted)) return reply.code(404).type("text/plain; charset=utf-8").send("Version inconnue.");
+      try {
+        const { file, name } = await downloadRelease(wanted);
+        return reply
+          .type("application/zip")
+          .header("content-disposition", `attachment; filename="${name}"`)
+          .header("cache-control", "no-cache")
+          .send(createReadStream(file));
+      } catch (err) {
+        return reply.code(404).type("text/plain; charset=utf-8").send(`Téléchargement indisponible. ${(err as Error).message}`);
+      }
+    });
     app.get("/telecharger", async (_req, reply) => {
       try {
         const { file, name } = await downloadArchive();

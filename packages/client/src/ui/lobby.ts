@@ -251,6 +251,8 @@ export function renderChefPanel(snapshot: RoomSnapshot, actions: ChefActions): H
           s.mots.bombs,
           (bombs) => actions.update({ mots: { bombs } }),
         )
+      : s.mode === "ile"
+      ? null
       : s.mode === "roue"
       ? segmented(
           "Nombre de tours de roue",
@@ -332,6 +334,7 @@ function baseSummary(snapshot: RoomSnapshot): string {
   }
   const cells = s.board.size === "perso" ? s.board.custom.length : BOARD_SIZES[s.board.size].cells;
   const bots = `bots ${DIFFICULTIES[s.botDifficulty].label.toLowerCase()}`;
+  if (s.mode === "ile") return `${mode}, 72 cases et 6 défis, ${bots}`;
   if (s.mode === "trios") return `${mode}, ${s.trios.rounds} tours, ${bots}`;
   if (s.mode === "bateau") return `${mode}, ${s.bateau.goal} personnages à embarquer, ${bots}`;
   if (s.mode === "paires") return `${mode}, ${s.paires.tours} tours, ${bots}`;

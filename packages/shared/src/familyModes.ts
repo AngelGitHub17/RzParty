@@ -160,7 +160,7 @@ export interface PairesState {
 
 // ───────────── Test d'amitié ─────────────
 
-export const AMITIE_ROUND_CHOICES = [8, 12, 16] as const;
+export const AMITIE_ROUND_CHOICES = [5, 10, 15] as const;
 /** Le mini-jeu final « synchro » compte comme 3 questions. */
 export const AMITIE_FINAL_WEIGHT = 3;
 

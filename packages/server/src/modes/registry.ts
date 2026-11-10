@@ -16,6 +16,7 @@ import { triosMode } from "../game/modes/trios.ts";
 import { bateauMode } from "../game/modes/bateau.ts";
 import { pairesMode } from "../game/modes/paires.ts";
 import { amitieMode } from "../game/modes/amitie.ts";
+import { ileMode } from "../game/modes/ile.ts";
 
 const modes = new Map<GameModeId, GameModeModule>();
 
@@ -43,3 +44,4 @@ registerMode(triosMode);
 registerMode(bateauMode);
 registerMode(pairesMode);
 registerMode(amitieMode);
+registerMode(ileMode);

@@ -37,7 +37,8 @@ export type BoardAction =
   | { type: "grid"; grid: number }
   | { type: "trio"; center: number | null; slot?: number }
   | { type: "place"; slot: number }
-  | { type: "flip"; card: number };
+  | { type: "flip"; card: number }
+  | { type: "path"; option: number };
 
 /** Qui rejoint : un profil (par son jeton) ou un invité (par un pseudo). */
 export interface JoinIdentity {

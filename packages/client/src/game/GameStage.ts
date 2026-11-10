@@ -15,6 +15,7 @@ import { TriosView } from "./TriosView.ts";
 import { BateauView } from "./BateauView.ts";
 import { PairesView } from "./PairesView.ts";
 import { AmitieView } from "./AmitieView.ts";
+import { IleView } from "./IleView.ts";
 
 /** Écrans des modes de jeu hors mini-jeux (une classe par étape). */
 interface ModeView {
@@ -31,6 +32,7 @@ const MODE_VIEWS: Record<string, new (root: HTMLElement, layout: ViewLayout, meI
   bateau: BateauView,
   paires: PairesView,
   amitie: AmitieView,
+  ile: IleView,
 };
 import { obfuscated } from "../ui/obfuscate.ts";
 
@@ -142,6 +144,8 @@ export class GameStage {
               ? h("strong", { class: "chip__score", text: `⛵ ${s.score}` })
               : game.mode === "amitie"
               ? h("strong", { class: "chip__score", text: `💞 ${s.score} %` })
+              : game.mode === "ile"
+              ? h("strong", { class: "chip__score", text: game.ile?.pawns[s.playerId]?.volcano !== null && game.ile?.pawns[s.playerId]?.volcano !== undefined ? "🌋" : (game.ile?.pawns[s.playerId]?.cell ?? 0) >= 72 ? "🗿 sommet" : `case ${game.ile?.pawns[s.playerId]?.cell ?? 0}` })
               : game.mode === "quiz"
               ? h("strong", { class: "chip__score", text: `${s.score} pt${s.score > 1 ? "s" : ""}` })
               : game.mode === "mots"
@@ -213,7 +217,8 @@ export class GameStage {
       case "trios":
       case "bateau":
       case "paires":
-      case "amitie": {
+      case "amitie":
+      case "ile": {
         if (!this.modeView) this.modeView = { stage: game.stage, view: new MODE_VIEWS[game.stage]!(this.main, this.layout, this.meId) };
         this.modeView.view.update(room);
         return;
@@ -237,7 +242,13 @@ export class GameStage {
         h("p", {
           class: "intro__round",
           text:
-            game.purpose === "ordre" && game.mode !== "trios"
+            game.purpose === "ile"
+              ? `Ce mini-jeu décide de l'ordre et des dés bonus : or (1 à 6), argent (1 à 3), bronze (1 ou 2) · ${CATEGORY_LABELS[mg.category] ?? mg.category}`
+              : game.purpose === "ile1v3"
+              ? `${room.players.find((p) => p.id === game.ile?.turn?.playerId)?.name ?? "?"} seul contre tous ! S'il fait mieux que la moyenne des autres : 10 cases en avant · ${CATEGORY_LABELS[mg.category] ?? mg.category}`
+              : game.purpose === "ileduel"
+              ? `Duel ! ${game.participants.map((id) => room.players.find((p) => p.id === id)?.name ?? "?").join(" contre ")} : si le lanceur gagne, +7 cases pour lui et −7 pour l'autre · ${CATEGORY_LABELS[mg.category] ?? mg.category}`
+              : game.purpose === "ordre" && game.mode !== "trios"
               ? `Qui commence ? Ce mini-jeu décide de l'ordre de jeu · ${CATEGORY_LABELS[mg.category] ?? mg.category}`
               : game.purpose === "loto"
                 ? `Boule Mini-jeu ! Le gagnant coche la case de son choix · ${CATEGORY_LABELS[mg.category] ?? mg.category}`
@@ -366,7 +377,19 @@ export class GameStage {
         if (!p) continue;
         const change = result.changes.find((c) => c.playerId === id);
         const delta =
-          game.purpose === "ordre"
+          game.purpose === "ile"
+            ? [
+                `joue en ${(() => {
+                  const pos = (game.ile?.order.indexOf(id) ?? -1) + 1 || place;
+                  return pos === 1 ? "1er" : `${pos}e`;
+                })()}`,
+                change?.bonusDie ? `${BONUS_DIE_NAMES[change.bonusDie] ?? "dé bonus"} (1 à ${change.bonusDie})` : "",
+              ].filter(Boolean).join(" · ")
+            : game.purpose === "ile1v3" || game.purpose === "ileduel"
+            ? change?.points
+              ? `${change.points > 0 ? "+" : "−"}${Math.abs(change.points)} cases`
+              : ""
+            : game.purpose === "ordre"
             ? (() => {
                 const pos = (game.board?.order.indexOf(id) ?? -1) + 1 || place;
                 return `joue en ${pos === 1 ? "1er" : `${pos}e`}`;
@@ -447,7 +470,7 @@ export class GameStage {
             )
           : null,
         h("ol", { class: "results__list" }, ...rows),
-        h("p", { class: "muted results__next", text: game.mode === "plateau" ? "Retour au plateau dans un instant…" : game.mode === "roue" ? "Retour à la roue dans un instant…" : game.mode === "loto" ? "Retour au bingo dans un instant…" : game.mode === "bateau" ? "Retour au bateau dans un instant…" : game.mode === "trios" ? "Au centre, chacun son tour…" : game.mode === "paires" ? "Retour aux paires dans un instant…" : game.mode === "amitie" ? "Question suivante dans un instant…" : "Prochaine manche dans un instant…" }),
+        h("p", { class: "muted results__next", text: game.mode === "plateau" ? "Retour au plateau dans un instant…" : game.mode === "roue" ? "Retour à la roue dans un instant…" : game.mode === "loto" ? "Retour au bingo dans un instant…" : game.mode === "bateau" ? "Retour au bateau dans un instant…" : game.mode === "trios" ? "Au centre, chacun son tour…" : game.mode === "paires" ? "Retour aux paires dans un instant…" : game.mode === "amitie" ? "Question suivante dans un instant…" : game.mode === "ile" ? "Retour sur l’île dans un instant…" : "Prochaine manche dans un instant…" }),
       ),
     );
   }

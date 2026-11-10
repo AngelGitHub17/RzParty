@@ -20,7 +20,7 @@ export function defaultSettings(): RoomSettings {
     trios: { rounds: 6 },
     bateau: { goal: 20 },
     paires: { tours: 10 },
-    amitie: { rounds: 12 },
+    amitie: { rounds: 5 },
     miniGames: [],
     board: { size: "moyen", custom: defaultCustomConfig() },
     survival: { rule: "vies", lives: 3, targetScore: 10 },

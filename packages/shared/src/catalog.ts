@@ -26,6 +26,10 @@ export const GAME_MODES: Record<GameModeId, { label: string; description: string
     label: "Tour du monde",
     description: "Voyage autour de la carte avec des cartes de transport (train, taxi, avion…) et achète les photos-souvenirs des destinations à la une. Pièces au mini-jeu de chaque tour, surprises et 1 contre tous en route. Le plus de photos gagne !",
   },
+  ile: {
+    label: "Île aux défis",
+    description: "Course jusqu'au sommet d'une île : un mini-jeu donne l'ordre et un dé bonus (or, argent, bronze). Six défis barrent la route (liane, mur du dragon, cascade, volcan, boule à pointes) et il faut encore faire 6 au sommet pour gagner. Attention au volcan !",
+  },
   trios: {
     label: "Trios",
     description: "Chacun a 6 personnages en 2 rangées. À chaque tour, un mini-jeu fixe l'ordre pour en prendre un au centre (certains cachent leur couleur, l'arc-en-ciel va avec tout). Une rangée de 3 de la même couleur rapporte 3 points, les deux rangées d'un coup 10 !",

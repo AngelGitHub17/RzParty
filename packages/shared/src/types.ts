@@ -4,6 +4,7 @@ import type { WheelState } from "./wheel.ts";
 import type { GlobeState } from "./globe.ts";
 import type { LotoState, MotsState, QuizState } from "./partyModes.ts";
 import type { AmitieState, BateauState, PairesState, TriosState } from "./familyModes.ts";
+import type { IleState } from "./ile.ts";
 import type { PlayerColorIndex } from "./constants.ts";
 import type { Avatar } from "./avatar.ts";
 import type { Board, BoardSize, CellType } from "./board.ts";
@@ -16,7 +17,7 @@ import type { Board, BoardSize, CellType } from "./board.ts";
 export type DisplayMode = "commun" | "individuel";
 
 /** Identifiant d'un mode de jeu. Les modes s'enregistrent côté serveur dans le registre des modes. */
-export type GameModeId = "survie" | "plateau" | "roue" | "loto" | "quiz" | "mots" | "voyage" | "trios" | "bateau" | "paires" | "amitie";
+export type GameModeId = "survie" | "plateau" | "roue" | "loto" | "quiz" | "mots" | "voyage" | "trios" | "bateau" | "paires" | "amitie" | "ile";
 
 export type BotPersonality = "equilibre" | "agressif" | "lent-precis" | "glitch";
 
@@ -80,10 +81,10 @@ export interface PublicPlayer {
 export type RoomPhase = "salon" | "partie";
 
 /** Étapes d'une manche, identiques pour tous les modes. */
-export type GameStage = "intro" | "countdown" | "play" | "results" | "board" | "wheel" | "loto" | "quiz" | "mots" | "globe" | "trios" | "bateau" | "paires" | "amitie" | "podium";
+export type GameStage = "intro" | "countdown" | "play" | "results" | "board" | "wheel" | "loto" | "quiz" | "mots" | "globe" | "trios" | "bateau" | "paires" | "amitie" | "ile" | "podium";
 
 /** Pourquoi on joue ce mini-jeu : départager l'ordre de jeu, gagner des pièces, survivre. */
-export type MiniGamePurpose = "survie" | "ordre" | "pieces" | "duel" | "cagnotte" | "loto" | "duelroue" | "voyage" | "unvstous" | "bateau" | "paires" | "amitie" | "defi";
+export type MiniGamePurpose = "survie" | "ordre" | "pieces" | "duel" | "cagnotte" | "loto" | "duelroue" | "voyage" | "unvstous" | "bateau" | "paires" | "amitie" | "defi" | "ile" | "ile1v3" | "ileduel";
 
 /** Fiche publique d'un mini-jeu (affichée avant la manche). */
 export interface MiniGameInfo {
@@ -140,6 +141,7 @@ export interface GameSnapshot {
   bateau?: BateauState | null;
   paires?: PairesState | null;
   amitie?: AmitieState | null;
+  ile?: IleState | null;
 }
 
 export interface PawnState {
@@ -293,4 +295,14 @@ export interface PublicProfile {
 
 export function emptyStats(): ProfileStats {
   return { gamesPlayed: 0, gamesWon: 0, roundsPlayed: 0, roundsWon: 0, perGame: {}, records: {} };
+}
+
+/** Une version publiée de RzParty (page de présentation : téléchargements). */
+export interface ReleaseInfo {
+  version: string;
+  /** Date de publication (AAAA-MM-JJ). */
+  date: string;
+  commit: string;
+  /** La version en ligne : la seule qui se met à jour toute seule. */
+  latest: boolean;
 }
