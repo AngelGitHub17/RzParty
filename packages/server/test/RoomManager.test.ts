@@ -191,3 +191,14 @@ describe("RoomManager", () => {
     expect(manager.getRoom(seat.code)).toBeUndefined();
   });
 });
+
+describe("pseudos refusés", () => {
+  it("demande un autre pseudo s'il ne respecte pas les règles (invité ou profil)", () => {
+    const { manager } = setup();
+    expect(() => manager.createIndividualRoom("s1", "connard")).toThrow(/mot interdit/);
+    expect(() => manager.createIndividualRoom("s2", "admin")).toThrow(/réservé/);
+    const seat = manager.createIndividualRoom("s3", "Léa");
+    expect(seat.code).toHaveLength(4);
+    expect(() => manager.createIndividualRoom("s4", { name: "Merde", avatar: {}, profileId: "p1" })).toThrow(/doit être changé/);
+  });
+});

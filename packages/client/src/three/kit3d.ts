@@ -624,3 +624,97 @@ export function palm(scale = 1): THREE.Group {
   g.scale.setScalar(scale);
   return g;
 }
+
+// ───────────── Joueurs d'une scène ─────────────
+
+export interface CastPlayer {
+  id: string;
+  avatar: Avatar;
+  isBot: boolean;
+  color: number;
+}
+
+/**
+ * Les personnages des joueurs dans une scène : créés, mis à jour (avatar changé) et retirés au besoin.
+ * `colorHex` donne la couleur de l'anneau de chaque joueur.
+ */
+export class Cast {
+  private readonly chars = new Map<string, Character3D>();
+  constructor(
+    private readonly parent: THREE.Object3D,
+    private readonly opts: { scale?: number; colorHex: (color: number) => THREE.ColorRepresentation; ring?: boolean } ,
+  ) {}
+
+  /** Met à jour la troupe ; renvoie les personnages dans l'ordre des identifiants donnés. */
+  sync(players: CastPlayer[], ids: string[], place?: (id: string, index: number) => THREE.Vector3): Character3D[] {
+    for (const [id, c] of this.chars) {
+      if (!ids.includes(id)) {
+        this.parent.remove(c.group);
+        c.dispose();
+        this.chars.delete(id);
+      }
+    }
+    const out: Character3D[] = [];
+    ids.forEach((id, i) => {
+      const p = players.find((x) => x.id === id);
+      if (!p) return;
+      let c = this.chars.get(id);
+      if (c && !c.same(p.avatar, p.isBot)) {
+        this.parent.remove(c.group);
+        c.dispose();
+        c = undefined;
+      }
+      if (!c) {
+        c = new Character3D(p.avatar, { bot: p.isBot, scale: this.opts.scale ?? 1, ring: this.opts.ring === false ? undefined : this.opts.colorHex(p.color) });
+        if (place) c.place(place(id, i));
+        this.chars.set(id, c);
+        this.parent.add(c.group);
+      } else if (place) c.goTo(place(id, i));
+      out.push(c);
+    });
+    return out;
+  }
+
+  get(id: string): Character3D | undefined {
+    return this.chars.get(id);
+  }
+
+  each(fn: (c: Character3D, id: string) => void): void {
+    for (const [id, c] of this.chars) fn(c, id);
+  }
+
+  tick(now: number): void {
+    for (const c of this.chars.values()) c.tick(now);
+  }
+
+  dispose(): void {
+    for (const c of this.chars.values()) c.dispose();
+    this.chars.clear();
+  }
+}
+
+/** Plateau de studio : sol rond, liseré lumineux et petites ampoules. */
+export function studio(color: THREE.ColorRepresentation, radius = 9, rim: THREE.ColorRepresentation = 0xffc83d): THREE.Group {
+  const g = new THREE.Group();
+  const floor = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius + 0.4, 0.4, 64), toon(color));
+  floor.position.y = -0.2;
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.1, 8, 64), toon(rim, { emissive: rim }));
+  ring.rotation.x = Math.PI / 2;
+  g.add(floor, ring);
+  const bulbMat = toon(0xfff3b0, { emissive: 0xc9a200 });
+  for (let k = 0; k < 28; k++) {
+    const a = (k / 28) * Math.PI * 2;
+    const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 6), bulbMat);
+    bulb.position.set(Math.cos(a) * (radius - 0.25), 0.05, Math.sin(a) * (radius - 0.25));
+    g.add(bulb);
+  }
+  return g;
+}
+
+/** Positions en arc de cercle (face à la caméra, vers +Z). */
+export function arc(count: number, radius: number, spread = Math.PI * 0.8, center = new THREE.Vector3()): THREE.Vector3[] {
+  return Array.from({ length: count }, (_, i) => {
+    const a = count === 1 ? 0 : -spread / 2 + (spread * i) / (count - 1);
+    return new THREE.Vector3(center.x + Math.sin(a) * radius, center.y, center.z + Math.cos(a) * radius);
+  });
+}

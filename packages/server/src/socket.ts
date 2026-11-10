@@ -14,7 +14,7 @@ import type { Identity } from "./rooms/RoomManager.ts";
 import { config, timings } from "./config.ts";
 import { log } from "./log.ts";
 import { installUpdate, updateStatus } from "./updater.ts";
-import { clientAddress, isPrivateAddress, lanAddresses } from "./network.ts";
+import { clientAddress, isPrivateAddress, lanAddresses, onServerNetwork, viaUnknownProxy } from "./network.ts";
 
 type GameSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
 
@@ -121,12 +121,18 @@ export function attachSockets(httpServer: HttpServer, opts: { dev: boolean; prof
     return payload?.name;
   };
 
-  /** La page /hote n'est utilisable que depuis le PC qui fait tourner le serveur (ou le réseau local si RZ_ADMIN_FROM=lan). */
+  /**
+   * La page /hote n'est utilisable que depuis le réseau local du serveur (par défaut), jamais depuis Internet.
+   * Pratique pour un serveur sans écran (conteneur LXC) : on gère tout depuis un autre PC de la maison.
+   * RZ_ADMIN_FROM=local la réserve à la machine du serveur.
+   */
   const isHost = (socket: GameSocket) => {
+    // Derrière un proxy inconnu, l'adresse vue est celle du proxy : on refuse par prudence.
+    if (viaUnknownProxy(socket.handshake.headers)) return false;
     const address = clientAddress(socket);
-    // Le PC hôte lui-même : par « localhost » ou par sa propre adresse sur le réseau.
+    // La machine du serveur elle-même : par « localhost » ou par sa propre adresse sur le réseau.
     if (address === "127.0.0.1" || address === "::1" || lanAddresses().includes(address)) return true;
-    return config.adminFrom === "lan" && isPrivateAddress(address);
+    return config.adminFrom === "lan" && (isPrivateAddress(address) || onServerNetwork(address));
   };
   const requireHost = (socket: GameSocket) => {
     if (!isHost(socket)) throw new RoomError(ERRORS.notHost);

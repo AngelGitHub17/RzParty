@@ -3,11 +3,15 @@ import type { ViewLayout } from "@rzparty/minigames/client";
 import { clear, everyFrame, h } from "../ui/dom.ts";
 import { avatarSvg, playerAvatar } from "../ui/avatar.ts";
 import { serverNow } from "./clock.ts";
-import { scoreTable, sendAction } from "./modeKit.ts";
+import { scoreTable, sendAction, with3D } from "./modeKit.ts";
+import type { PairesScene } from "../three/pairesScene.ts";
 
 /** Mode « Paires cachées » : la place et ses 24 personnages, les cœurs du joueur en cours. */
 export class PairesView {
   private readonly el: HTMLElement;
+  private scene: PairesScene | null = null;
+  private destroyed = false;
+  private readonly stage3d = h("div", { class: "mode-stage3d" });
   private readonly head = h("div", { class: "cache__head" });
   private readonly text = h("p", { class: "cache__text", attrs: { "aria-live": "polite" } });
   private readonly grid = h("div", { class: "cache__grid" });
@@ -19,14 +23,23 @@ export class PairesView {
     this.el = h(
       "section",
       { class: `cache cache--${layout}` },
-      h("div", { class: "cache__main" }, this.head, this.text, this.grid),
+      h("div", { class: "cache__main" }, this.head, this.text, this.stage3d, this.grid),
       layout === "pad" ? null : h("aside", { class: "bv-side" }, this.table),
     );
     root.append(this.el);
+    with3D(this.stage3d, () => import("../three/pairesScene.ts"), ({ PairesScene }, host) => {
+      if (this.destroyed) return false;
+      this.scene = new PairesScene(host, (card) => void sendAction({ type: "flip", card }));
+      this.el.classList.add("is-3d");
+      if (this.room) this.update(this.room);
+      return true;
+    });
     this.stop = everyFrame(() => this.tick());
   }
 
   destroy(): void {
+    this.destroyed = true;
+    this.scene?.destroy();
     this.stop();
     this.el.remove();
   }
@@ -39,6 +52,7 @@ export class PairesView {
     this.room = room;
     const s = room.game?.paires;
     if (!s) return;
+    this.scene?.update(s, room.players, this.myTurn(s));
     const who = room.players.find((p) => p.id === s.turn);
     clear(this.head);
     this.head.append(

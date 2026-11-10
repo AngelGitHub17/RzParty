@@ -64,8 +64,15 @@ profil modifié à la main est détecté au démarrage et ses statistiques sont 
 Pour garder les profils discrets, la liste complète n'est jamais affichée : chacun tape son pseudo
 (les profils déjà utilisés sur un appareil y restent proposés).
 
-La page **`/hote`** (sur le PC hôte uniquement, protégée par un identifiant et un mot de passe créés
-au premier accès) permet de renommer, retirer un PIN oublié,
+**Règles des pseudos** (vérifiées par le serveur, affichées pendant la frappe) : 2 à 16 caractères avec
+au moins une lettre ; lettres, chiffres, espaces et `- _ . '` ; pas d'insulte, de grossièreté ni de propos
+haineux (même écrits avec des chiffres ou des espaces) ; pas de lien, de mail ni de numéro de téléphone ;
+pas de nom réservé (hôte, admin, modérateur, RzParty…). Un profil plus ancien dont le pseudo ne passe pas
+doit être renommé avant de jouer.
+
+La page **`/hote`** (depuis tout le réseau local du serveur, jamais depuis Internet : pratique pour un
+conteneur sans écran ; `RZ_ADMIN_FROM=local` la réserve à la machine du serveur ; protégée par un
+identifiant et un mot de passe créés au premier accès) permet de renommer, retirer un PIN oublié,
 remettre les statistiques à zéro ou supprimer un profil. Mot de passe oublié : supprime
 `data/admin.json` et recrée le compte. Pense à sauvegarder le dossier `data/` si tu réinstalles RzParty.
 
@@ -330,4 +337,4 @@ valide, calcule, puis diffuse l'état du salon à tout le monde.
 | 5 | Duels, équipes, OVNI, événements | Fait |
 | 6 | Contenu : mini-jeux (13 à ce jour), bots avancés | En cours |
 | 7 | Finition : sons, animations, lanceur | À venir |
-| 8 | Tout en 3D : Île aux défis, Grande Roue, Bateau, Tour du monde (0.11) ; Bingo, Trios, Paires, Amitié, Quiz, Mots (0.12) ; mini-jeux par lots | En cours |
+| 8 | Tout en 3D : Île aux défis, Grande Roue, Bateau, Tour du monde (0.11) ; Bingo, Trios, Paires, Amitié, Quiz, Mots (0.12) ; mini-jeux par lots (0.13 et suivantes) | En cours |

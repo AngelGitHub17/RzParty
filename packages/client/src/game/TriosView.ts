@@ -3,7 +3,8 @@ import type { ViewLayout } from "@rzparty/minigames/client";
 import { clear, everyFrame, h } from "../ui/dom.ts";
 import { avatarSvg, playerAvatar } from "../ui/avatar.ts";
 import { serverNow } from "./clock.ts";
-import { scoreTable, sendAction } from "./modeKit.ts";
+import { scoreTable, sendAction, with3D } from "./modeKit.ts";
+import type { TriosScene } from "../three/triosScene.ts";
 
 /** Un personnage : couleur cachée (« ? »), joker (arc-en-ciel) ou normal. */
 export function charTile(c: TrioChar, size: number, cls = ""): HTMLElement {
@@ -18,6 +19,9 @@ export function charTile(c: TrioChar, size: number, cls = ""): HTMLElement {
 /** Mode « Trios » : le centre, mon plateau (2 rangées de 3), ceux des autres. */
 export class TriosView {
   private readonly el: HTMLElement;
+  private scene: TriosScene | null = null;
+  private destroyed = false;
+  private readonly stage3d = h("div", { class: "mode-stage3d" });
   private readonly head = h("div", { class: "trios__head" });
   private readonly text = h("p", { class: "trios__text", attrs: { "aria-live": "polite" } });
   private readonly center = h("div", { class: "trios__center" });
@@ -34,14 +38,23 @@ export class TriosView {
     this.el = h(
       "section",
       { class: `trios trios--${layout}` },
-      h("div", { class: "trios__main" }, this.head, this.text, this.center, this.actions, layout !== "tv" && meId ? this.mine : null, layout === "pad" ? null : this.others),
+      h("div", { class: "trios__main" }, this.head, this.text, this.stage3d, this.center, this.actions, layout !== "tv" && meId ? this.mine : null, layout === "pad" ? null : this.others),
       layout === "pad" ? null : h("aside", { class: "bv-side" }, this.table),
     );
     root.append(this.el);
+    with3D(this.stage3d, () => import("../three/triosScene.ts"), ({ TriosScene }, host) => {
+      if (this.destroyed) return false;
+      this.scene = new TriosScene(host, layout, meId, { onCenter: (i) => this.pickCenter(i), onSlot: (slot) => void this.pickSlot(slot) });
+      this.el.classList.add("is-3d");
+      if (this.room) this.update(this.room);
+      return true;
+    });
     this.stop = everyFrame(() => this.tick());
   }
 
   destroy(): void {
+    this.destroyed = true;
+    this.scene?.destroy();
     this.stop();
     this.el.remove();
   }
@@ -58,6 +71,7 @@ export class TriosView {
     clear(this.head);
     this.head.append(h("strong", { text: `Tour ${Math.max(1, t.round)}/${t.rounds}` }), h("span", { class: "muted", text: "Rangée de 3 : 3 pts · Double trio : 10 pts" }));
     this.renderCenter(t);
+    this.scene?.update(t, room.players, this.selected, this.myTurn(t));
     this.renderActions(t);
     if (this.meId && this.layout !== "tv") this.renderPlatform(this.mine, t, this.meId, room.players, true);
     if (this.layout !== "pad") {
@@ -71,6 +85,21 @@ export class TriosView {
     }
     clear(this.table);
     this.table.append(scoreTable(room.players, Object.keys(t.scores), (id) => t.scores[id] ?? 0, (id) => `${t.scores[id] ?? 0} pt${(t.scores[id] ?? 0) > 1 ? "s" : ""}`, { meId: this.meId, highlight: t.turn }));
+  }
+
+  /** Choix d'un personnage du centre (bouton ou toucher en 3D). */
+  private pickCenter(i: number): void {
+    const t = this.room?.game?.trios;
+    if (!t || !this.myTurn(t)) return;
+    this.selected = this.selected === i ? null : i;
+    if (this.room) this.update(this.room);
+  }
+
+  /** Place à remplacer chez moi, une fois un personnage du centre choisi. */
+  private async pickSlot(slot: number): Promise<void> {
+    const center = this.selected;
+    this.selected = null;
+    if (center !== null) await sendAction({ type: "trio", center, slot });
   }
 
   private renderCenter(t: TriosState): void {
@@ -90,7 +119,7 @@ export class TriosView {
               {
                 class: `trios__slot${this.selected === i ? " is-selected" : ""}`,
                 attrs: { type: "button", "aria-label": c.color === null ? "Personnage mystère" : "Prendre ce personnage" },
-                on: { click: () => ((this.selected = this.selected === i ? null : i), this.room && this.update(this.room)) },
+                on: { click: () => this.pickCenter(i) },
               },
               tile,
             )
@@ -139,13 +168,7 @@ export class TriosView {
                   {
                     class: "trios__cell is-target",
                     attrs: { type: "button", "aria-label": `Mettre à la place ${slot + 1}` },
-                    on: {
-                      click: async () => {
-                        const center = this.selected;
-                        this.selected = null;
-                        if (center !== null) await sendAction({ type: "trio", center, slot });
-                      },
-                    },
+                    on: { click: () => void this.pickSlot(slot) },
                   },
                   tile,
                 )

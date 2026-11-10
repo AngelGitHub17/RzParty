@@ -4401,3 +4401,72 @@ button.quiz__option {
   position: absolute;
   inset: 0;
 }
+
+/* Règles des pseudos */
+.name-hint {
+  margin: 4px 0 0;
+  min-height: 0;
+  color: var(--danger);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+.name-hint:empty {
+  display: none;
+}
+.input.is-invalid {
+  border-color: var(--danger);
+}
+.name-rules {
+  margin: 6px 0 4px;
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+}
+.name-rules summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+.name-rules ul {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}
+
+/* Scènes 3D des modes Bingo, Trios, Paires, Amitié, Quiz, Bombe à mots */
+.mode-stage3d {
+  position: relative;
+  width: 100%;
+  height: clamp(240px, 42vh, 460px);
+  border-radius: var(--radius-l);
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 30%, #8fd3ff, #4a7fd8);
+  box-shadow: 0 8px 0 #1e2a4a22;
+}
+.mode-stage3d:not(.has-3d) {
+  display: none;
+}
+.trios .mode-stage3d,
+.cache .mode-stage3d {
+  height: clamp(300px, 58vh, 620px);
+}
+.words .mode-stage3d {
+  background: radial-gradient(circle at 50% 30%, #2a3d7a, #0d1433);
+}
+.loto .mode-stage3d,
+.quiz .mode-stage3d {
+  background: radial-gradient(circle at 50% 30%, #5b3aa8, #1d1240);
+}
+.friends .mode-stage3d {
+  background: radial-gradient(circle at 50% 30%, #ffd1e6, #f45fae);
+}
+.loto.is-3d .loto__ball,
+.trios.is-3d .trios__center,
+.trios.is-3d .trios__others,
+.trios--solo.is-3d .trios__mine,
+.cache.is-3d .cache__grid,
+.words.is-3d .words__ring {
+  display: none;
+}
+.quiz--pad .mode-stage3d,
+.words--pad .mode-stage3d,
+.loto--pad .mode-stage3d {
+  height: clamp(200px, 32vh, 320px);
+}

@@ -7,6 +7,7 @@ import {
   isBotPersonality,
   isValidRoomCode,
   normalizeRoomCode,
+  nameProblem,
   sanitizeName,
   normalizeAvatar,
   randomAvatar,
@@ -493,9 +494,12 @@ export class RoomManager {
     return room;
   }
 
-  private requireName(rawName: unknown): string {
+  /** Pseudo d'un joueur : nettoyé, et conforme aux règles (sinon on demande de le changer). */
+  private requireName(rawName: unknown, profile = false): string {
     const name = sanitizeName(rawName);
     if (!name) throw new RoomError(ERRORS.nameRequired);
+    const problem = nameProblem(name);
+    if (problem) throw new RoomError(profile ? `${ERRORS.renameNeeded} ${problem}` : problem);
     return name;
   }
 
@@ -503,7 +507,7 @@ export class RoomManager {
   private toIdentity(who: unknown): Identity {
     if (who && typeof who === "object" && "profileId" in who) {
       const w = who as Identity;
-      return { name: this.requireName(w.name), avatar: normalizeAvatar(w.avatar), profileId: typeof w.profileId === "string" ? w.profileId : null };
+      return { name: this.requireName(w.name, true), avatar: normalizeAvatar(w.avatar), profileId: typeof w.profileId === "string" ? w.profileId : null };
     }
     const name = this.requireName(who);
     return { name, avatar: guestAvatar(name), profileId: null };

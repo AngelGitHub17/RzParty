@@ -28,7 +28,7 @@ describe("ProfileStore", () => {
     for (let i = 0; i < 4; i++) expect(() => store.unlock(profile.id, "0000")).toThrow(ERRORS.wrongPin);
     expect(() => store.unlock(profile.id, "0000")).toThrow(ERRORS.pinLocked);
     expect(() => store.unlock(profile.id, "1234")).toThrow(ERRORS.pinLocked);
-    expect(() => store.create("X", DEFAULT_AVATAR, "12")).toThrow(ERRORS.invalidPin);
+    expect(() => store.create("Xavier", DEFAULT_AVATAR, "12")).toThrow(ERRORS.invalidPin);
   });
 
   it("garde les profils et statistiques après redémarrage", () => {

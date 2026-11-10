@@ -5,6 +5,7 @@ import {
   ERRORS,
   emptyStats,
   normalizeAvatar,
+  nameProblem,
   sanitizeName,
   type Avatar,
   type ProfileAccess,
@@ -286,6 +287,8 @@ export class ProfileStore {
   private requireFreeName(raw: unknown, exceptId?: string): string {
     const name = sanitizeName(raw);
     if (!name) throw new RoomError(ERRORS.nameRequired);
+    const problem = nameProblem(name);
+    if (problem) throw new RoomError(problem);
     const lower = name.toLocaleLowerCase("fr");
     for (const p of this.profiles.values()) {
       if (p.id !== exceptId && p.name.toLocaleLowerCase("fr") === lower) throw new RoomError(ERRORS.nameTaken);

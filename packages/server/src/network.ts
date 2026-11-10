@@ -1,4 +1,5 @@
-import { networkInterfaces } from "node:os";
+import { BlockList, isIP } from "node:net";
+import { networkInterfaces, type NetworkInterfaceInfo } from "node:os";
 import { config } from "./config.ts";
 
 /**
@@ -47,4 +48,30 @@ export function isPrivateAddress(address: string): boolean {
   if (/^172\.(1[6-9]|2\d|3[01])\./.test(address)) return true;
   if (address === "::1" || /^f[cd][0-9a-f]{2}:/i.test(address) || /^fe80:/i.test(address)) return true;
   return false;
+}
+
+/**
+ * Vrai si l'adresse est sur un des réseaux du serveur (même sous-réseau qu'une de ses cartes, IPv4 ou IPv6).
+ * Couvre le cas d'une box qui donne des adresses IPv6 publiques aux appareils de la maison :
+ * elles ne sont pas « privées », mais sont bien sur le même réseau local que le serveur.
+ */
+export function onServerNetwork(address: string, interfaces: NodeJS.Dict<NetworkInterfaceInfo[]> = networkInterfaces()): boolean {
+  const family = isIP(address);
+  if (!family) return false;
+  const list = new BlockList();
+  for (const infos of Object.values(interfaces)) {
+    for (const info of infos ?? []) {
+      if (info.internal || !info.cidr) continue;
+      const [net, prefix] = info.cidr.split("/");
+      // Lien local IPv6 (fe80::/10) : commun à tous les réseaux, on s'en tient à l'adresse exacte.
+      if (info.family === "IPv6" && /^fe80:/i.test(info.address)) continue;
+      list.addSubnet(net!, Number(prefix), info.family === "IPv6" ? "ipv6" : "ipv4");
+    }
+  }
+  return list.check(address, family === 6 ? "ipv6" : "ipv4");
+}
+
+/** Le client passe-t-il par un proxy que l'on ne connaît pas ? (alors on ne peut pas se fier à son adresse) */
+export function viaUnknownProxy(headers: Record<string, string | string[] | undefined>): boolean {
+  return !config.trustProxy && Boolean(headers["x-forwarded-for"] || headers["forwarded"] || headers["x-real-ip"]);
 }

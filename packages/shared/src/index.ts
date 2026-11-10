@@ -14,3 +14,4 @@ export * from "./globe.ts";
 export * from "./partyModes.ts";
 export * from "./familyModes.ts";
 export * from "./ile.ts";
+export * from "./names.ts";

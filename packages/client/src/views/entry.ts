@@ -3,6 +3,7 @@ import {
   isValidRoomCode,
   normalizeRoomCode,
   randomAvatar,
+  nameProblem,
   sanitizeName,
   type ProfileCard,
   type PublicProfile,
@@ -13,7 +14,7 @@ import { storage } from "../net/storage.ts";
 import { clear, h, svg } from "../ui/dom.ts";
 import { wordmark } from "../ui/brand.ts";
 import { avatarSvg } from "../ui/avatar.ts";
-import { openAvatarEditor } from "../ui/avatarEditor.ts";
+import { liveNameHint, nameRulesBlock, openAvatarEditor } from "../ui/avatarEditor.ts";
 import { openPinPad } from "../ui/pinPad.ts";
 import { toast } from "../ui/toast.ts";
 
@@ -83,7 +84,8 @@ export function mountEntry(shell: HTMLElement, opts: EntryOptions): () => void {
         const fresh = await request("profile:me", { token: known });
         chosen = { kind: "profile", profile: fresh, token: known };
         storage.rememberProfile(profile.id, known);
-        return render();
+        render();
+        return askRenameIfNeeded();
       } catch {
         storage.forgetProfile(profile.id);
       }
@@ -94,6 +96,7 @@ export function mountEntry(shell: HTMLElement, opts: EntryOptions): () => void {
       if (access.tampered) toast("Bien essayé, sauvegarde effacée ! Ce profil avait été modifié à la main.", "error");
       chosen = { kind: "profile", profile: access.profile, token: access.token };
       render();
+      askRenameIfNeeded();
     };
     if (profile.hasPin) {
       openPinPad({ title: `Code PIN de ${profile.name}`, onSubmit: (pin) => open(pin) });
@@ -121,10 +124,18 @@ export function mountEntry(shell: HTMLElement, opts: EntryOptions): () => void {
     });
   }
 
-  function editProfile(): void {
+  /** Un profil dont le pseudo ne respecte pas les règles doit être renommé avant de jouer. */
+  function askRenameIfNeeded(): void {
+    if (chosen?.kind !== "profile") return;
+    const problem = nameProblem(chosen.profile.name);
+    if (problem) editProfile(`Ton pseudo « ${chosen.profile.name} » doit être changé : ${problem}`);
+  }
+
+  function editProfile(notice?: string): void {
     if (chosen?.kind !== "profile") return;
     const { profile, token } = chosen;
     openAvatarEditor({
+      notice,
       mode: "edit",
       name: profile.name,
       avatar: profile.avatar,
@@ -205,8 +216,9 @@ export function mountEntry(shell: HTMLElement, opts: EntryOptions): () => void {
       if (c.kind === "profile") identity = { profileToken: c.token };
       else {
         const name = sanitizeName(nameInput!.value);
-        if (!name) {
-          error.textContent = "Choisis un pseudo.";
+        const problem = nameProblem(name);
+        if (problem) {
+          error.textContent = problem;
           nameInput!.focus();
           return;
         }
@@ -247,7 +259,7 @@ export function mountEntry(shell: HTMLElement, opts: EntryOptions): () => void {
             h(
               "div",
               { class: "entry__links" },
-              h("button", { class: "link-btn", attrs: { type: "button" }, text: "Modifier mon profil", on: { click: editProfile } }),
+              h("button", { class: "link-btn", attrs: { type: "button" }, text: "Modifier mon profil", on: { click: () => editProfile() } }),
               h("button", { class: "link-btn", attrs: { type: "button" }, text: "Ce n'est pas moi", on: { click: () => ((chosen = null), (message = ""), render()) } }),
             ),
           )
@@ -259,6 +271,8 @@ export function mountEntry(shell: HTMLElement, opts: EntryOptions): () => void {
           ),
       nameInput ? h("label", { attrs: { for: "p-name" }, text: "Pseudo" }) : null,
       nameInput,
+      nameInput ? liveNameHint(nameInput) : null,
+      nameInput ? nameRulesBlock() : null,
       h("label", { attrs: { for: "p-code" }, text: "Code du salon" }),
       codeInput,
       error,

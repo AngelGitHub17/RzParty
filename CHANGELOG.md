@@ -3,6 +3,17 @@
 Chaque version commence par « ## numéro — date ». La page de présentation et les serveurs
 locaux lisent ce fichier : pense à augmenter la version dans package.json à chaque publication.
 
+## 0.12.0 — 10 novembre 2026
+- Passage en 3D, deuxième étape : Bingo des copains (machine à boules qui tourne, boule tirée qui roule avec le personnage dedans, derniers tirés sur leurs socles, BINGO sous les confettis).
+- Trios en 3D : table ronde des personnages du centre et estrade de chaque joueur ; on touche directement un personnage du centre puis celui à remplacer ; trios marqués sous les confettis.
+- Paires cachées en 3D : 24 personnages sur une place pavée, à toucher pour les révéler ; les paires prennent la couleur du joueur, ceux qui bougent sautent.
+- Test d'amitié en 3D : un tapis par réponse ; à la révélation, chacun rejoint le sien et les réponses communes s'illuminent de cœurs.
+- Quiz entre amis en 3D : plateau télé, vedette sous le projecteur, pupitres, et chacun rejoint le panneau de son pari à la révélation.
+- Bombe à mots en 3D : cercle autour du feu de camp, bombe qui passe de main en main et crépite de plus en plus vite, BOUM !
+- Pseudos vérifiés : 2 à 16 caractères avec une lettre, pas d'insulte, de grossièreté, de lien, de numéro ni de nom réservé (hôte, admin…). Le problème s'affiche pendant la frappe, avec les règles ; un profil dont le pseudo ne respecte pas les règles doit être renommé avant de jouer (signalé aussi sur /hote).
+- Page /hote ouverte par défaut à tout le réseau local du serveur (pratique sur un conteneur LXC sans écran), y compris les appareils en IPv6 donnés par la box ; jamais depuis Internet. RZ_ADMIN_FROM=local la réserve à la machine du serveur.
+- Page de présentation : nouvelles images de ces six modes.
+
 ## 0.11.1 — 10 novembre 2026
 - Île aux défis : à chaque défi (sauf la cascade), on relance un seul dé avec le bouton « Lancer le dé du défi ». Mur du dragon raté : le feu fait reculer de 3 cases.
 - Île aux défis : défi final tenté dès l'arrivée au sommet (un 6 au dé) ; sinon, aux tours suivants, 6 ou plus avec ses dés, dé bonus compris.

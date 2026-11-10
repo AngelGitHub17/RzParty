@@ -3,13 +3,17 @@ import type { ViewLayout } from "@rzparty/minigames/client";
 import { clear, everyFrame, h } from "../ui/dom.ts";
 import { playerAvatar } from "../ui/avatar.ts";
 import { serverNow } from "./clock.ts";
-import { scoreTable, sendAction } from "./modeKit.ts";
+import { scoreTable, sendAction, with3D } from "./modeKit.ts";
+import type { QuizScene } from "../three/quizScene.ts";
 
 const OPTION_COLORS = ["#2F7BEF", "#F0483E", "#2DB866", "#F2B705"];
 
 /** Mode « Quiz entre amis » : la question, les 4 réponses, les paris révélés. */
 export class QuizView {
   private readonly el: HTMLElement;
+  private scene: QuizScene | null = null;
+  private destroyed = false;
+  private readonly stage3d = h("div", { class: "mode-stage3d" });
   private readonly head = h("div", { class: "quiz__head" });
   private readonly question = h("h2", { class: "quiz__question" });
   private readonly hint = h("p", { class: "quiz__hint" });
@@ -24,14 +28,23 @@ export class QuizView {
     this.el = h(
       "section",
       { class: `quiz quiz--${layout}` },
-      h("div", { class: "quiz__main" }, this.head, this.question, this.hint, this.options),
+      h("div", { class: "quiz__main" }, this.head, this.stage3d, this.question, this.hint, this.options),
       layout === "pad" ? null : h("aside", { class: "bv-side" }, this.table),
     );
     root.append(this.el);
+    with3D(this.stage3d, () => import("../three/quizScene.ts"), ({ QuizScene }, host) => {
+      if (this.destroyed) return false;
+      this.scene = new QuizScene(host, layout === "tv");
+      this.el.classList.add("is-3d");
+      if (this.room) this.update(this.room);
+      return true;
+    });
     this.stop = everyFrame(() => this.tick());
   }
 
   destroy(): void {
+    this.destroyed = true;
+    this.scene?.destroy();
     this.stop();
     this.el.remove();
   }
@@ -40,6 +53,7 @@ export class QuizView {
     this.room = room;
     const q = room.game?.quiz;
     if (!q) return;
+    this.scene?.update(q, room.players);
     if (q.round !== this.round) {
       this.round = q.round;
       this.chosen = -1;

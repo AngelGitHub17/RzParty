@@ -3,11 +3,15 @@ import type { ViewLayout } from "@rzparty/minigames/client";
 import { clear, everyFrame, h } from "../ui/dom.ts";
 import { avatarSvg, playerAvatar } from "../ui/avatar.ts";
 import { serverNow } from "./clock.ts";
-import { scoreTable, sendAction } from "./modeKit.ts";
+import { scoreTable, sendAction, with3D } from "./modeKit.ts";
+import type { LotoScene } from "../three/lotoScene.ts";
 
 /** Mode « Bingo des copains » : choix des grilles, la boule tirée, ma grille, l'avancée des autres. */
 export class LotoView {
   private readonly el: HTMLElement;
+  private scene: LotoScene | null = null;
+  private destroyed = false;
+  private readonly stage3d = h("div", { class: "mode-stage3d" });
   private readonly ball = h("div", { class: "loto__ball", attrs: { "aria-live": "polite" } });
   private readonly machine = h("p", { class: "loto__machine" });
   private readonly info = h("p", { class: "loto__info" });
@@ -24,14 +28,23 @@ export class LotoView {
     this.el = h(
       "section",
       { class: `loto loto--${layout}` },
-      h("div", { class: "loto__main" }, h("div", { class: "loto__top" }, this.ball, h("div", { class: "loto__status" }, this.info, this.timer, this.machine)), this.grids, this.card, layout === "pad" ? null : this.others),
+      h("div", { class: "loto__main" }, this.stage3d, h("div", { class: "loto__top" }, this.ball, h("div", { class: "loto__status" }, this.info, this.timer, this.machine)), this.grids, this.card, layout === "pad" ? null : this.others),
       layout === "pad" ? null : h("aside", { class: "bv-side" }, this.table),
     );
     root.append(this.el);
+    with3D(this.stage3d, () => import("../three/lotoScene.ts"), ({ LotoScene }, host) => {
+      if (this.destroyed) return false;
+      this.scene = new LotoScene(host, layout === "tv");
+      this.el.classList.add("is-3d");
+      if (this.room) this.update(this.room);
+      return true;
+    });
     this.stop = everyFrame(() => this.tick());
   }
 
   destroy(): void {
+    this.destroyed = true;
+    this.scene?.destroy();
     this.stop();
     this.el.remove();
   }
@@ -44,6 +57,7 @@ export class LotoView {
     this.room = room;
     const l = room.game?.loto;
     if (!l) return;
+    this.scene?.update(l, room.players);
     const choosing = l.phase === "choose";
     this.ball.hidden = choosing;
     this.grids.hidden = !choosing;

@@ -7,7 +7,9 @@ import {
   AVATAR_SHAPES,
   MAX_NAME_LENGTH,
   randomAvatar,
+  nameProblem,
   sanitizeName,
+  NAME_RULES,
   type Avatar,
   type ProfileStats,
 } from "@rzparty/shared";
@@ -29,6 +31,8 @@ export interface EditorOptions {
   avatar: Avatar;
   hasPin?: boolean;
   stats?: ProfileStats;
+  /** Message affiché à l'ouverture (ex. : pseudo à changer). */
+  notice?: string;
   /** Enregistre ; une erreur levée est affichée dans l'éditeur, qui reste ouvert. */
   onSave(values: EditorValues): Promise<void>;
 }
@@ -61,7 +65,9 @@ export function openAvatarEditor(opts: EditorOptions): () => void {
     attrs: { id: "ed-pin", inputmode: "numeric", pattern: "[0-9]*", maxlength: 4, autocomplete: "off", placeholder: "••••" },
   });
   const removePin = h("input", { attrs: { type: "checkbox", id: "ed-nopin" } });
-  const error = h("p", { class: "form-error", attrs: { role: "alert" } });
+  const error = h("p", { class: "form-error", attrs: { role: "alert" } }, opts.notice ?? "");
+  // Le pseudo est vérifié pendant la frappe (mêmes règles que le serveur).
+  const nameHint = liveNameHint(nameInput);
   const saveBtn = h("button", { class: "btn btn--go", attrs: { type: "submit" }, text: opts.mode === "create" ? "Créer mon profil" : "Enregistrer" });
 
   const stage = h("div", { class: "editor__stage" });
@@ -109,6 +115,8 @@ export function openAvatarEditor(opts: EditorOptions): () => void {
         { class: "editor__fields" },
         h("label", { attrs: { for: "ed-name" }, text: "Pseudo" }),
         nameInput,
+        nameHint,
+        nameRulesBlock(),
         options,
         h(
           "fieldset",
@@ -202,8 +210,9 @@ export function openAvatarEditor(opts: EditorOptions): () => void {
 
   async function save(): Promise<void> {
     const name = sanitizeName(nameInput.value);
-    if (!name) {
-      error.textContent = "Choisis un pseudo.";
+    const problem = nameProblem(name);
+    if (problem) {
+      error.textContent = problem;
       nameInput.focus();
       return;
     }
@@ -267,4 +276,22 @@ export function statsBlock(stats: ProfileStats): HTMLElement {
       ...records.map((r) => h("div", {}, h("dt", { text: r.label }), h("dd", { text: r.value }))),
     ),
   );
+}
+
+/** Les règles des pseudos, repliées sous le champ. */
+export function nameRulesBlock(): HTMLElement {
+  return h("details", { class: "name-rules" }, h("summary", { text: "Règles des pseudos" }), h("ul", {}, ...NAME_RULES.map((r) => h("li", { text: r }))));
+}
+
+/** Petit message sous un champ pseudo, mis à jour pendant la frappe. */
+export function liveNameHint(input: HTMLInputElement): HTMLElement {
+  const hint = h("p", { class: "name-hint", attrs: { "aria-live": "polite" } });
+  const check = () => {
+    const problem = input.value.trim() ? nameProblem(input.value) : null;
+    hint.textContent = problem ?? "";
+    input.classList.toggle("is-invalid", Boolean(problem));
+  };
+  input.addEventListener("input", check);
+  if (input.value) queueMicrotask(check);
+  return hint;
 }

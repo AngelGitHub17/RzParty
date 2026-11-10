@@ -116,8 +116,10 @@ Caddy obtient et renouvelle le certificat tout seul.
 
 ## Sécurité
 
-- La page **/hote** (profils) n'est accessible que depuis le réseau local, jamais depuis Internet,
-  et demande l'identifiant de l'hôte. Depuis chez toi, ouvre-la par l'IP : `http://192.168.1.50:5555/hote`.
+- La page **/hote** (profils, mise à jour) est ouverte à tout le réseau local du serveur (pratique sur un
+  conteneur sans écran), jamais à Internet, et demande l'identifiant de l'hôte. Depuis chez toi, ouvre-la
+  par l'IP : `http://192.168.1.50:5555/hote`. Les appareils qui ont une adresse IPv6 donnée par la box
+  sont reconnus aussi (même réseau que le serveur). `RZ_ADMIN_FROM=local` la réserve au conteneur lui-même.
 - Variables (`/etc/rzparty/rzparty.env`) : `RZ_SITE=1` (page de présentation et téléchargement),
   `RZ_TRUST_PROXY=1` (proxy devant), `RZ_ADMIN_FROM=lan` ou `local`, `RZ_PUBLIC_URL=https://rzparty.fr`.
 

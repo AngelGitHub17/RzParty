@@ -52,8 +52,8 @@ export const config = {
   publicUrl: cleanUrl(process.env.RZ_PUBLIC_URL),
   /** Vrai si un proxy (Caddy, Nginx Proxy Manager…) est devant : l'adresse du joueur vient de X-Forwarded-For. */
   trustProxy: process.env.RZ_TRUST_PROXY === "1",
-  /** D'où la page /hote est accessible : « local » (ce PC) ou « lan » (tout le réseau local, jamais Internet). */
-  adminFrom: process.env.RZ_ADMIN_FROM === "lan" ? ("lan" as const) : ("local" as const),
+  /** D'où la page /hote est accessible : « lan » (par défaut : tout le réseau local, jamais Internet) ou « local » (cette machine seule). */
+  adminFrom: process.env.RZ_ADMIN_FROM === "local" ? ("local" as const) : ("lan" as const),
   /** Serveur en ligne (RZ_SITE=1) : page de présentation sur « / », téléchargement du jeu, journal des versions. */
   site: process.env.RZ_SITE === "1",
   /** Site interrogé pour savoir si une nouvelle version existe (RZ_UPDATE_URL=off pour ne pas vérifier). */

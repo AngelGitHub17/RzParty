@@ -2,36 +2,52 @@ import { PLAYER_COLORS, type MotsState, type RoomSnapshot } from "@rzparty/share
 import type { ViewLayout } from "@rzparty/minigames/client";
 import { clear, h } from "../ui/dom.ts";
 import { playerAvatar } from "../ui/avatar.ts";
-import { scoreTable, sendAction } from "./modeKit.ts";
+import { scoreTable, sendAction, with3D } from "./modeKit.ts";
+import type { MotsScene } from "../three/motsScene.ts";
 
 /** Mode « Bombe à mots » : la catégorie, qui tient la bombe, le mot proposé et le vote. */
 export class MotsView {
   private readonly el: HTMLElement;
+  private scene: MotsScene | null = null;
+  private destroyed = false;
+  private readonly stage3d = h("div", { class: "mode-stage3d" });
   private readonly category = h("div", { class: "words__category" });
   private readonly ring = h("div", { class: "words__ring" });
   private readonly action = h("div", { class: "words__action" });
   private readonly used = h("p", { class: "words__used" });
   private readonly table = h("div", {});
   private input: HTMLInputElement | null = null;
+  private room: RoomSnapshot | null = null;
   private draft = "";
 
   constructor(root: HTMLElement, private readonly layout: ViewLayout, private readonly meId: string | null) {
     this.el = h(
       "section",
       { class: `words words--${layout}` },
-      h("div", { class: "words__main" }, this.category, layout === "pad" ? null : this.ring, this.action, this.used),
+      h("div", { class: "words__main" }, this.category, this.stage3d, layout === "pad" ? null : this.ring, this.action, this.used),
       layout === "pad" ? null : h("aside", { class: "bv-side" }, this.table),
     );
     root.append(this.el);
+    with3D(this.stage3d, () => import("../three/motsScene.ts"), ({ MotsScene }, host) => {
+      if (this.destroyed) return false;
+      this.scene = new MotsScene(host, layout === "tv");
+      this.el.classList.add("is-3d");
+      if (this.room) this.update(this.room);
+      return true;
+    });
   }
 
   destroy(): void {
+    this.destroyed = true;
+    this.scene?.destroy();
     this.el.remove();
   }
 
   update(room: RoomSnapshot): void {
+    this.room = room;
     const m = room.game?.mots;
     if (!m) return;
+    this.scene?.update(m, room.players);
     clear(this.category);
     this.category.append(h("small", { text: `Bombe ${m.bomb}/${m.bombs} · catégorie` }), h("strong", { text: m.category }));
     this.renderRing(m, room);

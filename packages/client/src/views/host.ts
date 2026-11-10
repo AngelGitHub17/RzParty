@@ -1,4 +1,4 @@
-import type { PublicProfile } from "@rzparty/shared";
+import { nameProblem, type PublicProfile } from "@rzparty/shared";
 import { request, socket, ServerError } from "../net/connection.ts";
 import { clear, h } from "../ui/dom.ts";
 import { wordmark } from "../ui/brand.ts";
@@ -76,7 +76,7 @@ export const hostView: View = (root, { navigate }) => {
     const error = h("p", { class: "form-error", attrs: { role: "alert" } });
     intro.textContent = configured
       ? "Connecte-toi avec le compte de l'hôte pour gérer les profils."
-      : "Première visite : crée le compte de l'hôte. Il protégera cette page. En cas d'oubli, supprime le fichier data\\admin.json sur ce PC.";
+      : "Première visite : crée le compte de l'hôte. Il protégera cette page. En cas d'oubli, supprime le fichier data\\admin.json sur la machine du serveur.";
     list.append(
       h(
         "form",
@@ -145,6 +145,7 @@ export const hostView: View = (root, { navigate }) => {
           h("h2", { text: p.name }),
           h("p", { class: "muted", text: `Créé le ${dateFormat.format(p.createdAt)} · vu le ${dateFormat.format(p.lastSeenAt)}` }),
           h("p", { class: "muted", text: p.hasPin ? "Protégé par un code PIN" : "Sans code PIN" }),
+          nameProblem(p.name) ? h("p", { class: "form-error", text: `⚠ Pseudo à changer : ${nameProblem(p.name)} Le joueur devra le modifier avant de jouer, ou renomme-le ici.` }) : null,
         ),
       ),
       statsBlock(p.stats),

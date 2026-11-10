@@ -60,7 +60,7 @@ function printBanner(port: number): void {
   for (const extra of addresses.slice(1)) console.log(`  Autre adresse     : http://${extra}:${publicPort}`);
   if (!addresses.length) console.log("  Aucun réseau détecté : seul ce PC peut jouer.");
   console.log("");
-  console.log(`  Gérer les profils : ${localUrl}/hote (${config.adminFrom === "lan" ? "depuis le réseau local" : "sur ce PC uniquement"})`);
+  console.log(`  Gérer les profils : ${localUrl}/hote (${config.adminFrom === "lan" ? "depuis tout le réseau local" : "sur cette machine uniquement"})`);
   console.log("");
   if (!config.publicUrl) console.log("  Les joueurs doivent être sur le même réseau que ce PC.");
   if (hostConsole.interactive && !config.dev) {

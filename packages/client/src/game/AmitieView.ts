@@ -3,13 +3,17 @@ import type { ViewLayout } from "@rzparty/minigames/client";
 import { clear, everyFrame, h } from "../ui/dom.ts";
 import { playerAvatar } from "../ui/avatar.ts";
 import { serverNow } from "./clock.ts";
-import { sendAction } from "./modeKit.ts";
+import { sendAction, with3D } from "./modeKit.ts";
+import type { AmitieScene } from "../three/amitieScene.ts";
 
 const OPTION_COLORS = ["#F45FAE", "#2F7BEF", "#2DB866", "#F2B705", "#9257E8", "#FF8A1F", "#18BDBD", "#F0483E"];
 
 /** Mode « Test d'amitié » : la question, les réponses secrètes puis révélées, les duos et leur affinité. */
 export class AmitieView {
   private readonly el: HTMLElement;
+  private scene: AmitieScene | null = null;
+  private destroyed = false;
+  private readonly stage3d = h("div", { class: "mode-stage3d" });
   private readonly head = h("div", { class: "quiz__head" });
   private readonly question = h("h2", { class: "quiz__question" });
   private readonly hint = h("p", { class: "quiz__hint" });
@@ -25,14 +29,23 @@ export class AmitieView {
     this.el = h(
       "section",
       { class: `quiz quiz--${layout} friends` },
-      h("div", { class: "quiz__main" }, this.head, this.question, this.hint, this.options, this.final),
+      h("div", { class: "quiz__main" }, this.head, this.stage3d, this.question, this.hint, this.options, this.final),
       layout === "pad" ? null : h("aside", { class: "bv-side" }, h("h3", { class: "friends__title", text: "Duos les plus complices" }), this.duos),
     );
     root.append(this.el);
+    with3D(this.stage3d, () => import("../three/amitieScene.ts"), ({ AmitieScene }, host) => {
+      if (this.destroyed) return false;
+      this.scene = new AmitieScene(host, layout === "tv");
+      this.el.classList.add("is-3d");
+      if (this.room) this.update(this.room);
+      return true;
+    });
     this.stop = everyFrame(() => this.tick());
   }
 
   destroy(): void {
+    this.destroyed = true;
+    this.scene?.destroy();
     this.stop();
     this.el.remove();
   }
@@ -41,6 +54,7 @@ export class AmitieView {
     this.room = room;
     const a = room.game?.amitie;
     if (!a) return;
+    this.scene?.update(a, room.players);
     if (a.round !== this.round) {
       this.round = a.round;
       this.chosen = -1;

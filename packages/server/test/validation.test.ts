@@ -16,3 +16,11 @@ describe("validation partagée", () => {
     expect(isValidRoomCode("AB0D")).toBe(false);
   });
 });
+
+describe("règles des pseudos", () => {
+  it("accepte les prénoms ordinaires et refuse insultes, liens et noms réservés", async () => {
+    const { nameProblem } = await import("@rzparty/shared");
+    for (const n of ["Léa", "Constance", "Dominique", "Killian", "Violette", "Nazim", "Jean-Michel", "O'Neil", "Mathéo_92", "Cassandre", "Computer"]) expect(nameProblem(n), n).toBeNull();
+    for (const n of ["connard", "C0nn4rd", "merrrde", "Le con", "p u t a i n", "admin", "Hôte", "www.site.fr", "a", "123", "bob@mail", "N1que", "aaaaaab", "0612345678"]) expect(nameProblem(n), n).not.toBeNull();
+  });
+});
