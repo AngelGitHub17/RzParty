@@ -6,7 +6,7 @@ name: Installeurs
 on:
   push:
     branches: [main]
-    paths: [package.json]
+    paths: [package.json, .github/workflows/installeurs.yml, deploy/installeurs/**]
   workflow_dispatch:
 
 permissions:
@@ -54,7 +54,7 @@ jobs:
         shell: pwsh
         run: |
           dotnet tool install --global wix --version 5.0.2
-          wix build deploy/installeurs/windows/RzParty.wxs -arch x64 -sval -d Version=${{ needs.version.outputs.version }} -d Source="$PWD\build\msi" -o "RzParty-${{ needs.version.outputs.version }}.msi"
+          wix build deploy/installeurs/windows/RzParty.wxs -arch x64 -d Version=${{ needs.version.outputs.version }} -d Source="$PWD\build\msi" -o "RzParty-${{ needs.version.outputs.version }}.msi"
       - uses: actions/upload-artifact@v4
         with:
           name: msi

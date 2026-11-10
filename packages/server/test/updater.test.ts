@@ -38,6 +38,8 @@ describe("mises à jour", () => {
     expect(releases[0]).toMatchObject({ version, latest: true });
     expect(releases.filter((r) => r.latest)).toHaveLength(1);
     const old = releases.find((r) => r.version === "0.2.0");
+    // Clone sans historique (git clone --depth 1) : rien de plus à vérifier.
+    if (!old) return;
     expect(old?.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     const { file, name } = await downloadRelease("0.2.0");
     expect(name).toBe("RzParty-0.2.0-archivee.zip");
