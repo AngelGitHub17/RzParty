@@ -4,6 +4,8 @@ import { RoomManager } from "../src/rooms/RoomManager.ts";
 import { CrisGame } from "../src/game/modes/cris.ts";
 import { CacheGame } from "../src/game/modes/cache.ts";
 import { TictacGame } from "../src/game/modes/tictac.ts";
+import { IntrusGame } from "../src/game/modes/intrus.ts";
+import { LibreGame } from "../src/game/modes/libre.ts";
 import type { Room } from "../src/rooms/Room.ts";
 import type { GameSession } from "../src/game/types.ts";
 
@@ -12,7 +14,7 @@ const timings = { chefGrace: 10_000, lobbySeatHold: 90_000, roomIdle: 300_000 };
 /** Salon avec deux humains (chef, ami) et `bots` bots. */
 function setup(make: (host: any) => GameSession, patch: object, bots = 1) {
   const events = { changed: vi.fn(), closed: vi.fn(), detached: vi.fn() };
-  const manager = new RoomManager(timings, events, () => ["cris", "cache", "tictac"] as GameModeId[]);
+  const manager = new RoomManager(timings, events, () => ["cris", "cache", "tictac", "libre"] as GameModeId[]);
   const seat = manager.createIndividualRoom("chef", "Chef");
   manager.join("ami", seat.code, "Amélie");
   for (const p of (["agressif", "glitch", "equilibre"] as const).slice(0, bots)) manager.addBot("chef", p);
@@ -152,3 +154,73 @@ function solve(task: TictacTask): unknown {
       return task.cells.map((_, i) => task.cells.indexOf(i + 1));
   }
 }
+
+describe("L'intrus et Jeu libre", () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  it("L'intrus : un tricheur secret par manche, coups de pouce, vote et révélation", async () => {
+    const whispers: { id: string; data: unknown }[] = [];
+    const secrets: Record<string, boolean> = {};
+    const events = { changed: vi.fn(), closed: vi.fn(), detached: vi.fn() };
+    const manager = new RoomManager(timings, events, () => ["intrus"] as GameModeId[]);
+    const seat = manager.createIndividualRoom("chef", "Chef");
+    manager.join("ami", seat.code, "Amélie");
+    manager.addBot("chef", "equilibre");
+    manager.updateSettings("chef", { mode: "intrus", intrus: { rounds: 3 } });
+    const room = manager.startGame("chef", (r: Room) =>
+      new IntrusGame({
+        room: r,
+        changed: () => events.changed(r.code),
+        publishMiniGame: () => {},
+        sendPrivate: (id, _round, data) => whispers.push({ id, data }),
+        sendBoardPrivate: (id, data) => (secrets[id] = data.intrus === true),
+        random: createRng(3),
+        now: () => Date.now(),
+      }),
+    );
+    const humans = room.players.filter((p) => !p.isBot).map((p) => p.id);
+    const reveals: string[] = [];
+    await untilPodium(room, () => {
+      const g = room.game!.snapshot();
+      for (const id of humans) if (g.stage === "intro") room.game!.ready(id);
+      const s = g.intrus!;
+      if (g.stage === "intrus" && s.phase === "vote") {
+        for (const id of humans) {
+          if (s.voted.includes(id)) continue;
+          // On vote pour le premier autre joueur.
+          const suspect = Object.keys(s.scores).find((x) => x !== id)!;
+          manager.gameAction(id === humans[0] ? "chef" : "ami", { type: "vote", suspect });
+        }
+      }
+      if (g.stage === "intrus" && s.phase === "reveal" && s.reveal && !reveals.includes(`${s.round}`)) {
+        reveals.push(`${s.round}`);
+        // Exactement un intrus, et lui seul avait reçu le secret.
+        expect(Object.entries(secrets).filter(([, v]) => v).map(([k]) => k)).toEqual([s.reveal.cheater]);
+      }
+    });
+    expect(room.game!.snapshot().stage).toBe("podium");
+    expect(reveals.length).toBe(3);
+    // Les coups de pouce ne vont qu'à l'intrus (humain) de la manche.
+    for (const w of whispers.filter((x) => (x.data as { __whisper?: string }).__whisper)) expect(humans).toContain(w.id);
+  }, 60_000);
+
+  it("Jeu libre : le chef choisit le mini-jeu, les autres ne peuvent pas", async () => {
+    const { manager, room } = setup((h) => new LibreGame(h), { mode: "libre", libre: { rounds: 5 } });
+    const picked: string[] = [];
+    await untilPodium(room, () => {
+      const g = room.game!.snapshot();
+      if (g.stage === "libre" && g.libre!.phase === "pick") {
+        expect(() => manager.gameAction("ami", { type: "pick", game: "hasard" })).toThrow();
+        const choice = g.libre!.choices[picked.length % g.libre!.choices.length]!;
+        manager.gameAction("chef", { type: "pick", game: choice });
+        picked.push(choice);
+      }
+      if (g.stage === "intro") for (const p of room.players) room.game!.ready(p.id);
+    });
+    const snap = room.game!.snapshot();
+    expect(snap.stage).toBe("podium");
+    expect(picked.length).toBe(5);
+    expect(snap.libre!.played).toEqual([...new Set(picked)]);
+  }, 60_000);
+});

@@ -3,7 +3,8 @@ import type { ViewLayout } from "@rzparty/minigames/client";
 import { clear, everyFrame, h } from "../ui/dom.ts";
 import { playerAvatar } from "../ui/avatar.ts";
 import { serverNow } from "./clock.ts";
-import { scoreTable, sendAction } from "./modeKit.ts";
+import { scoreTable, sendAction, with3D } from "./modeKit.ts";
+import type { CrisScene } from "../three/crisScene.ts";
 import { buzz, creatureCry, keepAwake, success } from "./sfx.ts";
 import { hashId, secondsLeft, soundGate, whoAmI } from "./salonKit.ts";
 
@@ -17,6 +18,9 @@ const CRY_EVERY = 2600;
  */
 export class CrisView {
   private readonly el: HTMLElement;
+  private readonly stage3d = h("div", { class: "salon__3d" });
+  private scene: CrisScene | null = null;
+  private gone = false;
   private readonly head = h("div", { class: "salon__head" });
   private readonly stageBox = h("div", { class: "salon__stage" });
   private readonly action = h("div", { class: "salon__action" });
@@ -31,9 +35,17 @@ export class CrisView {
   private release: () => void = () => {};
 
   constructor(root: HTMLElement, private readonly layout: ViewLayout, private readonly meId: string | null) {
-    const main = h("div", { class: "salon__main" }, this.head, this.timer, this.stageBox, this.action);
+    const main = h("div", { class: "salon__main" }, this.stage3d, this.head, this.timer, this.stageBox, this.action);
     this.el = h("section", { class: `salon salon--cris salon--${layout}` }, main, layout === "pad" ? null : h("aside", { class: "bv-side" }, this.table));
     root.append(this.el);
+    if (layout !== "pad")
+      with3D(this.stage3d, () => import("../three/crisScene.ts"), ({ CrisScene }, host) => {
+        if (this.gone) return false;
+        this.scene = new CrisScene(host, layout !== "tv");
+        const g = this.room?.game?.cris;
+        if (g && this.room) this.scene.update(g, this.room.players);
+        return true;
+      });
     if (this.isDevice()) {
       this.gate = soundGate(main);
       this.release = keepAwake();
@@ -47,6 +59,8 @@ export class CrisView {
   }
 
   destroy(): void {
+    this.gone = true;
+    this.scene?.destroy();
     this.stop();
     this.release();
     this.el.remove();
@@ -56,6 +70,7 @@ export class CrisView {
     this.room = room;
     const c = room.game?.cris;
     if (!c) return;
+    this.scene?.update(c, room.players);
     if (c.phase !== "listen") this.picking = false;
     // Son de la dernière prise (une seule fois).
     if (c.lastClaim && c.lastClaim.at !== this.seenClaim) {

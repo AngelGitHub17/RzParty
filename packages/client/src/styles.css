@@ -1008,10 +1008,14 @@ a {
   }
 }
 
+/*
+ * Animations réduites (réglage du système) : on calme l'interface, mais pas les mini-jeux ni les modes,
+ * dont certaines animations font partie du jeu (les passants de Va-et-vient, la bombe qui chauffe…).
+ */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  :where(#app, .site) *:not(:where(.mg, .mg *, .salon, .salon *, .gs__mg *)),
+  :where(#app, .site) *:not(:where(.mg, .mg *, .salon, .salon *, .gs__mg *))::before,
+  :where(#app, .site) *:not(:where(.mg, .mg *, .salon, .salon *, .gs__mg *))::after {
     animation: none !important;
     transition: none !important;
   }
@@ -4715,6 +4719,7 @@ button.quiz__option {
   color: #9fb2c6;
 }
 
+.salon.is-hidden-phone .salon__3d,
 .salon.is-hidden-phone .salon__stage,
 .salon.is-hidden-phone .salon__timer,
 .salon.is-hidden-phone .salon__head,
@@ -4907,4 +4912,145 @@ button.quiz__option {
 
 .salon--pad .tictac__big {
   font-size: 3.5rem;
+}
+
+/* Scènes 3D des jeux de salon */
+.salon__3d {
+  display: none;
+  width: 100%;
+}
+
+.salon__3d.has-3d {
+  display: block;
+  height: clamp(280px, 50vh, 540px);
+  border-radius: var(--radius-m);
+  overflow: hidden;
+  background: linear-gradient(#fff6e6, #ffe7c2);
+}
+
+.salon--solo .salon__3d.has-3d {
+  height: clamp(200px, 38vh, 400px);
+}
+
+.salon--pad .salon__3d.has-3d {
+  height: clamp(170px, 28vh, 300px);
+}
+
+/* Avec la 3D, la bombe 2D et le cercle d'avatars font doublon. */
+.salon__main:has(.salon__3d.has-3d) .tictac__big,
+.salon__main:has(.salon__3d.has-3d) .tictac__ring {
+  display: none;
+}
+
+/* Coup de pouce secret de l'intrus */
+.whisper {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  z-index: 90;
+  display: grid;
+  gap: 2px;
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 10px 16px;
+  border-radius: var(--radius-m);
+  background: #1e2a4a;
+  color: #fff;
+  box-shadow: 0 10px 30px #0006;
+  translate: -50% 0;
+  animation: pop 380ms cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+.whisper strong {
+  color: #ffe58a;
+  font-size: 0.9rem;
+}
+
+.whisper span {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+/* L'intrus */
+.intrus__secret {
+  color: #9b5de5;
+  font-size: 1.7rem;
+}
+
+.intrus__votes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.intrus__votes li {
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--cloud);
+  font-weight: 700;
+}
+
+.intrus__votes li.is-right {
+  background: #d9f6e3;
+}
+
+.salon--intrus .salon__3d.has-3d {
+  background: #2a2f45;
+}
+
+/* Jeu libre */
+.libre__stage {
+  width: 100%;
+}
+
+.libre__cat {
+  justify-self: start;
+  margin: 8px 0 0;
+  font-size: 1.05rem;
+}
+
+.libre__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+  width: 100%;
+}
+
+.libre__game {
+  display: grid;
+  gap: 4px;
+  padding: 6px 6px 10px;
+  border: 3px solid var(--line);
+  border-radius: var(--radius-m);
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  transition: transform 120ms, border-color 120ms;
+}
+
+.libre__game:hover,
+.libre__game:focus-visible {
+  border-color: var(--sky-deep, #2f7bef);
+  transform: translateY(-2px);
+}
+
+.libre__game img {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  border-radius: var(--radius-s);
+  background: var(--cloud);
+}
+
+.libre__game small {
+  color: var(--go-deep, #1f8a4c);
+  font-weight: 700;
+}
+
+.libre__game.is-played {
+  opacity: 0.75;
 }

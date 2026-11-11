@@ -21,6 +21,8 @@ import {
   CRIS_POINT_CHOICES,
   CACHE_TOUR_CHOICES,
   TICTAC_BOMB_CHOICES,
+  INTRUS_ROUND_CHOICES,
+  LIBRE_ROUND_CHOICES,
   type BotPersonality,
   type Difficulty,
   type GameModeId,
@@ -258,6 +260,10 @@ export function renderChefPanel(snapshot: RoomSnapshot, actions: ChefActions): H
       ? segmented("Points pour gagner", CRIS_POINT_CHOICES.map((n) => ({ value: n as number, label: `${n} points` })), s.cris.points, (points) => actions.update({ cris: { points } }))
       : s.mode === "cache"
       ? segmented("Nombre de tours", CACHE_TOUR_CHOICES.map((n) => ({ value: n as number, label: n === 1 ? "1 tour" : `${n} tours`, note: "chacun cache une fois par tour" })), s.cache.tours, (tours) => actions.update({ cache: { tours } }))
+      : s.mode === "intrus"
+      ? segmented("Nombre de manches", INTRUS_ROUND_CHOICES.map((n) => ({ value: n as number, label: `${n} manches` })), s.intrus.rounds, (rounds) => actions.update({ intrus: { rounds } }))
+      : s.mode === "libre"
+      ? segmented("Nombre de manches", LIBRE_ROUND_CHOICES.map((n) => ({ value: n as number, label: `${n} manches` })), s.libre.rounds, (rounds) => actions.update({ libre: { rounds } }))
       : s.mode === "tictac"
       ? segmented("Nombre de bombes", TICTAC_BOMB_CHOICES.map((n) => ({ value: n as number, label: `${n} bombes` })), s.tictac.bombs, (bombs) => actions.update({ tictac: { bombs } }))
       : s.mode === "ile"
@@ -354,6 +360,8 @@ function baseSummary(snapshot: RoomSnapshot): string {
   if (s.mode === "mots") return `${mode}, ${s.mots.bombs} bombes, bots ${DIFFICULTIES[s.botDifficulty].label.toLowerCase()}`;
   if (s.mode === "cris") return `${mode}, premier à ${s.cris.points} points, ${bots}`;
   if (s.mode === "cache") return `${mode}, ${s.cache.tours} tour${s.cache.tours > 1 ? "s" : ""}, sans bots`;
+  if (s.mode === "intrus") return `${mode}, ${s.intrus.rounds} manches, ${bots}`;
+  if (s.mode === "libre") return `${mode}, ${s.libre.rounds} manches choisies par le chef, ${bots}`;
   if (s.mode === "tictac") return `${mode}, ${s.tictac.bombs} bombes, ${bots}`;
   if (s.mode === "roue") return `${mode}, ${s.wheel.rounds} tours, bots ${DIFFICULTIES[s.botDifficulty].label.toLowerCase()}`;
   const teams = s.teams ? `, ${s.teams} équipes` : "";

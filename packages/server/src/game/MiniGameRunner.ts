@@ -22,6 +22,9 @@ export interface RunnerOptions {
   now(): number;
   publish(state: unknown): void;
   sendTo(playerId: string, data: unknown): void;
+  /** Mode « L'intrus » : le tricheur de la manche et le canal de ses coups de pouce. */
+  cheater?: string | null;
+  whisper?(playerId: string, text: string): void;
 }
 
 /**
@@ -90,6 +93,11 @@ export class MiniGameRunner {
         else this.opts.sendTo(playerId, data);
       },
       finish: (ranking, records) => this.finish(ranking, records),
+      cheater: this.opts.cheater ?? null,
+      whisper: (playerId, text) => {
+        // Un bot n'a pas besoin qu'on lui souffle : il triche déjà (meilleur profil).
+        if (!this.done && !this.drivers.has(playerId)) this.opts.whisper?.(playerId, text);
+      },
     });
 
     // Filet de sécurité : un mini-jeu bloqué ne doit jamais figer la partie.

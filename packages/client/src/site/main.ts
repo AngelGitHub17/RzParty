@@ -30,8 +30,10 @@ const MODE_ART: Partial<Record<GameModeId, string>> = {
   tictac: "/site/tictac.webp",
   cris: "/site/cris.webp",
   cache: "/site/cache.webp",
+  intrus: "/site/intrus.webp",
+  libre: "/site/libre.webp",
 };
-const MODE_ORDER: GameModeId[] = ["plateau", "ile", "voyage", "survie", "roue", "loto", "trios", "bateau", "paires", "amitie", "quiz", "mots", "tictac", "cris", "cache"];
+const MODE_ORDER: GameModeId[] = ["plateau", "ile", "voyage", "survie", "roue", "loto", "trios", "bateau", "paires", "amitie", "quiz", "mots", "tictac", "cris", "cache", "intrus", "libre"];
 
 const link = (href: string, text: string, cls = "") => h("a", { class: cls, attrs: { href }, text });
 

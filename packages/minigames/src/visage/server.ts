@@ -1,5 +1,5 @@
 import { AVATAR_COLORS, gaussian, randomAvatar, type Avatar } from "@rzparty/shared";
-import { botSkill, defineMiniGame, rankBy } from "../contract.ts";
+import { botSkill, defineMiniGame, rankBy, tipCheater } from "../contract.ts";
 import { definition } from "./definition.ts";
 import { FACE_COUNT, FACE_FIND_MS, FACE_REVEAL_MS, FACE_ROUNDS, FACE_SHOW_MS, type FaceInput, type FaceState } from "./types.ts";
 
@@ -69,6 +69,7 @@ export default defineMiniGame<FaceState, null, FaceInput>({
       const g = gen;
       ctx.schedule(FACE_SHOW_MS, () => {
         Object.assign(state, { phase: "find", target: null, crowd, phaseEndsAt: ctx.now() + FACE_FIND_MS });
+        tipCheater(ctx, `C'est le n°${answer + 1} (en comptant depuis le haut à gauche)`);
         publish();
         ctx.schedule(FACE_FIND_MS, () => g === gen && reveal());
       });

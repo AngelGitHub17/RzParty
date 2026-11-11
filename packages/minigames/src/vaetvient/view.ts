@@ -1,6 +1,7 @@
 import "./style.css";
 import { PLAYER_COLORS, randomAvatar, createRng } from "@rzparty/shared";
-import { clear, h, keypad, scoreLanes, timeBar } from "../kit.ts";
+import { clear, h, keypad, mount3D, scoreLanes, timeBar } from "../kit.ts";
+import type { VaetvientScene } from "./scene3d.ts";
 import type { MiniGameView, MiniGameViewContext } from "../client.ts";
 import { VV_ANSWER_MS, VV_INTRO_MS, VV_REVEAL_MS, VV_ROUNDS, type VVState } from "./types.ts";
 
@@ -30,9 +31,19 @@ export function vaetvientView(root: HTMLElement, ctx: MiniGameViewContext): Mini
       })
     : null;
   const work = h("div", { class: "vv__work" }, answer, pad?.el);
-  root.append(h("div", { class: `mg vv vv--${ctx.layout}` }, bar.el, title, scene, interactive ? work : null, answers, ctx.layout === "pad" ? null : lanes));
+  // En 3D quand c'est possible (la maison 2D reste là sinon).
+  const box = h("div", { class: "mg3d-box vv__box" }, scene);
+  let scene3d: VaetvientScene | null = null;
+  let gone = false;
+  mount3D(box, () => import("./scene3d.ts"), ({ VaetvientScene }, host) => {
+    if (gone) return false;
+    scene3d = new VaetvientScene(host);
+    return true;
+  });
+  root.append(h("div", { class: `mg vv vv--${ctx.layout}` }, bar.el, title, box, interactive ? work : null, answers, ctx.layout === "pad" ? null : lanes));
 
   function walk(dir: "in" | "out", count: number): void {
+    if (scene3d) return scene3d.move(dir, count);
     for (let i = 0; i < count; i++) {
       const walker = h("span", { class: `vv__walker vv__walker--${dir}`, style: { "animation-delay": `${i * 120}ms` } }, ctx.drawAvatar(randomAvatar(rng), 46));
       scene.append(walker);
@@ -94,6 +105,8 @@ export function vaetvientView(root: HTMLElement, ctx: MiniGameViewContext): Mini
       render();
     },
     destroy() {
+      gone = true;
+      scene3d?.destroy();
       bar.destroy();
       pad?.destroy();
     },

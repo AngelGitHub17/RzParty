@@ -1,5 +1,5 @@
 import { gaussian } from "@rzparty/shared";
-import { botSkill, defineMiniGame, rankBy } from "../contract.ts";
+import { botSkill, defineMiniGame, rankBy, tipCheater } from "../contract.ts";
 import { definition } from "./definition.ts";
 import { CHANNELS, ZAP_READY_MS, ZAP_RESULT_MS, ZAP_ROUNDS, ZAP_TARGET_MS, type ZappeurInput, type ZappeurState } from "./types.ts";
 
@@ -64,6 +64,7 @@ export default defineMiniGame<ZappeurState, null, ZappeurInput>({
       state.zapIndex = i;
       state.zap = zap;
       publish();
+      if (i === targetZap - 1) tipCheater(ctx, "La bonne chaîne arrive juste après… prépare-toi !");
       if (i === targetZap) {
         ctx.schedule(ZAP_TARGET_MS, () => g === gen && result());
         return;

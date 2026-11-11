@@ -58,6 +58,14 @@ export const GAME_MODES: Record<GameModeId, { label: string; description: string
     label: "Tic-tac-boum",
     description: "La bombe passe de main en main : pour t'en débarrasser, réussis la consigne affichée (coupe le bon fil, appuie le bon nombre de fois…). Une erreur et la mèche raccourcit ! Celui qui la tient quand elle explose prend un BOUM.",
   },
+  intrus: {
+    label: "L'intrus",
+    description: "À chaque mini-jeu, un joueur est désigné en secret : c'est l'intrus, et il reçoit des coups de pouce pour tricher (la réponse, la bonne case…). Après le mini-jeu, chacun désigne le tricheur. Bon soupçon : +2. Intrus passé inaperçu : +3.",
+  },
+  libre: {
+    label: "Jeu libre",
+    description: "Le chef choisit chaque mini-jeu dans la liste. 3, 2 ou 1 point selon la place ; le plus de points après les manches gagne.",
+  },
   roue: {
     label: "Grande Roue",
     description: "Joueurs et banque partent avec 500 médailles. La roue donne ou prend des médailles, gonfle la banque, ou lance une Bataille, un 1 contre tous ou un Duel. Elle change trois fois, et les prolongations durent jusqu'à la Bataille finale !",

@@ -121,3 +121,24 @@
   padding: 0;
   list-style: none;
 }
+
+.vv__box {
+  width: min(620px, 94vw);
+}
+
+.vv__box.has-3d {
+  width: min(900px, 100%);
+  height: clamp(220px, 42vh, 460px);
+  border-radius: var(--radius-l);
+  overflow: hidden;
+  background: linear-gradient(#bfe6ff, #e8f6ff);
+}
+
+.vv__box.has-3d .vv__scene {
+  display: none;
+}
+
+.vv--pad .vv__box.has-3d,
+.vv--solo .vv__box.has-3d {
+  height: clamp(200px, 34vh, 380px);
+}

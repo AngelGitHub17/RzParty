@@ -43,7 +43,9 @@ export type BoardAction =
   | { type: "hidden" }
   | { type: "found"; by: string }
   | { type: "task"; taskId: number; answer: unknown }
-  | { type: "skip" };
+  | { type: "skip" }
+  | { type: "vote"; suspect: string }
+  | { type: "pick"; game: string };
 
 /** Qui rejoint : un profil (par son jeton) ou un invité (par un pseudo). */
 export interface JoinIdentity {

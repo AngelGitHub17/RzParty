@@ -1,5 +1,5 @@
 import { gaussian } from "@rzparty/shared";
-import { botSkill, defineMiniGame, rankBy } from "../contract.ts";
+import { botSkill, defineMiniGame, rankBy, tipCheater } from "../contract.ts";
 import { definition } from "./definition.ts";
 import { CALCUL_DURATION_MS, makeQuestion, type CalculInput, type CalculPrivate, type CalculQuestion, type CalculState } from "./types.ts";
 
@@ -23,8 +23,10 @@ export default defineMiniGame<CalculState, CalculPrivate, CalculInput>({
     const index: Record<string, number> = Object.fromEntries(ids.map((id) => [id, 0]));
     const lastCorrectAt: Record<string, number> = Object.fromEntries(ids.map((id) => [id, Infinity]));
 
-    const sendQuestion = (id: string, last: CalculPrivate["last"]) =>
+    const sendQuestion = (id: string, last: CalculPrivate["last"]) => {
       ctx.sendTo(id, { index: index[id]!, question: question(index[id]!).text, last });
+      if (id === ctx.cheater) tipCheater(ctx, `Réponse : ${question(index[id]!).answer}`);
+    };
 
     return {
       start() {

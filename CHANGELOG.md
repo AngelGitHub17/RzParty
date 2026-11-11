@@ -3,6 +3,14 @@
 Chaque version commence par « ## numéro — date ». La page de présentation et les serveurs
 locaux lisent ce fichier : pense à augmenter la version dans package.json à chaque publication.
 
+## 0.17.0 — 11 novembre 2026
+- Deux nouveaux modes inspirés du menu « Mini-jeux » :
+  - L'intrus : à chaque manche, un joueur est désigné en secret et reçoit des coups de pouce (« Psst… ») pendant le mini-jeu : la bonne réponse, la bonne case, la chaîne qui arrive… Après le mini-jeu, chacun vote pour le tricheur (+2 par bon soupçon, +3 à l'intrus s'il passe inaperçu). Mini-jeux concernés : Va-et-vient, Coup d'œil, Où est-il ?, Zappeur fou, Paires de fruits, Calcul express. Scène 3D : les suspects alignés devant les toises, projecteur sur l'intrus à la révélation.
+  - Jeu libre : le chef choisit chaque mini-jeu dans la liste (avec leurs images), ou au hasard ; 3, 2, 1 points selon la place.
+- Cris en folie, Cache-cache et Tic-tac-boum en 3D : un salon (canapé, buffet, télé, plante), les téléphones sur la table basse qui vibrent quand ils crient, les cachettes qui sonnent 🔔 et le ✔ des téléphones trouvés, la bombe à fils de couleur qui saute de joueur en joueur avec la consigne au-dessus.
+- Va-et-vient corrigé : avec « animations réduites » activé sur l'ordinateur ou le téléphone, les passants restaient figés au bord de l'écran (impossible de compter). Les animations des mini-jeux et des jeux de salon ne sont plus coupées par ce réglage. Va-et-vient passe aussi en 3D (une maisonnette dont la porte s'ouvre, des passants qui entrent et sortent) et le pavé de réponse tient sur l'écran du téléphone.
+- Page de présentation : images des nouveaux modes, des jeux de salon en 3D et de Va-et-vient.
+
 ## 0.16.0 — 11 novembre 2026
 - Trois nouveaux jeux de salon, qui se jouent avec les téléphones posés ou cachés dans la pièce :
   - Tic-tac-boum : la bombe passe de main en main ; pour la passer, réussis la consigne (coupe le bon fil, touche le bon symbole, appuie le bon nombre de fois, maintiens le bouton, numéros dans l'ordre). Une erreur raccourcit la mèche. Tic-tac de plus en plus rapide, BOUM !

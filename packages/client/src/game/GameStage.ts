@@ -19,6 +19,8 @@ import { IleView } from "./IleView.ts";
 import { CrisView } from "./CrisView.ts";
 import { CacheView } from "./CacheView.ts";
 import { TictacView } from "./TictacView.ts";
+import { IntrusView } from "./IntrusView.ts";
+import { LibreView } from "./LibreView.ts";
 
 /** Écrans des modes de jeu hors mini-jeux (une classe par étape). */
 interface ModeView {
@@ -39,6 +41,8 @@ const MODE_VIEWS: Record<string, new (root: HTMLElement, layout: ViewLayout, meI
   cris: CrisView,
   cache: CacheView,
   tictac: TictacView,
+  intrus: IntrusView,
+  libre: LibreView,
 };
 import { obfuscated } from "../ui/obfuscate.ts";
 
@@ -158,7 +162,7 @@ export class GameStage {
               ? h("strong", { class: "chip__score", text: `${s.score} pt${s.score > 1 ? "s" : ""}` })
               : game.mode === "mots" || game.mode === "tictac"
               ? h("strong", { class: "chip__score", text: `💥 ${s.score}` })
-              : game.mode === "cris" || game.mode === "cache"
+              : game.mode === "cris" || game.mode === "cache" || game.mode === "intrus" || game.mode === "libre"
               ? h("strong", { class: "chip__score", text: `${s.score} pt${s.score > 1 ? "s" : ""}` })
               : game.mode === "voyage"
               ? h("strong", { class: "chip__score", text: `📷 ${s.score} · 🪙 ${game.globe?.coins[p.id] ?? 0}` })
@@ -231,7 +235,9 @@ export class GameStage {
       case "ile":
       case "cris":
       case "cache":
-      case "tictac": {
+      case "tictac":
+      case "intrus":
+      case "libre": {
         if (!this.modeView) this.modeView = { stage: game.stage, view: new MODE_VIEWS[game.stage]!(this.main, this.layout, this.meId) };
         this.modeView.view.update(room);
         return;
@@ -615,12 +621,22 @@ export class GameStage {
 
   // ───────────── Mini-jeu ─────────────
 
+  /** Bulle « Psst… » vue seulement par l'intrus (mode « L'intrus »). */
+  private whisper(text: string): void {
+    document.querySelector(".whisper")?.remove();
+    const bubble = h("div", { class: "whisper", attrs: { role: "status" } }, h("strong", { text: "🤫 Psst… (toi seul le vois)" }), h("span", { text }));
+    document.body.append(bubble);
+    setTimeout(() => bubble.remove(), 5000);
+  }
+
   private onMgState = ({ round, state }: { round: number; state: unknown }) => {
     this.cache(round).state = state;
     if (this.view && this.viewRound === round) this.view.update(state);
   };
 
   private onMgPrivate = ({ round, data }: { round: number; data: unknown }) => {
+    // Coup de pouce secret de l'intrus : affiché à part, il ne remplace pas les données du mini-jeu.
+    if (data && typeof data === "object" && "__whisper" in data) return this.whisper(String((data as { __whisper: unknown }).__whisper));
     this.cache(round).private = data;
     if (this.view && this.viewRound === round) this.view.updatePrivate?.(data);
   };

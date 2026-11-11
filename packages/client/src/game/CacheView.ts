@@ -3,7 +3,8 @@ import type { ViewLayout } from "@rzparty/minigames/client";
 import { clear, everyFrame, h } from "../ui/dom.ts";
 import { playerAvatar } from "../ui/avatar.ts";
 import { serverNow } from "./clock.ts";
-import { scoreTable, sendAction } from "./modeKit.ts";
+import { scoreTable, sendAction, with3D } from "./modeKit.ts";
+import type { CacheScene } from "../three/cacheScene.ts";
 import { hiddenRing, keepAwake, success } from "./sfx.ts";
 import { secondsLeft, soundGate, whoAmI } from "./salonKit.ts";
 
@@ -14,6 +15,9 @@ import { secondsLeft, soundGate, whoAmI } from "./salonKit.ts";
  */
 export class CacheView {
   private readonly el: HTMLElement;
+  private readonly stage3d = h("div", { class: "salon__3d" });
+  private scene: CacheScene | null = null;
+  private gone = false;
   private readonly head = h("div", { class: "salon__head" });
   private readonly timer = h("div", { class: "salon__timer" });
   private readonly stageBox = h("div", { class: "salon__stage" });
@@ -28,9 +32,17 @@ export class CacheView {
   private release: () => void = () => {};
 
   constructor(root: HTMLElement, private readonly layout: ViewLayout, private readonly meId: string | null) {
-    const main = h("div", { class: "salon__main" }, this.head, this.timer, this.stageBox, this.action);
+    const main = h("div", { class: "salon__main" }, this.stage3d, this.head, this.timer, this.stageBox, this.action);
     this.el = h("section", { class: `salon salon--cache salon--${layout}` }, main, layout === "pad" ? null : h("aside", { class: "bv-side" }, this.table));
     root.append(this.el);
+    if (layout !== "pad")
+      with3D(this.stage3d, () => import("../three/cacheScene.ts"), ({ CacheScene }, host) => {
+        if (this.gone) return false;
+        this.scene = new CacheScene(host, layout !== "tv");
+        const g = this.room?.game?.cache;
+        if (g && this.room) this.scene.update(g, this.room.players);
+        return true;
+      });
     if (this.isDevice()) {
       this.gate = soundGate(main);
       this.release = keepAwake();
@@ -43,6 +55,8 @@ export class CacheView {
   }
 
   destroy(): void {
+    this.gone = true;
+    this.scene?.destroy();
     this.stop();
     this.release();
     this.el.remove();
@@ -52,6 +66,7 @@ export class CacheView {
     this.room = room;
     const c = room.game?.cache;
     if (!c) return;
+    this.scene?.update(c, room.players);
     if (c.phase !== "seek") this.picking = false;
     const found = Object.keys(c.found).length;
     if (found > this.foundCount && c.phase === "seek") success();

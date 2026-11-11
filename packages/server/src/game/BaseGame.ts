@@ -165,6 +165,9 @@ export abstract class BaseGame implements GameSession {
       if (p.isBot) bots.set(id, { personality: p.botPersonality ?? "equilibre", difficulty });
       else if (!p.connected) bots.set(id, { personality: "equilibre", difficulty });
     }
+    // Mode « L'intrus » : un bot tricheur joue comme un champion.
+    const cheater = this.cheaterFor(module.definition.id);
+    if (cheater && bots.has(cheater)) bots.set(cheater, { personality: "lent-precis", difficulty: "difficile" });
 
     const runner = new MiniGameRunner({
       module,
@@ -177,6 +180,8 @@ export abstract class BaseGame implements GameSession {
       now: () => this.host.now(),
       publish: (state) => this.host.publishMiniGame(round, state),
       sendTo: (playerId, data) => this.host.sendPrivate(playerId, round, data),
+      cheater,
+      whisper: (playerId, text) => this.host.sendPrivate(playerId, round, { __whisper: text }),
     });
     this.runner = runner;
     this.setStage("play", null);
@@ -207,6 +212,11 @@ export abstract class BaseGame implements GameSession {
     this.participants = [];
     this.runner = null;
     this.setStage("podium", null);
+  }
+
+  /** Le tricheur de la manche (mode « L'intrus ») ; aucun par défaut. */
+  protected cheaterFor(_miniGameId: string): string | null {
+    return null;
   }
 
   // ───────────── Outils ─────────────

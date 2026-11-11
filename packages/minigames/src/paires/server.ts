@@ -1,5 +1,5 @@
 import { gaussian } from "@rzparty/shared";
-import { botSkill, defineMiniGame, rankBy } from "../contract.ts";
+import { botSkill, defineMiniGame, rankBy, tipCheater } from "../contract.ts";
 import { definition } from "./definition.ts";
 import { FRUITS, MISMATCH_MS, PAIRS, PAIRS_DURATION_MS, type PairsInput, type PairsPrivate, type PairsState } from "./types.ts";
 
@@ -39,6 +39,9 @@ export default defineMiniGame<PairsState, PairsPrivate, PairsInput>({
         ctx.publish(structuredClone(state));
         for (const id of ids) send(id);
         ctx.schedule(PAIRS_DURATION_MS, end);
+        // L'intrus connaît l'emplacement de trois paires (cartes numérotées depuis le haut à gauche).
+        const tips = fruits.slice(0, 3).map((f) => `${f} : ${deck.flatMap((x, i) => (x === f ? [i + 1] : [])).join(" et ")}`);
+        tipCheater(ctx, tips.join(" · "));
       },
       input(playerId, raw) {
         const input = raw as Partial<PairsInput> | null;

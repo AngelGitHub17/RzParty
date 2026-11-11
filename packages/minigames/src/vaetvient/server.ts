@@ -1,5 +1,5 @@
 import { gaussian } from "@rzparty/shared";
-import { botSkill, defineMiniGame, rankBy } from "../contract.ts";
+import { botSkill, defineMiniGame, rankBy, tipCheater } from "../contract.ts";
 import { pointsFor } from "../coupdoeil/types.ts";
 import { definition } from "./definition.ts";
 import { VV_ANSWER_MS, VV_INTRO_MS, VV_REVEAL_MS, VV_ROUNDS, type VVInput, type VVState } from "./types.ts";
@@ -60,6 +60,7 @@ export default defineMiniGame<VVState, null, VVInput>({
     };
 
     const ask = () => {
+      tipCheater(ctx, `Il y en a ${inside} dans la maison !`);
       state.phase = "answer";
       state.move = null;
       state.phaseEndsAt = ctx.now() + VV_ANSWER_MS;

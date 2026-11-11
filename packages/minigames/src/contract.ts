@@ -71,6 +71,15 @@ export interface MiniGameServerContext<State, Private> {
    * dans la fiche. Les appels suivants sont ignorés.
    */
   finish(ranking: MiniGameRanking, records?: MiniGameRecords): void;
+  /** Mode « L'intrus » : le joueur qui triche pendant cette manche (sinon absent ou null). */
+  cheater?: string | null;
+  /** Souffle un coup de pouce secret à un joueur (affiché seulement sur son écran). */
+  whisper?(playerId: string, text: string): void;
+}
+
+/** Souffle un coup de pouce à l'intrus de la manche, s'il y en a un (mode « L'intrus »). */
+export function tipCheater(ctx: { cheater?: string | null; whisper?(playerId: string, text: string): void }, text: string): void {
+  if (ctx.cheater && ctx.whisper) ctx.whisper(ctx.cheater, text);
 }
 
 export interface MiniGameServerLogic {

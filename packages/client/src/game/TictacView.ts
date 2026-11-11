@@ -2,7 +2,8 @@ import { BOMB_SYMBOLS, PLAYER_COLORS, WIRE_COLORS, tictacTaskText, type RoomSnap
 import type { ViewLayout } from "@rzparty/minigames/client";
 import { clear, everyFrame, h } from "../ui/dom.ts";
 import { playerAvatar } from "../ui/avatar.ts";
-import { scoreTable, sendAction } from "./modeKit.ts";
+import { scoreTable, sendAction, with3D } from "./modeKit.ts";
+import type { TictacScene } from "../three/tictacScene.ts";
 import { buzz, explosion, success, tick } from "./sfx.ts";
 import { soundGate } from "./salonKit.ts";
 
@@ -12,6 +13,9 @@ import { soundGate } from "./salonKit.ts";
  */
 export class TictacView {
   private readonly el: HTMLElement;
+  private readonly stage3d = h("div", { class: "salon__3d" });
+  private scene: TictacScene | null = null;
+  private gone = false;
   private readonly head = h("div", { class: "salon__head" });
   private readonly ring = h("div", { class: "salon__strip tictac__ring" });
   private readonly task = h("div", { class: "salon__action tictac__task" });
@@ -28,14 +32,24 @@ export class TictacView {
   private stop: () => void;
 
   constructor(root: HTMLElement, private readonly layout: ViewLayout, private readonly meId: string | null) {
-    const main = h("div", { class: "salon__main" }, this.head, this.ring, this.bigBomb, this.task);
+    const main = h("div", { class: "salon__main" }, this.stage3d, this.head, this.ring, this.bigBomb, this.task);
     this.el = h("section", { class: `salon salon--tictac salon--${layout}` }, main, layout === "pad" ? null : h("aside", { class: "bv-side" }, this.table));
     root.append(this.el);
+    if (true)
+      with3D(this.stage3d, () => import("../three/tictacScene.ts"), ({ TictacScene }, host) => {
+        if (this.gone) return false;
+        this.scene = new TictacScene(host, layout !== "tv");
+        const g = this.room?.game?.tictac;
+        if (g && this.room) this.scene.update(g, this.room.players);
+        return true;
+      });
     this.gate = soundGate(main);
     this.stop = everyFrame(() => this.tickSound(performance.now()));
   }
 
   destroy(): void {
+    this.gone = true;
+    this.scene?.destroy();
     this.stop();
     this.el.remove();
   }
@@ -56,6 +70,7 @@ export class TictacView {
     this.room = room;
     const t = room.game?.tictac;
     if (!t) return;
+    this.scene?.update(t, room.players);
     if (t.blast && t.blast.at !== this.seenBlast) {
       this.seenBlast = t.blast.at;
       explosion();

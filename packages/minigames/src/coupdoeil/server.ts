@@ -1,5 +1,5 @@
 import { gaussian } from "@rzparty/shared";
-import { botSkill, defineMiniGame, rankBy } from "../contract.ts";
+import { botSkill, defineMiniGame, rankBy, tipCheater } from "../contract.ts";
 import { definition } from "./definition.ts";
 import { EYE_ANSWER_MS, EYE_REVEAL_MS, EYE_ROUNDS, EYE_SHOW_MS, SHAPES, pointsFor, type EyeInput, type EyeState, type Shape } from "./types.ts";
 
@@ -61,6 +61,7 @@ export default defineMiniGame<EyeState, null, EyeInput>({
       const g = gen;
       ctx.schedule(EYE_SHOW_MS, () => {
         state.phase = "answer";
+        tipCheater(ctx, `La bonne réponse : ${shapes.filter((s) => s.kind === state.ask).length}`);
         state.shapes = null;
         answerStart = ctx.now();
         state.phaseEndsAt = answerStart + EYE_ANSWER_MS;

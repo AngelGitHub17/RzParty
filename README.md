@@ -248,6 +248,20 @@ trouvés : +1 pour chaque chercheur ; sinon le cacheur gagne 2 points par télé
 1 ou 2 tours. Sans bots, au moins 2 téléphones. L'écran des téléphones cachés devient noir et ne
 se met pas en veille (si le navigateur le permet).
 
+### L'intrus
+
+À chaque manche, un joueur est désigné en secret : c'est l'intrus. Pendant le mini-jeu, il reçoit
+des coups de pouce que lui seul voit (« Psst… » : la bonne réponse, la bonne case, la chaîne qui
+arrive…). Après le mini-jeu, chacun vote pour celui qu'il soupçonne (l'intrus vote aussi, pour ne
+pas se trahir). Points : 3/2/1 selon la place au mini-jeu, +2 par bon soupçon, +3 à l'intrus si moins
+de la moitié l'a démasqué. Chacun est l'intrus à son tour. 3, 5 ou 7 manches. Mini-jeux concernés :
+Va-et-vient, Coup d'œil, Où est-il ?, Zappeur fou, Paires de fruits, Calcul express.
+
+### Jeu libre
+
+Le chef choisit chaque mini-jeu dans la liste (ou « Au hasard ») ; 3, 2 ou 1 point selon la place.
+5, 10 ou 15 manches.
+
 ### Mini-jeux au choix
 
 Dans le salon, la liste « Mini-jeux » permet au chef de choisir ceux qui seront tirés (ou un seul,

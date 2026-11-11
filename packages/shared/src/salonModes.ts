@@ -182,3 +182,48 @@ export function tictacTaskText(task: TictacTask): string {
       return `Touche les numéros de 1 à ${task.cells.length} dans l'ordre !`;
   }
 }
+
+// ───────────── L'intrus ─────────────
+
+export const INTRUS_ROUND_CHOICES = [3, 5, 7] as const;
+/** Mini-jeux où l'intrus reçoit des coups de pouce secrets. */
+export const INTRUS_GAMES = ["vaetvient", "coupdoeil", "visage", "zappeur", "paires", "calcul"] as const;
+/** Points : par place au mini-jeu, pour un bon soupçon, pour l'intrus qui passe inaperçu. */
+export const INTRUS_POINTS = { places: [3, 2, 1], caught: 2, unseen: 3 };
+
+export interface IntrusState {
+  round: number;
+  rounds: number;
+  /**
+   * - `brief` : un intrus est désigné en secret (lui seul le sait) ;
+   * - `vote` : après le mini-jeu, chacun désigne qui a triché ;
+   * - `reveal` : l'intrus est démasqué (ou pas) ;
+   * - `done`.
+   */
+  phase: "brief" | "vote" | "reveal" | "done";
+  endsAt: number | null;
+  /** Mini-jeu de la manche (nom affiché). */
+  game: string | null;
+  /** Qui a déjà voté (le contenu des votes reste secret jusqu'à la révélation). */
+  voted: string[];
+  /** Révélation : l'intrus, les votes et les points de la manche. */
+  reveal: { cheater: string; votes: Record<string, string>; gains: Record<string, number> } | null;
+  scores: Record<string, number>;
+}
+
+// ───────────── Jeu libre ─────────────
+
+export const LIBRE_ROUND_CHOICES = [5, 10, 15] as const;
+export const LIBRE_POINTS = [3, 2, 1];
+
+export interface LibreState {
+  round: number;
+  rounds: number;
+  /** `pick` : le chef choisit le prochain mini-jeu. */
+  phase: "pick" | "done";
+  /** Mini-jeux déjà joués (identifiants), pour les repérer dans la liste. */
+  played: string[];
+  /** Mini-jeux jouables par les joueurs présents (identifiants). */
+  choices: string[];
+  scores: Record<string, number>;
+}

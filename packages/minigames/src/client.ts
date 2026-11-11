@@ -52,7 +52,6 @@ export const DECOR_3D: Record<string, { lowerIsBetter?: boolean; theme: number }
   stroop: { theme: 0xf0483e },
   coupdoeil: { theme: 0x18bdbd },
   tri: { theme: 0x2db866 },
-  vaetvient: { theme: 0xff8a1f },
   paires: { theme: 0xf45fae },
   visage: { theme: 0xf2b705 },
   zappeur: { theme: 0x3c3c46 },
