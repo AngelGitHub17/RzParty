@@ -23,6 +23,9 @@ import {
   TICTAC_BOMB_CHOICES,
   INTRUS_ROUND_CHOICES,
   LIBRE_ROUND_CHOICES,
+  BATAILLE_PULL_CHOICES,
+  SOLO_STAGE_CHOICES,
+  SOLO_LIVES_CHOICES,
   type BotPersonality,
   type Difficulty,
   type GameModeId,
@@ -260,6 +263,15 @@ export function renderChefPanel(snapshot: RoomSnapshot, actions: ChefActions): H
       ? segmented("Points pour gagner", CRIS_POINT_CHOICES.map((n) => ({ value: n as number, label: `${n} points` })), s.cris.points, (points) => actions.update({ cris: { points } }))
       : s.mode === "cache"
       ? segmented("Nombre de tours", CACHE_TOUR_CHOICES.map((n) => ({ value: n as number, label: n === 1 ? "1 tour" : `${n} tours`, note: "chacun cache une fois par tour" })), s.cache.tours, (tours) => actions.update({ cache: { tours } }))
+      : s.mode === "bataille"
+      ? segmented("Longueur de la corde", BATAILLE_PULL_CHOICES.map((n) => ({ value: n as number, label: `${n} crans`, note: "manches d'avance pour gagner" })), s.bataille.pulls, (pulls) => actions.update({ bataille: { pulls } }))
+      : s.mode === "solo"
+      ? h(
+          "div",
+          { class: "settings-stack" },
+          segmented("Étapes", SOLO_STAGE_CHOICES.map((n) => ({ value: n as number, label: `${n} étapes` })), s.solo.stages, (stages) => actions.update({ solo: { stages } })),
+          segmented("Vies", SOLO_LIVES_CHOICES.map((n) => ({ value: n as number, label: `${n} vies` })), s.solo.lives, (lives) => actions.update({ solo: { lives } })),
+        )
       : s.mode === "intrus"
       ? segmented("Nombre de manches", INTRUS_ROUND_CHOICES.map((n) => ({ value: n as number, label: `${n} manches` })), s.intrus.rounds, (rounds) => actions.update({ intrus: { rounds } }))
       : s.mode === "libre"
@@ -360,6 +372,8 @@ function baseSummary(snapshot: RoomSnapshot): string {
   if (s.mode === "mots") return `${mode}, ${s.mots.bombs} bombes, bots ${DIFFICULTIES[s.botDifficulty].label.toLowerCase()}`;
   if (s.mode === "cris") return `${mode}, premier à ${s.cris.points} points, ${bots}`;
   if (s.mode === "cache") return `${mode}, ${s.cache.tours} tour${s.cache.tours > 1 ? "s" : ""}, sans bots`;
+  if (s.mode === "bataille") return `${mode}, Soleil contre Lune, corde de ${s.bataille.pulls} crans, ${bots}`;
+  if (s.mode === "solo") return `${mode}, ${s.solo.stages} étapes, ${s.solo.lives} vies, adversaires : les bots du salon`;
   if (s.mode === "intrus") return `${mode}, ${s.intrus.rounds} manches, ${bots}`;
   if (s.mode === "libre") return `${mode}, ${s.libre.rounds} manches choisies par le chef, ${bots}`;
   if (s.mode === "tictac") return `${mode}, ${s.tictac.bombs} bombes, ${bots}`;

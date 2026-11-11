@@ -3,6 +3,12 @@
 Chaque version commence par « ## numéro — date ». La page de présentation et les serveurs
 locaux lisent ce fichier : pense à augmenter la version dans package.json à chaque publication.
 
+## 0.18.0 — 11 novembre 2026
+- Bataille (nouveau mode) : deux équipes, Soleil et Lune, tirent sur une corde. Après chaque mini-jeu, l'équipe la mieux classée (moyenne des places, équitable même à 1 contre 2) tire le foulard d'un cran ; la première à l'amener dans son camp gagne (corde de 3, 5 ou 7 crans). En 3D : la corde au-dessus d'une flaque de boue, les équipes qui se penchent pour tirer, la boue qui éclabousse.
+- Parcours solo (nouveau mode) : un chemin de 6 ou 10 étapes qui monte vers une coupe, un mini-jeu par étape contre les bots du salon, de plus en plus forts (facile, moyen, puis difficile). Au début, finir dans la première moitié suffit ; à la fin, il faut gagner. Une étape ratée coûte une vie (3 ou 5). Jouable à plusieurs : chacun sa progression.
+- Pastilles des joueurs : équipe (☀️/🌙) en Bataille, étape et vies dans le Parcours solo.
+- Page de présentation : images de Bataille et du Parcours solo.
+
 ## 0.17.0 — 11 novembre 2026
 - Deux nouveaux modes inspirés du menu « Mini-jeux » :
   - L'intrus : à chaque manche, un joueur est désigné en secret et reçoit des coups de pouce (« Psst… ») pendant le mini-jeu : la bonne réponse, la bonne case, la chaîne qui arrive… Après le mini-jeu, chacun vote pour le tricheur (+2 par bon soupçon, +3 à l'intrus s'il passe inaperçu). Mini-jeux concernés : Va-et-vient, Coup d'œil, Où est-il ?, Zappeur fou, Paires de fruits, Calcul express. Scène 3D : les suspects alignés devant les toises, projecteur sur l'intrus à la révélation.

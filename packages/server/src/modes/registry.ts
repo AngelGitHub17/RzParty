@@ -22,6 +22,8 @@ import { cacheMode } from "../game/modes/cache.ts";
 import { tictacMode } from "../game/modes/tictac.ts";
 import { intrusMode } from "../game/modes/intrus.ts";
 import { libreMode } from "../game/modes/libre.ts";
+import { batailleMode } from "../game/modes/bataille.ts";
+import { soloMode } from "../game/modes/solo.ts";
 
 const modes = new Map<GameModeId, GameModeModule>();
 
@@ -55,3 +57,5 @@ registerMode(cacheMode);
 registerMode(tictacMode);
 registerMode(intrusMode);
 registerMode(libreMode);
+registerMode(batailleMode);
+registerMode(soloMode);

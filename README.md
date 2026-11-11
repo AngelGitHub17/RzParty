@@ -262,6 +262,19 @@ Va-et-vient, Coup d'œil, Où est-il ?, Zappeur fou, Paires de fruits, Calcul ex
 Le chef choisit chaque mini-jeu dans la liste (ou « Au hasard ») ; 3, 2 ou 1 point selon la place.
 5, 10 ou 15 manches.
 
+### Bataille
+
+Deux équipes tirées au sort, Soleil et Lune, tirent sur une corde. Après chaque mini-jeu, on fait la
+moyenne des places de chaque équipe (1 contre 2 reste équitable) : la meilleure tire le foulard d'un
+cran. La première équipe à l'amener dans son camp gagne. Corde de 3, 5 ou 7 crans.
+
+### Parcours solo
+
+Un chemin de 6 ou 10 étapes, un mini-jeu par étape, contre les bots du salon dont le niveau monte
+(facile, moyen, difficile). Dans la première moitié du parcours, finir dans la première moitié du
+classement suffit ; ensuite, il faut gagner. Une étape ratée coûte une vie (3 ou 5) et se rejoue.
+Pensé pour un joueur et 1 à 3 bots ; à plusieurs, chacun avance à son rythme.
+
 ### Mini-jeux au choix
 
 Dans le salon, la liste « Mini-jeux » permet au chef de choisir ceux qui seront tirés (ou un seul,

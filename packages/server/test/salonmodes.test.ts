@@ -6,6 +6,8 @@ import { CacheGame } from "../src/game/modes/cache.ts";
 import { TictacGame } from "../src/game/modes/tictac.ts";
 import { IntrusGame } from "../src/game/modes/intrus.ts";
 import { LibreGame } from "../src/game/modes/libre.ts";
+import { BatailleGame } from "../src/game/modes/bataille.ts";
+import { SoloGame } from "../src/game/modes/solo.ts";
 import type { Room } from "../src/rooms/Room.ts";
 import type { GameSession } from "../src/game/types.ts";
 
@@ -14,7 +16,7 @@ const timings = { chefGrace: 10_000, lobbySeatHold: 90_000, roomIdle: 300_000 };
 /** Salon avec deux humains (chef, ami) et `bots` bots. */
 function setup(make: (host: any) => GameSession, patch: object, bots = 1) {
   const events = { changed: vi.fn(), closed: vi.fn(), detached: vi.fn() };
-  const manager = new RoomManager(timings, events, () => ["cris", "cache", "tictac", "libre"] as GameModeId[]);
+  const manager = new RoomManager(timings, events, () => ["cris", "cache", "tictac", "libre", "bataille", "solo"] as GameModeId[]);
   const seat = manager.createIndividualRoom("chef", "Chef");
   manager.join("ami", seat.code, "Amélie");
   for (const p of (["agressif", "glitch", "equilibre"] as const).slice(0, bots)) manager.addBot("chef", p);
@@ -28,7 +30,7 @@ function setup(make: (host: any) => GameSession, patch: object, bots = 1) {
 }
 
 async function untilPodium(room: Room, each?: () => void) {
-  for (let t = 0; t < 4000 && room.game!.snapshot().stage !== "podium"; t++) {
+  for (let t = 0; t < 12000 && room.game!.snapshot().stage !== "podium"; t++) {
     await vi.advanceTimersByTimeAsync(250);
     each?.();
   }
@@ -223,4 +225,45 @@ describe("L'intrus et Jeu libre", () => {
     expect(picked.length).toBe(5);
     expect(snap.libre!.played).toEqual([...new Set(picked)]);
   }, 60_000);
+});
+
+describe("Bataille et Parcours solo", () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  it("Bataille : deux équipes, le foulard avance d'un cran par manche jusqu'au camp gagnant", async () => {
+    const { room } = setup((h) => new BatailleGame(h), { mode: "bataille", bataille: { pulls: 3 } }, 2);
+    const s0 = room.game!.snapshot().bataille!;
+    expect(s0.teams[0].length).toBe(2);
+    expect(s0.teams[1].length).toBe(2);
+    let maxRound = 0;
+    await untilPodium(room, () => {
+      const g = room.game!.snapshot();
+      if (g.stage === "intro") for (const p of room.players) room.game!.ready(p.id);
+      maxRound = Math.max(maxRound, g.bataille!.round);
+      expect(Math.abs(g.bataille!.rope)).toBeLessThanOrEqual(3);
+    });
+    const snap = room.game!.snapshot();
+    expect(snap.stage).toBe("podium");
+    const b = snap.bataille!;
+    expect(Math.abs(b.rope)).toBe(3);
+    const winners = b.rope < 0 ? b.teams[0] : b.teams[1];
+    expect([...snap.winners].sort()).toEqual([...winners].sort());
+    expect(maxRound).toBeGreaterThanOrEqual(3);
+  }, 60_000);
+
+  it("Parcours solo : les humains avancent en finissant devant les bots, sinon ils perdent une vie", async () => {
+    const { room, chef, ami } = setup((h) => new SoloGame(h), { mode: "solo", solo: { stages: 6, lives: 3 } }, 2);
+    let changes = 0;
+    await untilPodium(room, () => {
+      const g = room.game!.snapshot();
+      if (g.stage === "intro") for (const p of room.players) room.game!.ready(p.id);
+      if (g.stage === "results") changes++;
+    });
+    const s = room.game!.snapshot().solo!;
+    // Les bots n'ont pas de progression : seuls les humains sont sur la carte.
+    expect(Object.keys(s.progress).sort()).toEqual([chef, ami].sort());
+    for (const id of [chef, ami]) expect(s.progress[id] === 6 || s.lives[id] === 0).toBe(true);
+    expect(changes).toBeGreaterThan(0);
+  }, 120_000);
 });

@@ -66,6 +66,14 @@ export const GAME_MODES: Record<GameModeId, { label: string; description: string
     label: "Jeu libre",
     description: "Le chef choisit chaque mini-jeu dans la liste. 3, 2 ou 1 point selon la place ; le plus de points après les manches gagne.",
   },
+  bataille: {
+    label: "Bataille",
+    description: "Deux équipes, Soleil et Lune, tirent sur une corde. Après chaque mini-jeu, l'équipe la mieux classée tire le foulard d'un cran vers elle. La première à l'amener jusqu'à son camp gagne !",
+  },
+  solo: {
+    label: "Parcours solo",
+    description: "Un parcours d'étapes à franchir, une par mini-jeu, contre des bots de plus en plus forts : au début il suffit d'être dans la première moitié, à la fin il faut gagner. Une étape ratée coûte une vie. Pensé pour jouer seul contre 1 à 3 bots (ou à plusieurs, chacun sa progression).",
+  },
   roue: {
     label: "Grande Roue",
     description: "Joueurs et banque partent avec 500 médailles. La roue donne ou prend des médailles, gonfle la banque, ou lance une Bataille, un 1 contre tous ou un Duel. Elle change trois fois, et les prolongations durent jusqu'à la Bataille finale !",

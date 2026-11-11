@@ -227,3 +227,60 @@ export interface LibreState {
   choices: string[];
   scores: Record<string, number>;
 }
+
+// ───────────── Bataille (tir à la corde) ─────────────
+
+export const BATAILLE_PULL_CHOICES = [3, 5, 7] as const;
+export const BATAILLE_TEAMS = [
+  { id: "soleil", label: "Équipe Soleil", emoji: "☀️", hex: "#FF8A1F" },
+  { id: "lune", label: "Équipe Lune", emoji: "🌙", hex: "#5B6CFF" },
+] as const;
+
+export interface BatailleState {
+  /** Les deux équipes (identifiants des joueurs). */
+  teams: [string[], string[]];
+  /** Position du foulard sur la corde : négative = côté Soleil, positive = côté Lune. */
+  rope: number;
+  /** Victoire quand le foulard atteint ±goal. */
+  goal: number;
+  round: number;
+  /** Dernière manche : équipe gagnante (0, 1) ou null (égalité) et points de chaque équipe. */
+  last: { winner: 0 | 1 | null; points: [number, number] } | null;
+  wins: Record<string, number>;
+}
+
+/** Points de place, du premier au dernier (pour comparer les équipes). */
+export function placePoints(place: number, count: number): number {
+  return Math.max(0, count - place);
+}
+
+// ───────────── Parcours solo ─────────────
+
+export const SOLO_STAGE_CHOICES = [6, 10] as const;
+export const SOLO_LIVES_CHOICES = [3, 5] as const;
+
+export interface SoloState {
+  /** Étape en cours (1 = première) et nombre d'étapes. */
+  stage: number;
+  stages: number;
+  /** Étape atteinte par chaque joueur (0 = départ) et ses vies. */
+  progress: Record<string, number>;
+  lives: Record<string, number>;
+  /** Places à atteindre pour franchir l'étape en cours (1 = il faut gagner). */
+  needed: number;
+  /** Niveau des adversaires bots à cette étape. */
+  level: "facile" | "moyen" | "difficile";
+  /** Dernière étape : qui l'a franchie, qui a perdu une vie. */
+  last: { passed: string[]; failed: string[] } | null;
+  /** Mini-jeux des étapes déjà jouées (noms), pour la carte. */
+  games: string[];
+}
+
+/** Difficulté d'une étape du parcours (de plus en plus dur). */
+export function soloStageRule(stage: number, stages: number, players: number): { needed: number; level: SoloState["level"] } {
+  const t = stage / stages;
+  const level = t <= 0.34 ? "facile" : t <= 0.7 ? "moyen" : "difficile";
+  // Au début, être dans la première moitié suffit ; à la fin, il faut gagner.
+  const needed = t <= 0.5 ? Math.max(1, Math.ceil(players / 2)) : 1;
+  return { needed, level };
+}

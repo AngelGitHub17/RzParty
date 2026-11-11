@@ -6,7 +6,7 @@ import { WHEEL_ROUND_CHOICES } from "./wheel.ts";
 import { GLOBE_ROUND_CHOICES } from "./globe.ts";
 import { AMITIE_ROUND_CHOICES, BOAT_GOAL_CHOICES, PAIRES_TOUR_CHOICES, TRIOS_ROUND_CHOICES } from "./familyModes.ts";
 import { QUIZ_ROUND_CHOICES, WORD_BOMB_CHOICES } from "./partyModes.ts";
-import { CACHE_TOUR_CHOICES, CRIS_POINT_CHOICES, INTRUS_ROUND_CHOICES, LIBRE_ROUND_CHOICES, TICTAC_BOMB_CHOICES } from "./salonModes.ts";
+import { BATAILLE_PULL_CHOICES, SOLO_LIVES_CHOICES, SOLO_STAGE_CHOICES, CACHE_TOUR_CHOICES, CRIS_POINT_CHOICES, INTRUS_ROUND_CHOICES, LIBRE_ROUND_CHOICES, TICTAC_BOMB_CHOICES } from "./salonModes.ts";
 import { defaultCustomConfig, patchConfig } from "./boardConfig.ts";
 
 export function defaultSettings(): RoomSettings {
@@ -27,6 +27,8 @@ export function defaultSettings(): RoomSettings {
     tictac: { bombs: 5 },
     intrus: { rounds: 5 },
     libre: { rounds: 10 },
+    bataille: { pulls: 5 },
+    solo: { stages: 6, lives: 3 },
     miniGames: [],
     board: { size: "moyen", custom: defaultCustomConfig() },
     survival: { rule: "vies", lives: 3, targetScore: 10 },
@@ -54,6 +56,8 @@ export interface SettingsPatch {
   tictac?: { bombs?: number };
   intrus?: { rounds?: number };
   libre?: { rounds?: number };
+  bataille?: { pulls?: number };
+  solo?: { stages?: number; lives?: number };
 }
 
 /**
@@ -90,6 +94,9 @@ export function applySettingsPatch(current: RoomSettings, patch: unknown): RoomS
   if (p.tictac && (TICTAC_BOMB_CHOICES as readonly number[]).includes(p.tictac.bombs as number)) next.tictac.bombs = p.tictac.bombs as number;
   if (p.intrus && (INTRUS_ROUND_CHOICES as readonly number[]).includes(p.intrus.rounds as number)) next.intrus.rounds = p.intrus.rounds as number;
   if (p.libre && (LIBRE_ROUND_CHOICES as readonly number[]).includes(p.libre.rounds as number)) next.libre.rounds = p.libre.rounds as number;
+  if (p.bataille && (BATAILLE_PULL_CHOICES as readonly number[]).includes(p.bataille.pulls as number)) next.bataille.pulls = p.bataille.pulls as number;
+  if (p.solo && (SOLO_STAGE_CHOICES as readonly number[]).includes(p.solo.stages as number)) next.solo.stages = p.solo.stages as number;
+  if (p.solo && (SOLO_LIVES_CHOICES as readonly number[]).includes(p.solo.lives as number)) next.solo.lives = p.solo.lives as number;
   if (Array.isArray(p.miniGames)) {
     // Les identifiants inconnus sont ignorés par le serveur au moment du tirage.
     next.miniGames = [...new Set(p.miniGames.filter((id): id is string => typeof id === "string" && /^[a-z0-9-]{1,32}$/.test(id)))].slice(0, 100);

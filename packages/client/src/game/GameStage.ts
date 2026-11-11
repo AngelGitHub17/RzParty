@@ -21,6 +21,8 @@ import { CacheView } from "./CacheView.ts";
 import { TictacView } from "./TictacView.ts";
 import { IntrusView } from "./IntrusView.ts";
 import { LibreView } from "./LibreView.ts";
+import { BatailleView } from "./BatailleView.ts";
+import { SoloView } from "./SoloView.ts";
 
 /** Écrans des modes de jeu hors mini-jeux (une classe par étape). */
 interface ModeView {
@@ -43,6 +45,8 @@ const MODE_VIEWS: Record<string, new (root: HTMLElement, layout: ViewLayout, meI
   tictac: TictacView,
   intrus: IntrusView,
   libre: LibreView,
+  bataille: BatailleView,
+  solo: SoloView,
 };
 import { obfuscated } from "../ui/obfuscate.ts";
 
@@ -164,6 +168,12 @@ export class GameStage {
               ? h("strong", { class: "chip__score", text: `💥 ${s.score}` })
               : game.mode === "cris" || game.mode === "cache" || game.mode === "intrus" || game.mode === "libre"
               ? h("strong", { class: "chip__score", text: `${s.score} pt${s.score > 1 ? "s" : ""}` })
+              : game.mode === "bataille"
+              ? h("strong", { class: "chip__score", text: `${game.bataille?.teams[0].includes(p.id) ? "☀️" : "🌙"} ${s.score}` })
+              : game.mode === "solo" && game.solo && p.id in game.solo.progress
+              ? h("strong", { class: "chip__score", text: `🚩 ${s.score}/${game.solo.stages} · ${"❤️".repeat(Math.max(0, s.lives))}` })
+              : game.mode === "solo"
+              ? h("strong", { class: "chip__score", text: "🤖 adversaire" })
               : game.mode === "voyage"
               ? h("strong", { class: "chip__score", text: `📷 ${s.score} · 🪙 ${game.globe?.coins[p.id] ?? 0}` })
               : game.mode === "plateau"
@@ -237,7 +247,9 @@ export class GameStage {
       case "cache":
       case "tictac":
       case "intrus":
-      case "libre": {
+      case "libre":
+      case "bataille":
+      case "solo": {
         if (!this.modeView) this.modeView = { stage: game.stage, view: new MODE_VIEWS[game.stage]!(this.main, this.layout, this.meId) };
         this.modeView.view.update(room);
         return;

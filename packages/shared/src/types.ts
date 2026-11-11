@@ -5,7 +5,7 @@ import type { GlobeState } from "./globe.ts";
 import type { LotoState, MotsState, QuizState } from "./partyModes.ts";
 import type { AmitieState, BateauState, PairesState, TriosState } from "./familyModes.ts";
 import type { IleState } from "./ile.ts";
-import type { CacheState, CrisState, IntrusState, LibreState, TictacState } from "./salonModes.ts";
+import type { BatailleState, CacheState, CrisState, IntrusState, LibreState, SoloState, TictacState } from "./salonModes.ts";
 import type { PlayerColorIndex } from "./constants.ts";
 import type { Avatar } from "./avatar.ts";
 import type { Board, BoardSize, CellType } from "./board.ts";
@@ -18,7 +18,7 @@ import type { Board, BoardSize, CellType } from "./board.ts";
 export type DisplayMode = "commun" | "individuel";
 
 /** Identifiant d'un mode de jeu. Les modes s'enregistrent côté serveur dans le registre des modes. */
-export type GameModeId = "survie" | "plateau" | "roue" | "loto" | "quiz" | "mots" | "voyage" | "trios" | "bateau" | "paires" | "amitie" | "ile" | "cris" | "cache" | "tictac" | "intrus" | "libre";
+export type GameModeId = "survie" | "plateau" | "roue" | "loto" | "quiz" | "mots" | "voyage" | "trios" | "bateau" | "paires" | "amitie" | "ile" | "cris" | "cache" | "tictac" | "intrus" | "libre" | "bataille" | "solo";
 
 export type BotPersonality = "equilibre" | "agressif" | "lent-precis" | "glitch";
 
@@ -57,6 +57,10 @@ export interface RoomSettings {
   intrus: { rounds: number };
   /** Jeu libre : nombre de manches. */
   libre: { rounds: number };
+  /** Bataille : longueur de la corde (manches gagnées d'avance pour l'emporter). */
+  bataille: { pulls: number };
+  /** Parcours solo : nombre d'étapes et de vies. */
+  solo: { stages: number; lives: number };
   /** Mini-jeux autorisés (vide = tous). Le chef peut n'en garder qu'un seul. */
   miniGames: string[];
   /** Mode Plateau : nombre d'équipes (0 = chacun pour soi), réparties au hasard au lancement. */
@@ -92,7 +96,7 @@ export interface PublicPlayer {
 export type RoomPhase = "salon" | "partie";
 
 /** Étapes d'une manche, identiques pour tous les modes. */
-export type GameStage = "intro" | "countdown" | "play" | "results" | "board" | "wheel" | "loto" | "quiz" | "mots" | "globe" | "trios" | "bateau" | "paires" | "amitie" | "ile" | "cris" | "cache" | "tictac" | "intrus" | "libre" | "podium";
+export type GameStage = "intro" | "countdown" | "play" | "results" | "board" | "wheel" | "loto" | "quiz" | "mots" | "globe" | "trios" | "bateau" | "paires" | "amitie" | "ile" | "cris" | "cache" | "tictac" | "intrus" | "libre" | "bataille" | "solo" | "podium";
 
 /** Pourquoi on joue ce mini-jeu : départager l'ordre de jeu, gagner des pièces, survivre. */
 export type MiniGamePurpose = "survie" | "ordre" | "pieces" | "duel" | "cagnotte" | "loto" | "duelroue" | "voyage" | "unvstous" | "bateau" | "paires" | "amitie" | "defi" | "ile" | "ile1v3" | "ileduel";
@@ -158,6 +162,8 @@ export interface GameSnapshot {
   tictac?: TictacState | null;
   intrus?: IntrusState | null;
   libre?: LibreState | null;
+  bataille?: BatailleState | null;
+  solo?: SoloState | null;
 }
 
 export interface PawnState {

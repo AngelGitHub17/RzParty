@@ -1,4 +1,4 @@
-import type { GameModeId, GameSnapshot, GameStage, MiniGamePurpose, RoundResult, Standing } from "@rzparty/shared";
+import type { Difficulty, GameModeId, GameSnapshot, GameStage, MiniGamePurpose, RoundResult, Standing } from "@rzparty/shared";
 import { MINI_GAMES, type BotProfile, type MiniGameServerModule } from "@rzparty/minigames/server";
 import { MiniGameRunner } from "./MiniGameRunner.ts";
 import type { GameHost, GameSession } from "./types.ts";
@@ -155,7 +155,7 @@ export abstract class BaseGame implements GameSession {
     const module = this.module!;
     const round = this.round;
     const { room } = this.host;
-    const difficulty = room.settings.botDifficulty;
+    const difficulty = this.botDifficulty();
 
     const bots = new Map<string, BotProfile>();
     for (const id of this.participants) {
@@ -212,6 +212,11 @@ export abstract class BaseGame implements GameSession {
     this.participants = [];
     this.runner = null;
     this.setStage("podium", null);
+  }
+
+  /** Niveau des bots pour la manche (le réglage du salon, sauf mode qui le fait évoluer). */
+  protected botDifficulty(): Difficulty {
+    return this.host.room.settings.botDifficulty;
   }
 
   /** Le tricheur de la manche (mode « L'intrus ») ; aucun par défaut. */
