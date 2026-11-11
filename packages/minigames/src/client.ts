@@ -24,6 +24,9 @@ import { visageView } from "./visage/view.ts";
 import { tremplinView } from "./tremplin/view.ts";
 import { artificeView } from "./artifice/view.ts";
 import { escargotsView } from "./escargots/view.ts";
+import { chambouleView } from "./chamboule/view.ts";
+import { ombresView } from "./ombres/view.ts";
+import { glacesView } from "./glaces/view.ts";
 import { lianeView } from "./liane/view.ts";
 import { pasView } from "./pas/view.ts";
 import { photoView } from "./photo/view.ts";
@@ -116,6 +119,9 @@ export const MINI_GAME_VIEWS: Record<string, MiniGameViewFactory> = {
   tremplin: tremplinView,
   artifice: artificeView,
   escargots: escargotsView,
+  chamboule: chambouleView,
+  ombres: ombresView,
+  glaces: glacesView,
   liane: lianeView,
   pas: pasView,
   photo: photoView,

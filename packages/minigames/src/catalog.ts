@@ -22,6 +22,9 @@ import { definition as visage } from "./visage/definition.ts";
 import { definition as tremplin } from "./tremplin/definition.ts";
 import { definition as artifice } from "./artifice/definition.ts";
 import { definition as escargots } from "./escargots/definition.ts";
+import { definition as chamboule } from "./chamboule/definition.ts";
+import { definition as ombres } from "./ombres/definition.ts";
+import { definition as glaces } from "./glaces/definition.ts";
 import { definition as liane } from "./liane/definition.ts";
 import { definition as pas } from "./pas/definition.ts";
 import { definition as photo } from "./photo/definition.ts";
@@ -36,6 +39,6 @@ import { definition as aiguillages } from "./aiguillages/definition.ts";
 import { definition as perles } from "./perles/definition.ts";
 import { definition as cadeaux } from "./cadeaux/definition.ts";
 
-export const MINI_GAME_DEFINITIONS: MiniGameDefinition[] = [reflexes, calcul, memoire, piratage, labyrinthe, bombe, taupes, stroop, coupdoeil, tri, escalier, chrono, vaetvient, bandits, paires, visage, tremplin, liane, pas, photo, zappeur, penalty, alunissage, ballons, ressort, puzzle, haies, aiguillages, perles, cadeaux, artifice, escargots];
+export const MINI_GAME_DEFINITIONS: MiniGameDefinition[] = [reflexes, calcul, memoire, piratage, labyrinthe, bombe, taupes, stroop, coupdoeil, tri, escalier, chrono, vaetvient, bandits, paires, visage, tremplin, liane, pas, photo, zappeur, penalty, alunissage, ballons, ressort, puzzle, haies, aiguillages, perles, cadeaux, artifice, escargots, chamboule, ombres, glaces];
 
 export type { MiniGameDefinition, MiniGameRecord } from "./contract.ts";

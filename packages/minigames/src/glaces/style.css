@@ -1,0 +1,126 @@
+.ice__title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.ice__box {
+  width: min(700px, 100%);
+}
+
+.ice__box.has-3d {
+  height: clamp(220px, 40vh, 420px);
+  border-radius: var(--radius-l);
+  overflow: hidden;
+  background: linear-gradient(#ffe0ef, #fff6e6);
+}
+
+.ice__box.has-3d .ice__flat {
+  display: none;
+}
+
+.ice__flat {
+  display: grid;
+  place-items: center;
+  min-height: 200px;
+}
+
+.ice__cone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ice__scoop {
+  width: 70px;
+  height: 52px;
+  margin-bottom: -14px;
+  border: 3px solid #0002;
+  border-radius: 50%;
+}
+
+.ice__scoop.is-empty {
+  border-style: dashed;
+  background: #ffffff88;
+}
+
+.ice__wafer {
+  width: 0;
+  height: 0;
+  margin-top: 10px;
+  border-top: 90px solid #e0a35c;
+  border-right: 34px solid transparent;
+  border-left: 34px solid transparent;
+}
+
+.ice__secret {
+  font-size: 4rem;
+}
+
+.ice__pad {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+  width: min(640px, 100%);
+}
+
+.ice--pad .ice__pad,
+.ice--solo .ice__pad {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.ice__flavor,
+.ice__undo {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 8px 4px;
+  border: 3px solid var(--line, #ddd);
+  border-radius: var(--radius-m);
+  background: var(--paper, #fff);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.ice__flavor:disabled,
+.ice__undo:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.ice__ball {
+  width: 38px;
+  height: 38px;
+  border: 3px solid #0002;
+  border-radius: 50%;
+  background: var(--flavor);
+}
+
+.ice__who {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  min-height: 32px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ice__who li {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px 2px 2px;
+  border: 2px solid var(--player);
+  border-radius: 999px;
+  background: #fff;
+  font-weight: 800;
+}
+
+.ice__who li.is-ko {
+  opacity: 0.6;
+}

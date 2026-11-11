@@ -22,6 +22,9 @@ import visage from "./visage/server.ts";
 import tremplin from "./tremplin/server.ts";
 import artifice from "./artifice/server.ts";
 import escargots from "./escargots/server.ts";
+import chamboule from "./chamboule/server.ts";
+import ombres from "./ombres/server.ts";
+import glaces from "./glaces/server.ts";
 import liane from "./liane/server.ts";
 import pas from "./pas/server.ts";
 import photo from "./photo/server.ts";
@@ -56,6 +59,9 @@ export const MINI_GAMES: MiniGameServerModule[] = [
   tremplin as MiniGameServerModule,
   artifice as MiniGameServerModule,
   escargots as MiniGameServerModule,
+  chamboule as MiniGameServerModule,
+  ombres as MiniGameServerModule,
+  glaces as MiniGameServerModule,
   liane as MiniGameServerModule,
   pas as MiniGameServerModule,
   photo as MiniGameServerModule,

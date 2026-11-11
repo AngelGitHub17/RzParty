@@ -3,6 +3,13 @@
 Chaque version commence par « ## numéro — date ». La page de présentation et les serveurs
 locaux lisent ce fichier : pense à augmenter la version dans package.json à chaque publication.
 
+## 0.20.0 — 11 novembre 2026
+- Trois nouveaux mini-jeux en 3D :
+  - Chamboule-tout : le viseur va et vient devant la pyramide de 6 boîtes, de plus en plus vite ; lance au bon moment pour tout faire tomber (+4 points si les 6 tombent). Stand de fête foraine, boîtes qui dégringolent.
+  - Ombres chinoises : une ombre se dessine sur le drap éclairé par la lampe (penchée, parfois retournée) ; trouve à quoi elle appartient parmi 4 images. Le plus rapide marque 3 points. 7 ombres.
+  - Cornet glacé : mémorise la commande (les boules de bas en haut), puis refais le cornet de mémoire ; une boule de plus à chaque commande. Le bon cornet le plus rapide marque 3 points.
+- L'intrus : Ombres chinoises (la bonne image) et Cornet glacé (la commande) ont aussi leurs coups de pouce secrets.
+
 ## 0.19.1 — 11 novembre 2026
 - Île aux défis : les dés montrent leur résultat face à la caméra (et non plus vers le ciel), et restent tournés vers elle quand le joueur se déplace.
 

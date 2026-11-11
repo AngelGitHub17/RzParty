@@ -187,7 +187,7 @@ export function tictacTaskText(task: TictacTask): string {
 
 export const INTRUS_ROUND_CHOICES = [3, 5, 7] as const;
 /** Mini-jeux où l'intrus reçoit des coups de pouce secrets. */
-export const INTRUS_GAMES = ["vaetvient", "coupdoeil", "visage", "zappeur", "paires", "calcul", "memoire", "aiguillages", "escalier", "puzzle", "stroop"] as const;
+export const INTRUS_GAMES = ["vaetvient", "coupdoeil", "visage", "zappeur", "paires", "calcul", "memoire", "aiguillages", "escalier", "puzzle", "stroop", "ombres", "glaces"] as const;
 /** Points : par place au mini-jeu, pour un bon soupçon, pour l'intrus qui passe inaperçu. */
 export const INTRUS_POINTS = { places: [3, 2, 1], caught: 2, unseen: 3 };
 
