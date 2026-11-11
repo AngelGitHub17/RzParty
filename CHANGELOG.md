@@ -3,6 +3,9 @@
 Chaque version commence par « ## numéro — date ». La page de présentation et les serveurs
 locaux lisent ce fichier : pense à augmenter la version dans package.json à chaque publication.
 
+## 0.19.1 — 11 novembre 2026
+- Île aux défis : les dés montrent leur résultat face à la caméra (et non plus vers le ciel), et restent tournés vers elle quand le joueur se déplace.
+
 ## 0.19.0 — 11 novembre 2026
 - Défis (nouveau mode, en équipe) : tous les humains ensemble contre les bots du salon. À chaque mini-jeu, le défi est réussi si votre meilleur joueur finit devant le meilleur bot : 100 points + 50 par joueur devant les bots, multipliés par la série (×1, ×1,5, ×2… jusqu'à ×4). Un défi raté coûte un cœur (3 ou 5) et remet la série à zéro ; les bots montent de niveau tous les 3 défis réussis. Tableau des 5 meilleurs scores gardé sur le serveur (data/defis.json), « Nouveau record ! » quand on le bat. En 3D : les deux estrades face à face, les cœurs de l'équipe et le tableau d'affichage.
 - L'intrus : 5 mini-jeux de plus avec coups de pouce secrets (11 en tout) : Mémo-flash (la suite à refaire), Aiguillages (le bon réglage), Escalier secret (les choix des autres en direct), Puzzle express (la bonne moitié), Couleurs piégées (la couleur de l'encre).

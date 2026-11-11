@@ -586,6 +586,8 @@ export class IleScene {
     this.diceLooks = looks;
     this.dice = looks.map((look, i) => {
       const d = new Die3D(look, 0.55);
+      // La valeur se tourne vers la caméra (et pas vers le ciel).
+      d.viewer = this.stage.camera;
       d.mesh.position.x = (i - (looks.length - 1) / 2) * 0.75;
       this.diceGroup.add(d.mesh);
       return d;

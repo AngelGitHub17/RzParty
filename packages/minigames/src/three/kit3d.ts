@@ -150,9 +150,22 @@ const UP_FACE: Record<number, THREE.Euler> = {
  * Un dé qui roule : `roll(value)` le fait tourner puis se poser sur la valeur.
  * Les dés bonus à moins de 6 faces répètent leurs valeurs sur les faces restantes.
  */
+/** Normale (dans le repère du dé) de la face qui porte chaque valeur. */
+const FACE_NORMAL: Record<number, THREE.Vector3> = {
+  1: new THREE.Vector3(1, 0, 0),
+  6: new THREE.Vector3(-1, 0, 0),
+  2: new THREE.Vector3(0, 1, 0),
+  5: new THREE.Vector3(0, -1, 0),
+  3: new THREE.Vector3(0, 0, 1),
+  4: new THREE.Vector3(0, 0, -1),
+};
+
 export class Die3D {
   readonly mesh: THREE.Mesh;
   private rolling: { start: number; value: number; from: THREE.Quaternion; spin: THREE.Vector3 } | null = null;
+  /** Si renseignée, la valeur obtenue se tourne vers cette caméra (sinon elle regarde vers le ciel). */
+  viewer: THREE.Camera | null = null;
+  private value: number | null = null;
   constructor(look: DieLook = "blanc", size = 0.6) {
     const faces = [1, 6, 2, 5, 3, 4];
     this.mesh = new THREE.Mesh(new RoundedBoxGeometry(size, size, size, 4, size * 0.16), faces.map((v) => new THREE.MeshToonMaterial({ map: dieFace(v, look) })));
@@ -163,13 +176,41 @@ export class Die3D {
   /** Montre une valeur sans animation. */
   show(value: number): void {
     this.rolling = null;
-    this.mesh.quaternion.setFromEuler(UP_FACE[value] ?? UP_FACE[1]!);
+    this.value = value;
+    this.mesh.quaternion.copy(this.restFor(value));
+  }
+  /** Orientation finale : la face `value` vers la caméra (ou vers le haut sans caméra). */
+  private restFor(value: number): THREE.Quaternion {
+    const normal = FACE_NORMAL[value] ?? FACE_NORMAL[1]!;
+    if (!this.viewer) return new THREE.Quaternion().setFromEuler(UP_FACE[value] ?? UP_FACE[1]!);
+    // Direction de la caméra, ramenée dans le repère du parent du dé.
+    const at = this.mesh.getWorldPosition(new THREE.Vector3());
+    const dir = this.viewer.getWorldPosition(new THREE.Vector3()).sub(at).normalize();
+    const parentQ = this.mesh.parent ? this.mesh.parent.getWorldQuaternion(new THREE.Quaternion()) : new THREE.Quaternion();
+    dir.applyQuaternion(parentQ.invert());
+    const q = new THREE.Quaternion().setFromUnitVectors(normal, dir);
+    // On redresse le dé autour de cet axe pour que ses arêtes restent à peu près verticales.
+    const up = new THREE.Vector3(0, 1, 0);
+    const side = normal.y !== 0 ? new THREE.Vector3(0, 0, normal.y > 0 ? -1 : 1) : up.clone();
+    const sideNow = side.applyQuaternion(q);
+    const want = up.clone().sub(dir.clone().multiplyScalar(up.dot(dir))).normalize();
+    const have = sideNow.sub(dir.clone().multiplyScalar(sideNow.dot(dir))).normalize();
+    if (want.lengthSq() > 0.5 && have.lengthSq() > 0.5) {
+      const angle = Math.atan2(have.clone().cross(want).dot(dir), have.dot(want));
+      q.premultiply(new THREE.Quaternion().setFromAxisAngle(dir, angle));
+    }
+    return q;
   }
   tick(now: number): void {
     const r = this.rolling;
-    if (!r) return;
+    if (!r) {
+      // Le dé posé continue de regarder la caméra (le joueur bouge, la caméra aussi).
+      if (this.viewer && this.value !== null) this.mesh.quaternion.slerp(this.restFor(this.value), 0.15);
+      return;
+    }
+    this.value = r.value;
     const t = Math.min(1, (now - r.start) / 900);
-    const end = new THREE.Quaternion().setFromEuler(UP_FACE[r.value] ?? UP_FACE[1]!);
+    const end = this.restFor(r.value);
     if (t < 0.7) {
       const e = new THREE.Euler(r.spin.x * t, r.spin.y * t, r.spin.z * t);
       this.mesh.quaternion.copy(r.from).multiply(new THREE.Quaternion().setFromEuler(e));
