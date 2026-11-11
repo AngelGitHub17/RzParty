@@ -255,7 +255,8 @@ des coups de pouce que lui seul voit (« Psst… » : la bonne réponse, la bonn
 arrive…). Après le mini-jeu, chacun vote pour celui qu'il soupçonne (l'intrus vote aussi, pour ne
 pas se trahir). Points : 3/2/1 selon la place au mini-jeu, +2 par bon soupçon, +3 à l'intrus si moins
 de la moitié l'a démasqué. Chacun est l'intrus à son tour. 3, 5 ou 7 manches. Mini-jeux concernés :
-Va-et-vient, Coup d'œil, Où est-il ?, Zappeur fou, Paires de fruits, Calcul express.
+Va-et-vient, Coup d'œil, Où est-il ?, Zappeur fou, Paires de fruits, Calcul express, Mémo-flash,
+Aiguillages, Escalier secret, Puzzle express et Couleurs piégées.
 
 ### Jeu libre
 
@@ -275,6 +276,14 @@ Un chemin de 6 ou 10 étapes, un mini-jeu par étape, contre les bots du salon d
 classement suffit ; ensuite, il faut gagner. Une étape ratée coûte une vie (3 ou 5) et se rejoue.
 Pensé pour un joueur et 1 à 3 bots ; à plusieurs, chacun avance à son rythme.
 
+### Défis
+
+Tous les humains ensemble contre les bots du salon (il en faut au moins un). Défi réussi si le
+meilleur humain finit devant le meilleur bot : 100 points + 50 par humain devant les bots, multipliés
+par la série en cours (×1, ×1,5, ×2… ×4). Défi raté : un cœur en moins (3 ou 5) et la série repart
+à zéro. Les bots montent de niveau tous les 3 défis réussis. Les 5 meilleurs scores d'équipe sont
+gardés dans `data/defis.json`.
+
 ### Mini-jeux au choix
 
 Dans le salon, la liste « Mini-jeux » permet au chef de choisir ceux qui seront tirés (ou un seul,
@@ -288,7 +297,7 @@ sur « Je suis prêt ».
 - **Vies** (3, 5 ou 7) : le ou les derniers de chaque manche perdent une vie. Le dernier survivant gagne.
 - **Score** (5, 10 ou 15 points) : 3 points pour le premier, 1 pour le deuxième. Le premier au score gagne.
 
-Mini-jeux disponibles : **Dégaine !** (réflexes), **Calcul express** (calcul mental), **Mémo-flash** (mémoire : couleurs, formes, chiffres ou objet disparu, une variante par niveau), **Piratage** (code secret à deviner avec des indices), **Labyrinthe** (le même labyrinthe pour tous, premier sorti), **Patate explosive** (une bombe à se passer en tapant un mot avant qu'elle n'explose), **Tape-taupe** (les mêmes taupes pour tous, tape-les vite), **Couleurs piégées** (toucher la couleur de l'encre, pas du mot), **Coup d'œil** (compter des formes vues quelques secondes), **Tri éclair** (toucher les nombres dans l'ordre croissant), **Escalier secret** (1, 2 ou 3 marches en secret, même choix = bloqués), **Chrono à l'aveugle** (arrêter un chrono invisible pile au bon temps), **Va-et-vient** (compter qui entre et sort de la maison), **Ruée vers l'Ouest** (bandits oui, habitants non), **Paires de fruits** (memory), **Où est-il ?** (retrouver un personnage parmi ses sosies), **Grand tremplin** (sauter au dernier moment), **Liane folle** (lâcher la liane au bon moment), **Pas comptés** (compter ses pas de tête), **Photo souvenir** (déclencher au plus grand sourire), **Zappeur fou** (appuyer sur la bonne chaîne), **Tirs au but** (jauge de puissance et direction), **Alunissage** (freiner pour se poser en douceur), **Ballons volants** (éclater la bonne couleur), **Ressort** (sauter au sommet, l'élan grandit), **Puzzle express** (compléter l'image), **Course de haies** (sauter au bon moment), **Aiguillages** (mener le train à la bonne gare), **Chasse aux perles** (attraper la perle avant que l'huître se referme), **Tour de cadeaux** (empiler les cadeaux au millimètre).
+Mini-jeux disponibles : **Dégaine !** (réflexes), **Calcul express** (calcul mental), **Mémo-flash** (mémoire : couleurs, formes, chiffres ou objet disparu, une variante par niveau), **Piratage** (code secret à deviner avec des indices), **Labyrinthe** (le même labyrinthe pour tous, premier sorti), **Patate explosive** (une bombe à se passer en tapant un mot avant qu'elle n'explose), **Tape-taupe** (les mêmes taupes pour tous, tape-les vite), **Couleurs piégées** (toucher la couleur de l'encre, pas du mot), **Coup d'œil** (compter des formes vues quelques secondes), **Tri éclair** (toucher les nombres dans l'ordre croissant), **Escalier secret** (1, 2 ou 3 marches en secret, même choix = bloqués), **Chrono à l'aveugle** (arrêter un chrono invisible pile au bon temps), **Va-et-vient** (compter qui entre et sort de la maison), **Ruée vers l'Ouest** (bandits oui, habitants non), **Paires de fruits** (memory), **Où est-il ?** (retrouver un personnage parmi ses sosies), **Grand tremplin** (sauter au dernier moment), **Liane folle** (lâcher la liane au bon moment), **Pas comptés** (compter ses pas de tête), **Photo souvenir** (déclencher au plus grand sourire), **Zappeur fou** (appuyer sur la bonne chaîne), **Tirs au but** (jauge de puissance et direction), **Alunissage** (freiner pour se poser en douceur), **Ballons volants** (éclater la bonne couleur), **Ressort** (sauter au sommet, l'élan grandit), **Puzzle express** (compléter l'image), **Course de haies** (sauter au bon moment), **Aiguillages** (mener le train à la bonne gare), **Chasse aux perles** (attraper la perle avant que l'huître se referme), **Tour de cadeaux** (empiler les cadeaux au millimètre), **Feu d'artifice** (faire éclater la fusée au sommet), **Course d'escargots** (tapoter à bon rythme, sans s'essouffler).
 
 Le fichier [docs/catalogue.md](docs/catalogue.md) liste toutes les idées de mini-jeux et de modes
 reprises de Wii Party, avec leur nom RzParty, leur adaptation aux boutons et leur état.

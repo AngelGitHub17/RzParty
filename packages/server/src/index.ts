@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { config, isValidPort, rootDir, saveHostSettings, settingsFile } from "./config.ts";
 import { ProfileStore } from "./profiles/ProfileStore.ts";
 import { AdminStore } from "./profiles/AdminStore.ts";
+import { ChallengeStore } from "./profiles/ChallengeStore.ts";
 import { ClientNotBuiltError, startServer, version, type RunningServer } from "./http.ts";
 import { HostConsole } from "./console.ts";
 import { lanAddresses } from "./network.ts";
@@ -15,6 +16,8 @@ const hostConsole = new HostConsole();
 const profiles = new ProfileStore(resolve(rootDir, "data"));
 /** Compte de l'hôte pour la page /hote (supprimer data/admin.json pour le réinitialiser). */
 const admin = new AdminStore(resolve(rootDir, "data"));
+/** Meilleurs scores du mode « Défis ». */
+const challenges = new ChallengeStore(resolve(rootDir, "data"));
 let server: RunningServer | null = null;
 
 function isPortInUse(err: unknown): boolean {
@@ -78,7 +81,7 @@ function printBanner(port: number): void {
 async function launch(port: number): Promise<RunningServer | null> {
   for (;;) {
     try {
-      return await startServer(port, { profiles, admin });
+      return await startServer(port, { profiles, admin, challenges });
     } catch (err) {
       if (err instanceof ClientNotBuiltError) {
         console.error(`\n  ${err.message}\n`);
@@ -111,11 +114,11 @@ async function changePort(): Promise<void> {
   await server.stop();
   server = null;
   try {
-    server = await startServer(next, { profiles, admin });
+    server = await startServer(next, { profiles, admin, challenges });
   } catch (err) {
     if (!isPortInUse(err)) throw err;
     console.log(`\n  ${portProblem(next, err)} Retour au port ${previous}.`);
-    server = await startServer(previous, { profiles, admin });
+    server = await startServer(previous, { profiles, admin, challenges });
     printBanner(previous);
     return;
   }

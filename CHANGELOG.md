@@ -3,6 +3,14 @@
 Chaque version commence par « ## numéro — date ». La page de présentation et les serveurs
 locaux lisent ce fichier : pense à augmenter la version dans package.json à chaque publication.
 
+## 0.19.0 — 11 novembre 2026
+- Défis (nouveau mode, en équipe) : tous les humains ensemble contre les bots du salon. À chaque mini-jeu, le défi est réussi si votre meilleur joueur finit devant le meilleur bot : 100 points + 50 par joueur devant les bots, multipliés par la série (×1, ×1,5, ×2… jusqu'à ×4). Un défi raté coûte un cœur (3 ou 5) et remet la série à zéro ; les bots montent de niveau tous les 3 défis réussis. Tableau des 5 meilleurs scores gardé sur le serveur (data/defis.json), « Nouveau record ! » quand on le bat. En 3D : les deux estrades face à face, les cœurs de l'équipe et le tableau d'affichage.
+- L'intrus : 5 mini-jeux de plus avec coups de pouce secrets (11 en tout) : Mémo-flash (la suite à refaire), Aiguillages (le bon réglage), Escalier secret (les choix des autres en direct), Puzzle express (la bonne moitié), Couleurs piégées (la couleur de l'encre).
+- Deux nouveaux mini-jeux en 3D :
+  - Feu d'artifice : la fusée monte en ralentissant, marque une pause au sommet puis retombe ; fais-la éclater pile en haut (100 points), l'éclat est d'autant plus grand. 3 fusées.
+  - Course d'escargots : tapote pour faire avancer ton escargot jusqu'à la salade, mais pas plus de 8 appuis par seconde, sinon il s'essouffle (💦) ! Une jauge montre ton rythme. Équitable au téléphone comme au clavier.
+- Test du plateau personnalisé : tient compte des égalités au mini-jeu.
+
 ## 0.18.0 — 11 novembre 2026
 - Bataille (nouveau mode) : deux équipes, Soleil et Lune, tirent sur une corde. Après chaque mini-jeu, l'équipe la mieux classée (moyenne des places, équitable même à 1 contre 2) tire le foulard d'un cran ; la première à l'amener dans son camp gagne (corde de 3, 5 ou 7 crans). En 3D : la corde au-dessus d'une flaque de boue, les équipes qui se penchent pour tirer, la boue qui éclabousse.
 - Parcours solo (nouveau mode) : un chemin de 6 ou 10 étapes qui monte vers une coupe, un mini-jeu par étape contre les bots du salon, de plus en plus forts (facile, moyen, puis difficile). Au début, finir dans la première moitié suffit ; à la fin, il faut gagner. Une étape ratée coûte une vie (3 ou 5). Jouable à plusieurs : chacun sa progression.

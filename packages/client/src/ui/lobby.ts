@@ -26,6 +26,7 @@ import {
   BATAILLE_PULL_CHOICES,
   SOLO_STAGE_CHOICES,
   SOLO_LIVES_CHOICES,
+  DEFIS_HEART_CHOICES,
   type BotPersonality,
   type Difficulty,
   type GameModeId,
@@ -272,6 +273,8 @@ export function renderChefPanel(snapshot: RoomSnapshot, actions: ChefActions): H
           segmented("Étapes", SOLO_STAGE_CHOICES.map((n) => ({ value: n as number, label: `${n} étapes` })), s.solo.stages, (stages) => actions.update({ solo: { stages } })),
           segmented("Vies", SOLO_LIVES_CHOICES.map((n) => ({ value: n as number, label: `${n} vies` })), s.solo.lives, (lives) => actions.update({ solo: { lives } })),
         )
+      : s.mode === "defis"
+      ? segmented("Cœurs de l'équipe", DEFIS_HEART_CHOICES.map((n) => ({ value: n as number, label: `${n} cœurs` })), s.defis.hearts, (hearts) => actions.update({ defis: { hearts } }))
       : s.mode === "intrus"
       ? segmented("Nombre de manches", INTRUS_ROUND_CHOICES.map((n) => ({ value: n as number, label: `${n} manches` })), s.intrus.rounds, (rounds) => actions.update({ intrus: { rounds } }))
       : s.mode === "libre"
@@ -374,6 +377,7 @@ function baseSummary(snapshot: RoomSnapshot): string {
   if (s.mode === "cache") return `${mode}, ${s.cache.tours} tour${s.cache.tours > 1 ? "s" : ""}, sans bots`;
   if (s.mode === "bataille") return `${mode}, Soleil contre Lune, corde de ${s.bataille.pulls} crans, ${bots}`;
   if (s.mode === "solo") return `${mode}, ${s.solo.stages} étapes, ${s.solo.lives} vies, adversaires : les bots du salon`;
+  if (s.mode === "defis") return `${mode}, tous contre les bots, ${s.defis.hearts} cœurs`;
   if (s.mode === "intrus") return `${mode}, ${s.intrus.rounds} manches, ${bots}`;
   if (s.mode === "libre") return `${mode}, ${s.libre.rounds} manches choisies par le chef, ${bots}`;
   if (s.mode === "tictac") return `${mode}, ${s.tictac.bombs} bombes, ${bots}`;

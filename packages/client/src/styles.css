@@ -5170,3 +5170,40 @@ button.quiz__option {
 .salon--wide.salon--tv .salon__3d.has-3d {
   height: clamp(300px, 54vh, 620px);
 }
+
+/* Défis */
+.defis__score {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 8px 20px;
+  border-radius: 999px;
+  background: #1e2a4a;
+  color: #ffe58a;
+  font-size: 1.4rem;
+}
+
+.defis__records {
+  display: grid;
+  gap: 6px;
+  width: min(480px, 100%);
+  margin: 0;
+  padding-left: 1.6em;
+  text-align: left;
+}
+
+.defis__records li {
+  padding: 4px 10px;
+  border-radius: var(--radius-s);
+  background: var(--paper);
+}
+
+.defis__records li span {
+  margin-left: 10px;
+  color: var(--ink-soft);
+}
+
+.defis__records li.is-new {
+  background: #fff3c4;
+  outline: 3px solid var(--sun);
+}

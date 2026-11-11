@@ -1,5 +1,5 @@
 import { gaussian } from "@rzparty/shared";
-import { botSkill, defineMiniGame, type MiniGameRanking } from "../contract.ts";
+import { botSkill, defineMiniGame, type MiniGameRanking, tipCheater } from "../contract.ts";
 import { definition } from "./definition.ts";
 import {
   COLORS,
@@ -84,6 +84,7 @@ export default defineMiniGame<MemoState, never, MemoInput>({
       ctx.schedule(showDuration(state.length), () => {
         if (state.level !== level) return;
         state.phase = "input";
+        tipCheater(ctx, `La réponse : ${solution.join(" · ")}`);
         state.items = null;
         state.holed = visibleDuringInput;
         state.phaseEndsAt = ctx.now() + inputDuration(state.length);

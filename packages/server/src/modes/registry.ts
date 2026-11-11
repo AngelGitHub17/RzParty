@@ -24,6 +24,7 @@ import { intrusMode } from "../game/modes/intrus.ts";
 import { libreMode } from "../game/modes/libre.ts";
 import { batailleMode } from "../game/modes/bataille.ts";
 import { soloMode } from "../game/modes/solo.ts";
+import { defisMode } from "../game/modes/defis.ts";
 
 const modes = new Map<GameModeId, GameModeModule>();
 
@@ -59,3 +60,4 @@ registerMode(intrusMode);
 registerMode(libreMode);
 registerMode(batailleMode);
 registerMode(soloMode);
+registerMode(defisMode);

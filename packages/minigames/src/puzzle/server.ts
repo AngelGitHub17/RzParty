@@ -1,5 +1,5 @@
 import { createRng, gaussian } from "@rzparty/shared";
-import { botSkill, defineMiniGame, rankBy } from "../contract.ts";
+import { botSkill, defineMiniGame, rankBy, tipCheater } from "../contract.ts";
 import { definition } from "./definition.ts";
 import { PUZZLE_CHOICES, PUZZLE_MS, PUZZLE_PENALTY_MS, makeCard, type PuzzleCard, type PuzzleInput, type PuzzlePrivate, type PuzzleState } from "./types.ts";
 
@@ -24,7 +24,10 @@ export default defineMiniGame<PuzzleState, PuzzlePrivate, PuzzleInput>({
     };
     const lastSolve: Record<string, number> = {};
     const publish = () => ctx.publish(structuredClone(state));
-    const send = (id: string, last: PuzzlePrivate["last"]) => ctx.sendTo(id, { card: state.finished ? null : cardAt(state.solved[id]!).card, last });
+    const send = (id: string, last: PuzzlePrivate["last"]) => {
+      ctx.sendTo(id, { card: state.finished ? null : cardAt(state.solved[id]!).card, last });
+      if (id === ctx.cheater && !state.finished) tipCheater(ctx, `La bonne moitié : la n°${cardAt(state.solved[id]!).answer + 1}`);
+    };
 
     return {
       start() {

@@ -1,5 +1,5 @@
 import { gaussian } from "@rzparty/shared";
-import { botSkill, defineMiniGame, rankBy } from "../contract.ts";
+import { botSkill, defineMiniGame, rankBy, tipCheater } from "../contract.ts";
 import { definition } from "./definition.ts";
 import { MAX_STEP_ROUNDS, STAIRS, STEP_CHOICE_MS, STEP_REVEAL_MS, type EscalierInput, type EscalierState } from "./types.ts";
 
@@ -70,6 +70,11 @@ export default defineMiniGame<EscalierState, null, EscalierInput>({
         if (input.steps !== 1 && input.steps !== 2 && input.steps !== 3) return;
         if (!(playerId in picks)) state.chosen.push(playerId);
         picks[playerId] = input.steps;
+        // L'intrus voit les choix secrets des autres.
+        if (ctx.cheater && playerId !== ctx.cheater) {
+          const others = ids.filter((id) => id !== ctx.cheater && id in picks).map((id) => `${ctx.players.find((p) => p.id === id)?.name ?? "?"} : ${picks[id]}`);
+          tipCheater(ctx, `Choix des autres → ${others.join(" · ")}`);
+        }
         publish();
         if (ids.every((id) => id in picks)) ctx.schedule(500, reveal);
       },

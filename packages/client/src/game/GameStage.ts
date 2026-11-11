@@ -23,6 +23,7 @@ import { IntrusView } from "./IntrusView.ts";
 import { LibreView } from "./LibreView.ts";
 import { BatailleView } from "./BatailleView.ts";
 import { SoloView } from "./SoloView.ts";
+import { DefisView } from "./DefisView.ts";
 
 /** Écrans des modes de jeu hors mini-jeux (une classe par étape). */
 interface ModeView {
@@ -47,6 +48,7 @@ const MODE_VIEWS: Record<string, new (root: HTMLElement, layout: ViewLayout, meI
   libre: LibreView,
   bataille: BatailleView,
   solo: SoloView,
+  defis: DefisView,
 };
 import { obfuscated } from "../ui/obfuscate.ts";
 
@@ -172,8 +174,8 @@ export class GameStage {
               ? h("strong", { class: "chip__score", text: `${game.bataille?.teams[0].includes(p.id) ? "☀️" : "🌙"} ${s.score}` })
               : game.mode === "solo" && game.solo && p.id in game.solo.progress
               ? h("strong", { class: "chip__score", text: `🚩 ${s.score}/${game.solo.stages} · ${"❤️".repeat(Math.max(0, s.lives))}` })
-              : game.mode === "solo"
-              ? h("strong", { class: "chip__score", text: "🤖 adversaire" })
+              : game.mode === "solo" || game.mode === "defis"
+              ? h("strong", { class: "chip__score", text: game.mode === "defis" && game.defis && !p.isBot ? `⭐ ${s.score}` : "🤖 adversaire" })
               : game.mode === "voyage"
               ? h("strong", { class: "chip__score", text: `📷 ${s.score} · 🪙 ${game.globe?.coins[p.id] ?? 0}` })
               : game.mode === "plateau"
@@ -249,7 +251,8 @@ export class GameStage {
       case "intrus":
       case "libre":
       case "bataille":
-      case "solo": {
+      case "solo":
+      case "defis": {
         if (!this.modeView) this.modeView = { stage: game.stage, view: new MODE_VIEWS[game.stage]!(this.main, this.layout, this.meId) };
         this.modeView.view.update(room);
         return;

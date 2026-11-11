@@ -9,6 +9,7 @@ import { attachSockets } from "./socket.ts";
 import { availableUpdate, buildInfo, downloadArchive, downloadRelease, GITHUB_REPO, installerFile, listInstallers, listReleases, readChangelog, version } from "./updater.ts";
 import type { ProfileStore } from "./profiles/ProfileStore.ts";
 import type { AdminStore } from "./profiles/AdminStore.ts";
+import type { ChallengeStore } from "./profiles/ChallengeStore.ts";
 
 const clientDist = resolve(rootDir, "packages/client/dist");
 export { version };
@@ -30,7 +31,7 @@ export interface RunningServer {
  * Démarre le serveur HTTP + WebSocket sur `port`.
  * Lève l'erreur Node d'origine si le port est occupé (code EADDRINUSE).
  */
-export async function startServer(port: number, deps: { profiles: ProfileStore; admin: AdminStore }): Promise<RunningServer> {
+export async function startServer(port: number, deps: { profiles: ProfileStore; admin: AdminStore; challenges?: ChallengeStore }): Promise<RunningServer> {
   const app: FastifyInstance = Fastify({ logger: false });
 
   app.get("/api/info", async (): Promise<ServerInfo> => ({
@@ -117,7 +118,7 @@ export async function startServer(port: number, deps: { profiles: ProfileStore; 
     app.setNotFoundHandler((_req, reply) => reply.code(404).type("text/plain; charset=utf-8").send("Page introuvable."));
   }
 
-  const { io, manager, detach } = attachSockets(app.server, { dev: config.dev, profiles: deps.profiles, admin: deps.admin });
+  const { io, manager, detach } = attachSockets(app.server, { dev: config.dev, profiles: deps.profiles, admin: deps.admin, challenges: deps.challenges });
 
   // Activité du serveur, pour la mise à jour automatique : seulement depuis la machine elle-même.
   app.get("/api/activite", async (req, reply) => {

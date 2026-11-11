@@ -8,6 +8,11 @@ import { IntrusGame } from "../src/game/modes/intrus.ts";
 import { LibreGame } from "../src/game/modes/libre.ts";
 import { BatailleGame } from "../src/game/modes/bataille.ts";
 import { SoloGame } from "../src/game/modes/solo.ts";
+import { DefisGame } from "../src/game/modes/defis.ts";
+import { ChallengeStore } from "../src/profiles/ChallengeStore.ts";
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import type { Room } from "../src/rooms/Room.ts";
 import type { GameSession } from "../src/game/types.ts";
 
@@ -265,5 +270,43 @@ describe("Bataille et Parcours solo", () => {
     expect(Object.keys(s.progress).sort()).toEqual([chef, ami].sort());
     for (const id of [chef, ami]) expect(s.progress[id] === 6 || s.lives[id] === 0).toBe(true);
     expect(changes).toBeGreaterThan(0);
+  }, 120_000);
+});
+
+describe("Défis", () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  it("Défis : l'équipe gagne des points tant qu'elle bat les bots, perd un cœur sinon, et le score entre au tableau", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "rz-defis-"));
+    const store = new ChallengeStore(dir);
+    store.submit(50, ["Ancien"], 1);
+    const events = { changed: vi.fn(), closed: vi.fn(), detached: vi.fn() };
+    const manager = new RoomManager(timings, events, () => ["defis"] as GameModeId[]);
+    const seat = manager.createIndividualRoom("chef", "Chef");
+    manager.join("ami", seat.code, "Amélie");
+    manager.addBot("chef", "equilibre");
+    manager.updateSettings("chef", { mode: "defis", defis: { hearts: 3 } });
+    const room = manager.startGame("chef", (r: Room) =>
+      new DefisGame({ room: r, changed: () => events.changed(r.code), publishMiniGame: () => {}, sendPrivate: () => {}, challenges: store, random: createRng(9), now: () => Date.now() }),
+    );
+    let lastHearts = 3;
+    let lastScore = 0;
+    await untilPodium(room, () => {
+      const g = room.game!.snapshot();
+      if (g.stage === "intro") for (const p of room.players) room.game!.ready(p.id);
+      const d = g.defis!;
+      expect(d.hearts).toBeLessThanOrEqual(lastHearts);
+      expect(d.score).toBeGreaterThanOrEqual(lastScore);
+      lastHearts = d.hearts;
+      lastScore = d.score;
+    });
+    const d = room.game!.snapshot().defis!;
+    expect(d.hearts).toBe(0);
+    expect(d.phase).toBe("done");
+    // Le tableau contient le score de l'équipe (s'il dépasse 0) et reste trié.
+    const list = new ChallengeStore(dir).list();
+    expect(list.map((r) => r.score)).toEqual([...list.map((r) => r.score)].sort((a, b) => b - a));
+    if (d.score > 0) expect(list.some((r) => r.score === d.score && r.names.includes("Amélie"))).toBe(true);
   }, 120_000);
 });

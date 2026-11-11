@@ -20,6 +20,8 @@ import { definition as bandits } from "./bandits/definition.ts";
 import { definition as paires } from "./paires/definition.ts";
 import { definition as visage } from "./visage/definition.ts";
 import { definition as tremplin } from "./tremplin/definition.ts";
+import { definition as artifice } from "./artifice/definition.ts";
+import { definition as escargots } from "./escargots/definition.ts";
 import { definition as liane } from "./liane/definition.ts";
 import { definition as pas } from "./pas/definition.ts";
 import { definition as photo } from "./photo/definition.ts";
@@ -34,6 +36,6 @@ import { definition as aiguillages } from "./aiguillages/definition.ts";
 import { definition as perles } from "./perles/definition.ts";
 import { definition as cadeaux } from "./cadeaux/definition.ts";
 
-export const MINI_GAME_DEFINITIONS: MiniGameDefinition[] = [reflexes, calcul, memoire, piratage, labyrinthe, bombe, taupes, stroop, coupdoeil, tri, escalier, chrono, vaetvient, bandits, paires, visage, tremplin, liane, pas, photo, zappeur, penalty, alunissage, ballons, ressort, puzzle, haies, aiguillages, perles, cadeaux];
+export const MINI_GAME_DEFINITIONS: MiniGameDefinition[] = [reflexes, calcul, memoire, piratage, labyrinthe, bombe, taupes, stroop, coupdoeil, tri, escalier, chrono, vaetvient, bandits, paires, visage, tremplin, liane, pas, photo, zappeur, penalty, alunissage, ballons, ressort, puzzle, haies, aiguillages, perles, cadeaux, artifice, escargots];
 
 export type { MiniGameDefinition, MiniGameRecord } from "./contract.ts";

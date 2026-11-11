@@ -9,6 +9,7 @@ import type { Room } from "./rooms/Room.ts";
 import type { GameHost } from "./game/types.ts";
 import type { ProfileStore } from "./profiles/ProfileStore.ts";
 import type { AdminStore } from "./profiles/AdminStore.ts";
+import type { ChallengeStore } from "./profiles/ChallengeStore.ts";
 import { getMiniGame } from "@rzparty/minigames/server";
 import type { Identity } from "./rooms/RoomManager.ts";
 import { config, timings } from "./config.ts";
@@ -19,7 +20,7 @@ import { clientAddress, isPrivateAddress, lanAddresses, onServerNetwork, viaUnkn
 type GameSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
 
 /** Branche Socket.IO sur le serveur HTTP et relie chaque message au RoomManager. */
-export function attachSockets(httpServer: HttpServer, opts: { dev: boolean; profiles: ProfileStore; admin: AdminStore }) {
+export function attachSockets(httpServer: HttpServer, opts: { dev: boolean; profiles: ProfileStore; admin: AdminStore; challenges?: ChallengeStore }) {
   const { profiles, admin } = opts;
   const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
     // En dev, le client Vite tourne sur un autre port de la même machine.
@@ -89,6 +90,7 @@ export function attachSockets(httpServer: HttpServer, opts: { dev: boolean; prof
       },
       random,
       now: () => Date.now(),
+      challenges: opts.challenges,
       roundEnded: (info) => {
         const definitions = getMiniGame(info.miniGameId)?.definition.records ?? [];
         for (const playerId of info.players) {

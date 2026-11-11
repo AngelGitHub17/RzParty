@@ -22,6 +22,8 @@ import { banditsView } from "./bandits/view.ts";
 import { pairesView } from "./paires/view.ts";
 import { visageView } from "./visage/view.ts";
 import { tremplinView } from "./tremplin/view.ts";
+import { artificeView } from "./artifice/view.ts";
+import { escargotsView } from "./escargots/view.ts";
 import { lianeView } from "./liane/view.ts";
 import { pasView } from "./pas/view.ts";
 import { photoView } from "./photo/view.ts";
@@ -112,6 +114,8 @@ export const MINI_GAME_VIEWS: Record<string, MiniGameViewFactory> = {
   paires: pairesView,
   visage: visageView,
   tremplin: tremplinView,
+  artifice: artificeView,
+  escargots: escargotsView,
   liane: lianeView,
   pas: pasView,
   photo: photoView,

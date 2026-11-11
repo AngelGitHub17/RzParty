@@ -1,64 +1,57 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createRng } from "@rzparty/shared";
-import perles from "@rzparty/minigames/src/perles/server.ts";
-import cadeaux from "@rzparty/minigames/src/cadeaux/server.ts";
-import { BASE, dropGift, giftCenter, giftSwing } from "@rzparty/minigames/src/cadeaux/types.ts";
+import { artificeScore, landingAt, rocketHeight } from "@rzparty/minigames/src/artifice/logic.ts";
+import escargots from "@rzparty/minigames/src/escargots/server.ts";
+import { SNAIL_GOAL, SNAIL_READY_MS, SNAIL_TIRED_MS } from "@rzparty/minigames/src/escargots/types.ts";
 import { MiniGameRunner } from "../src/game/MiniGameRunner.ts";
-
-const players = [{ id: "a", name: "A", color: 0 }, { id: "b", name: "B", color: 1 }];
-function run(module: any) {
-  const states: any[] = [];
-  const runner = new MiniGameRunner({ module, players, bots: new Map(), random: createRng(9), now: () => Date.now(), publish: (s) => states.push(s), sendTo: () => {} });
-  runner.start();
-  return { runner, states };
-}
 
 describe("fournée 5", () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 
-  it("Chasse aux perles : perle +1, crabe −1, pincé si l'huître se referme", async () => {
-    const g = run(perles);
-    const find = async (kind: string) => {
-      for (let i = 0; i < 400; i++) {
-        await vi.advanceTimersByTimeAsync(20);
-        const o = g.states.at(-1).openings.find((x: any) => x.treasure === kind && Date.now() - x.from < 100);
-        if (o) return o;
-      }
-      throw new Error("introuvable");
-    };
-    const pearl = await find("perle");
-    g.runner.input("a", { opening: pearl.id, dt: 50 });
-    g.runner.input("a", { opening: pearl.id, dt: 60 }); // déjà prise
-    expect(g.states.at(-1).scores.a).toBe(1);
-    const crab = await find("crabe");
-    g.runner.input("a", { opening: crab.id, dt: 50 });
-    expect(g.states.at(-1).scores.a).toBe(0);
-    const late = await find("perle");
-    await vi.advanceTimersByTimeAsync(late.until - late.from - 120);
-    g.runner.input("b", { opening: late.id, dt: late.until - late.from - 100 });
-    expect(g.states.at(-1).pinched.b).toBeGreaterThan(Date.now());
-    expect(g.states.at(-1).scores.b).toBe(0);
+  it("Feu d'artifice : 100 au sommet, moins à côté, pétard mouillé au sol", () => {
+    const p = { peak: 2000, height: 0.8, color: 0 };
+    expect(rocketHeight(p.peak, p)).toBeCloseTo(0.8);
+    expect(rocketHeight(0, p)).toBe(0);
+    expect(rocketHeight(landingAt(p), p)).toBe(0);
+    expect(artificeScore(p.peak, p)).toBe(100);
+    expect(artificeScore(p.peak - 300, p)).toBe(artificeScore(p.peak + 300, p));
+    expect(artificeScore(p.peak - 300, p)).toBeLessThan(100);
+    expect(artificeScore(landingAt(p), p)).toBe(0);
+    expect(artificeScore(null, p)).toBe(0);
   });
 
-  it("Tour de cadeaux : ce qui dépasse tombe, un lâcher parfait garde la largeur", async () => {
-    expect(dropGift(BASE, 50.5, 40)).toEqual({ block: BASE, perfect: true });
-    expect(dropGift(BASE, 60, 40)).toEqual({ block: [40, 70], perfect: false });
-    expect(dropGift(BASE, 95, 40)).toBeNull();
-    const g = run(cadeaux);
-    await vi.advanceTimersByTimeAsync(600);
-    // Lâcher quand le cadeau passe au centre : demi-période.
-    const t = giftSwing(0).period / 2;
-    expect(giftCenter(0, t)).toBeCloseTo(50, 5);
-    await vi.advanceTimersByTimeAsync(t);
-    g.runner.input("a", { gift: 0, t: 99_999 }); // impossible
-    expect(g.states.at(-1).towers.a.blocks).toHaveLength(1);
-    g.runner.input("a", { gift: 0, t: Math.round(t) });
-    const tower = g.states.at(-1).towers.a;
-    expect(tower.blocks).toHaveLength(2);
-    expect(tower.perfect).toBe(1);
-    // Sans rien faire, le cadeau de B tombe tout seul au bout de 7 s.
-    await vi.advanceTimersByTimeAsync(7000);
-    expect(g.states.at(-1).towers.b.blocks.length + (g.states.at(-1).towers.b.fell ? 1 : 0)).toBe(2);
-  });
+  it("Course d'escargots : chaque appui fait avancer, trop vite = essoufflé", async () => {
+    const states: any[] = [];
+    let ranking: string[][] | undefined;
+    const runner = new MiniGameRunner({
+      module: escargots,
+      players: [{ id: "a", name: "A", color: 0 }, { id: "b", name: "B", color: 1 }],
+      bots: new Map(),
+      random: createRng(3),
+      now: () => Date.now(),
+      publish: (s) => states.push(s),
+      sendTo: () => {},
+    });
+    void runner.result.then((r) => (ranking = r.ranking));
+    runner.start();
+    await vi.advanceTimersByTimeAsync(SNAIL_READY_MS + 10);
+    // B tapote trop vite : 9 appuis dans la seconde → essoufflé.
+    runner.input("b", { taps: 6 });
+    runner.input("b", { taps: 3 });
+    await vi.advanceTimersByTimeAsync(200);
+    expect(states.at(-1).tiredUntil.b).toBeGreaterThan(Date.now());
+    runner.input("b", { taps: 1 });
+    await vi.advanceTimersByTimeAsync(200);
+    expect(states.at(-1).progress.b).toBe(6);
+    await vi.advanceTimersByTimeAsync(SNAIL_TIRED_MS);
+    // A tapote 7 fois par seconde jusqu'à la salade.
+    for (let k = 0; k < SNAIL_GOAL; k++) {
+      runner.input("a", { taps: 1 });
+      await vi.advanceTimersByTimeAsync(143);
+    }
+    expect(states.at(-1).finished.a).toBeGreaterThan(0);
+    await vi.advanceTimersByTimeAsync(40_000);
+    expect(ranking?.[0]).toEqual(["a"]);
+  }, 30_000);
 });

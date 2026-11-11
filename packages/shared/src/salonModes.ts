@@ -187,7 +187,7 @@ export function tictacTaskText(task: TictacTask): string {
 
 export const INTRUS_ROUND_CHOICES = [3, 5, 7] as const;
 /** Mini-jeux où l'intrus reçoit des coups de pouce secrets. */
-export const INTRUS_GAMES = ["vaetvient", "coupdoeil", "visage", "zappeur", "paires", "calcul"] as const;
+export const INTRUS_GAMES = ["vaetvient", "coupdoeil", "visage", "zappeur", "paires", "calcul", "memoire", "aiguillages", "escalier", "puzzle", "stroop"] as const;
 /** Points : par place au mini-jeu, pour un bon soupçon, pour l'intrus qui passe inaperçu. */
 export const INTRUS_POINTS = { places: [3, 2, 1], caught: 2, unseen: 3 };
 
@@ -283,4 +283,48 @@ export function soloStageRule(stage: number, stages: number, players: number): {
   // Au début, être dans la première moitié suffit ; à la fin, il faut gagner.
   const needed = t <= 0.5 ? Math.max(1, Math.ceil(players / 2)) : 1;
   return { needed, level };
+}
+
+// ───────────── Défis (en équipe contre les bots) ─────────────
+
+export const DEFIS_HEART_CHOICES = [3, 5] as const;
+/** Points d'un défi réussi : la base, plus un bonus par joueur arrivé devant le meilleur bot. */
+export const DEFIS_POINTS = { base: 100, perAhead: 50 };
+/** Le niveau des bots monte tous les… défis réussis. */
+export const DEFIS_LEVEL_EVERY = 3;
+
+/** Une ligne du tableau des meilleurs scores. */
+export interface ChallengeRecord {
+  score: number;
+  names: string[];
+  at: number;
+}
+
+export interface DefisState {
+  /** Défi en cours (1, 2…). */
+  round: number;
+  /** Cœurs de l'équipe. */
+  hearts: number;
+  maxHearts: number;
+  score: number;
+  /** Défis réussis d'affilée (multiplicateur). */
+  streak: number;
+  level: "facile" | "moyen" | "difficile";
+  /** Dernier défi : réussi ou raté, points gagnés et joueurs arrivés devant les bots. */
+  last: { ok: boolean; points: number; ahead: string[]; multiplier: number } | null;
+  /** Fin : place au tableau des scores (0 = record), -1 si hors tableau. */
+  place: number | null;
+  /** Meilleurs scores (équipe), du meilleur au moins bon. */
+  records: ChallengeRecord[];
+  phase: "board" | "done";
+}
+
+/** Multiplicateur selon la série de défis réussis : ×1, ×1,5, ×2, ×2,5… (plafonné à ×4). */
+export function defisMultiplier(streak: number): number {
+  return Math.min(4, 1 + streak * 0.5);
+}
+
+/** Niveau des bots selon le nombre de défis déjà réussis. */
+export function defisLevel(cleared: number): DefisState["level"] {
+  return cleared < DEFIS_LEVEL_EVERY ? "facile" : cleared < DEFIS_LEVEL_EVERY * 2 ? "moyen" : "difficile";
 }

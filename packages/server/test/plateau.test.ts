@@ -186,7 +186,9 @@ describe("plateau personnalisé", () => {
     // Ordre au départ, puis des pièces seulement à la fin des tours 2 (le tour 4 finit la partie).
     expect(purposes).toEqual(["ordre:0", "pieces:2"]);
     const coins = Object.values(snap.board!.pawns).map((p) => p.coins).sort((a, b) => a - b);
-    expect(coins).toEqual([50 + 10 * 3, 50 + 20 * 3]);
+    // 20 pièces au premier (×3), 10 au second ; une égalité donne la première place aux deux.
+    expect(coins.at(-1)).toBe(50 + 20 * 3);
+    for (const c of coins) expect([50 + 10 * 3, 50 + 20 * 3]).toContain(c);
     // Le gagnant est le plus proche de l'arrivée.
     const winner = snap.winners[0]!;
     const others = Object.keys(snap.board!.remaining).filter((id) => id !== winner);

@@ -1,4 +1,4 @@
-import type { BoardPrivate, Difficulty, GameSnapshot } from "@rzparty/shared";
+import type { BoardPrivate, ChallengeRecord, Difficulty, GameSnapshot } from "@rzparty/shared";
 import type { Room } from "../rooms/Room.ts";
 
 /** Une partie en cours dans un salon (quel que soit le mode). */
@@ -34,6 +34,8 @@ export interface GameHost {
   roundEnded?(info: RoundStats): void;
   /** Fin de la partie (podium) : pour les statistiques des profils. */
   gameEnded?(info: { players: string[]; winners: string[] }): void;
+  /** Mode « Défis » : tableau des meilleurs scores d'équipe (facultatif dans les tests). */
+  challenges?: { list(): ChallengeRecord[]; submit(score: number, names: string[], at: number): number };
   /** Hasard de la partie (graine fixe dans les tests). */
   random(): number;
   now(): number;

@@ -1,7 +1,7 @@
 import { gaussian } from "@rzparty/shared";
-import { botSkill, defineMiniGame, rankBy } from "../contract.ts";
+import { botSkill, defineMiniGame, rankBy, tipCheater } from "../contract.ts";
 import { definition } from "./definition.ts";
-import { STROOP_DURATION_MS, STROOP_PENALTY_MS, makeStroop, type StroopInput, type StroopPrivate, type StroopQuestion, type StroopState } from "./types.ts";
+import { STROOP_COLORS, STROOP_DURATION_MS, STROOP_PENALTY_MS, makeStroop, type StroopInput, type StroopPrivate, type StroopQuestion, type StroopState } from "./types.ts";
 
 export default defineMiniGame<StroopState, StroopPrivate, StroopInput>({
   definition,
@@ -22,8 +22,10 @@ export default defineMiniGame<StroopState, StroopPrivate, StroopInput>({
     const index: Record<string, number> = Object.fromEntries(ids.map((id) => [id, 0]));
     const lockedUntil: Record<string, number> = Object.fromEntries(ids.map((id) => [id, 0]));
     const lastAt: Record<string, number> = Object.fromEntries(ids.map((id) => [id, Infinity]));
-    const send = (id: string, last: StroopPrivate["last"]) =>
+    const send = (id: string, last: StroopPrivate["last"]) => {
       ctx.sendTo(id, { index: index[id]!, question: question(index[id]!), lockedUntil: lockedUntil[id]!, last });
+      if (id === ctx.cheater) tipCheater(ctx, `Encre : ${STROOP_COLORS.find((c) => c.id === question(index[id]!).ink)?.label ?? "?"}`);
+    };
 
     return {
       start() {

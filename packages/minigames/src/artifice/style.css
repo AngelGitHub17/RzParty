@@ -1,0 +1,5 @@
+.tm--artifice .tm__stage svg {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-m);
+}

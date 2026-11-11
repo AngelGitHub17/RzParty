@@ -1,5 +1,5 @@
 import { gaussian } from "@rzparty/shared";
-import { botSkill, defineMiniGame, rankBy } from "../contract.ts";
+import { botSkill, defineMiniGame, rankBy, tipCheater } from "../contract.ts";
 import { definition } from "./definition.ts";
 import { EXITS, STATIONS, SWITCHES, TRAIN_CHOOSE_MS, TRAIN_READY_MS, TRAIN_RESULT_MS, TRAIN_ROUNDS, exitOf, type AiguillagesInput, type AiguillagesState, type Path } from "./types.ts";
 
@@ -53,6 +53,9 @@ export default defineMiniGame<AiguillagesState, null, AiguillagesInput>({
       ctx.schedule(TRAIN_READY_MS, () => {
         if (g !== gen) return;
         state.phase = "choose";
+        // L'intrus connaît le bon réglage (0 = en haut, 1 = en bas).
+        const exit = state.wiring.indexOf(state.target);
+        if (exit >= 0) tipCheater(ctx, `Aiguillages : ${Array.from({ length: SWITCHES }, (_, i) => ((exit >> (SWITCHES - 1 - i)) & 1 ? "bas" : "haut")).join(", ")}`);
         state.startedAt = ctx.now();
         state.phaseEndsAt = state.startedAt + TRAIN_CHOOSE_MS;
         publish();
