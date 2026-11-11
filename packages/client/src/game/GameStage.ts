@@ -16,6 +16,9 @@ import { BateauView } from "./BateauView.ts";
 import { PairesView } from "./PairesView.ts";
 import { AmitieView } from "./AmitieView.ts";
 import { IleView } from "./IleView.ts";
+import { CrisView } from "./CrisView.ts";
+import { CacheView } from "./CacheView.ts";
+import { TictacView } from "./TictacView.ts";
 
 /** Écrans des modes de jeu hors mini-jeux (une classe par étape). */
 interface ModeView {
@@ -33,6 +36,9 @@ const MODE_VIEWS: Record<string, new (root: HTMLElement, layout: ViewLayout, meI
   paires: PairesView,
   amitie: AmitieView,
   ile: IleView,
+  cris: CrisView,
+  cache: CacheView,
+  tictac: TictacView,
 };
 import { obfuscated } from "../ui/obfuscate.ts";
 
@@ -150,8 +156,10 @@ export class GameStage {
               ? h("strong", { class: "chip__score", text: game.ile?.pawns[s.playerId]?.volcano !== null && game.ile?.pawns[s.playerId]?.volcano !== undefined ? "🌋" : (game.ile?.pawns[s.playerId]?.cell ?? 0) >= 72 ? "🗿 sommet" : `case ${game.ile?.pawns[s.playerId]?.cell ?? 0}` })
               : game.mode === "quiz"
               ? h("strong", { class: "chip__score", text: `${s.score} pt${s.score > 1 ? "s" : ""}` })
-              : game.mode === "mots"
+              : game.mode === "mots" || game.mode === "tictac"
               ? h("strong", { class: "chip__score", text: `💥 ${s.score}` })
+              : game.mode === "cris" || game.mode === "cache"
+              ? h("strong", { class: "chip__score", text: `${s.score} pt${s.score > 1 ? "s" : ""}` })
               : game.mode === "voyage"
               ? h("strong", { class: "chip__score", text: `📷 ${s.score} · 🪙 ${game.globe?.coins[p.id] ?? 0}` })
               : game.mode === "plateau"
@@ -220,7 +228,10 @@ export class GameStage {
       case "bateau":
       case "paires":
       case "amitie":
-      case "ile": {
+      case "ile":
+      case "cris":
+      case "cache":
+      case "tictac": {
         if (!this.modeView) this.modeView = { stage: game.stage, view: new MODE_VIEWS[game.stage]!(this.main, this.layout, this.meId) };
         this.modeView.view.update(room);
         return;
@@ -517,7 +528,7 @@ export class GameStage {
       .sort((a, b) =>
         game.mode === "plateau" && game.board
           ? (game.board.remaining[a.playerId] ?? 0) - (game.board.remaining[b.playerId] ?? 0)
-          : rule === "vies" && game.mode === "survie" ? b.lives - a.lives : game.mode === "mots" ? a.score - b.score : b.score - a.score,
+          : rule === "vies" && game.mode === "survie" ? b.lives - a.lives : game.mode === "mots" || game.mode === "tictac" ? a.score - b.score : b.score - a.score,
       );
 
     this.main.append(

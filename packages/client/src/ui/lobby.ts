@@ -18,6 +18,9 @@ import {
   BOAT_GOAL_CHOICES,
   PAIRES_TOUR_CHOICES,
   AMITIE_ROUND_CHOICES,
+  CRIS_POINT_CHOICES,
+  CACHE_TOUR_CHOICES,
+  TICTAC_BOMB_CHOICES,
   type BotPersonality,
   type Difficulty,
   type GameModeId,
@@ -251,6 +254,12 @@ export function renderChefPanel(snapshot: RoomSnapshot, actions: ChefActions): H
           s.mots.bombs,
           (bombs) => actions.update({ mots: { bombs } }),
         )
+      : s.mode === "cris"
+      ? segmented("Points pour gagner", CRIS_POINT_CHOICES.map((n) => ({ value: n as number, label: `${n} points` })), s.cris.points, (points) => actions.update({ cris: { points } }))
+      : s.mode === "cache"
+      ? segmented("Nombre de tours", CACHE_TOUR_CHOICES.map((n) => ({ value: n as number, label: n === 1 ? "1 tour" : `${n} tours`, note: "chacun cache une fois par tour" })), s.cache.tours, (tours) => actions.update({ cache: { tours } }))
+      : s.mode === "tictac"
+      ? segmented("Nombre de bombes", TICTAC_BOMB_CHOICES.map((n) => ({ value: n as number, label: `${n} bombes` })), s.tictac.bombs, (bombs) => actions.update({ tictac: { bombs } }))
       : s.mode === "ile"
       ? null
       : s.mode === "roue"
@@ -343,6 +352,9 @@ function baseSummary(snapshot: RoomSnapshot): string {
   if (s.mode === "quiz") return `${mode}, ${s.quiz.rounds} questions, bots ${DIFFICULTIES[s.botDifficulty].label.toLowerCase()}`;
   if (s.mode === "voyage") return `${mode}, ${s.voyage.rounds} tours, bots ${DIFFICULTIES[s.botDifficulty].label.toLowerCase()}`;
   if (s.mode === "mots") return `${mode}, ${s.mots.bombs} bombes, bots ${DIFFICULTIES[s.botDifficulty].label.toLowerCase()}`;
+  if (s.mode === "cris") return `${mode}, premier à ${s.cris.points} points, ${bots}`;
+  if (s.mode === "cache") return `${mode}, ${s.cache.tours} tour${s.cache.tours > 1 ? "s" : ""}, sans bots`;
+  if (s.mode === "tictac") return `${mode}, ${s.tictac.bombs} bombes, ${bots}`;
   if (s.mode === "roue") return `${mode}, ${s.wheel.rounds} tours, bots ${DIFFICULTIES[s.botDifficulty].label.toLowerCase()}`;
   const teams = s.teams ? `, ${s.teams} équipes` : "";
   return `${mode}${teams}, plateau ${BOARD_SIZES[s.board.size].label.toLowerCase()} (${cells} cases), bots ${DIFFICULTIES[s.botDifficulty].label.toLowerCase()}`;

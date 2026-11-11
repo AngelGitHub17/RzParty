@@ -46,6 +46,18 @@ export const GAME_MODES: Record<GameModeId, { label: string; description: string
     label: "Test d'amitié",
     description: "Des « plutôt ceci ou cela ? » et des « qui de nous… ? » auxquels chacun répond en secret. Plus vos réponses se ressemblent, plus votre duo monte. Un mini-jeu final teste votre synchro, puis le taux d'amitié de chaque duo (de 0 à 100) est révélé !",
   },
+  cris: {
+    label: "Cris en folie",
+    description: "Posez vos téléphones au milieu de la table : chacun pousse le cri d'une bête. Quand une bête s'affiche, attrapez le téléphone qui fait son cri et touchez votre visage dessus ! Une erreur et on attend la manche suivante. Il faut au moins 2 téléphones.",
+  },
+  cache: {
+    label: "Cache-cache",
+    description: "Pendant que les autres ferment les yeux, le cacheur cache tous les téléphones dans la pièce. Ensuite, chaque téléphone sonne toutes les 10 secondes : trouvez-les tous avant la fin du temps ! Chacun cache à son tour. Il faut au moins 2 téléphones (sans bots).",
+  },
+  tictac: {
+    label: "Tic-tac-boum",
+    description: "La bombe passe de main en main : pour t'en débarrasser, réussis la consigne affichée (coupe le bon fil, appuie le bon nombre de fois…). Une erreur et la mèche raccourcit ! Celui qui la tient quand elle explose prend un BOUM.",
+  },
   roue: {
     label: "Grande Roue",
     description: "Joueurs et banque partent avec 500 médailles. La roue donne ou prend des médailles, gonfle la banque, ou lance une Bataille, un 1 contre tous ou un Duel. Elle change trois fois, et les prolongations durent jusqu'à la Bataille finale !",

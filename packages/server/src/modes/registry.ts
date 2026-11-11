@@ -17,6 +17,9 @@ import { bateauMode } from "../game/modes/bateau.ts";
 import { pairesMode } from "../game/modes/paires.ts";
 import { amitieMode } from "../game/modes/amitie.ts";
 import { ileMode } from "../game/modes/ile.ts";
+import { crisMode } from "../game/modes/cris.ts";
+import { cacheMode } from "../game/modes/cache.ts";
+import { tictacMode } from "../game/modes/tictac.ts";
 
 const modes = new Map<GameModeId, GameModeModule>();
 
@@ -45,3 +48,6 @@ registerMode(bateauMode);
 registerMode(pairesMode);
 registerMode(amitieMode);
 registerMode(ileMode);
+registerMode(crisMode);
+registerMode(cacheMode);
+registerMode(tictacMode);

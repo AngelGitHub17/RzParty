@@ -3,6 +3,14 @@
 Chaque version commence par « ## numéro — date ». La page de présentation et les serveurs
 locaux lisent ce fichier : pense à augmenter la version dans package.json à chaque publication.
 
+## 0.16.0 — 11 novembre 2026
+- Trois nouveaux jeux de salon, qui se jouent avec les téléphones posés ou cachés dans la pièce :
+  - Tic-tac-boum : la bombe passe de main en main ; pour la passer, réussis la consigne (coupe le bon fil, touche le bon symbole, appuie le bon nombre de fois, maintiens le bouton, numéros dans l'ordre). Une erreur raccourcit la mèche. Tic-tac de plus en plus rapide, BOUM !
+  - Cris en folie : chaque téléphone posé sur la table pousse le cri d'une bête ; attrape celui de la bête affichée et touche ton visage dessus. Premier à 3, 5 ou 7 points.
+  - Cache-cache : un joueur cache tous les téléphones, ils sonnent toutes les 10 secondes, trouvez-les tous en 80 secondes ! Chacun cache à son tour (1 ou 2 tours).
+- Les sons sont fabriqués par le navigateur (aucun fichier) ; un bandeau propose d'activer le son si le téléphone l'a coupé. Les téléphones restent allumés pendant ces jeux quand le navigateur le permet.
+- Page de présentation : images des trois nouveaux modes.
+
 ## 0.15.0 — 11 novembre 2026
 - Tous les mini-jeux ont maintenant leur 3D :
   - Alunissage en vraie 3D : la Lune et ses cratères, la Terre au loin, une capsule par joueur avec son moteur en flammes, poussière (ou fumée) à l'atterrissage.

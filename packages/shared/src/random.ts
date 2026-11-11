@@ -26,3 +26,13 @@ export function gaussian(random: () => number, mean: number, deviation: number):
   const v = random();
   return mean + deviation * Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
 }
+
+/** Copie mélangée d'une liste (mélange de Fisher-Yates, équitable). */
+export function shuffled<T>(random: () => number, list: readonly T[]): T[] {
+  const out = [...list];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [out[i], out[j]] = [out[j]!, out[i]!];
+  }
+  return out;
+}

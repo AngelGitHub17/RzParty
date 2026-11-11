@@ -38,7 +38,12 @@ export type BoardAction =
   | { type: "trio"; center: number | null; slot?: number }
   | { type: "place"; slot: number }
   | { type: "flip"; card: number }
-  | { type: "path"; option: number };
+  | { type: "path"; option: number }
+  | { type: "claim"; by: string }
+  | { type: "hidden" }
+  | { type: "found"; by: string }
+  | { type: "task"; taskId: number; answer: unknown }
+  | { type: "skip" };
 
 /** Qui rejoint : un profil (par son jeton) ou un invité (par un pseudo). */
 export interface JoinIdentity {

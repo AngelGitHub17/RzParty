@@ -6,6 +6,7 @@ import { WHEEL_ROUND_CHOICES } from "./wheel.ts";
 import { GLOBE_ROUND_CHOICES } from "./globe.ts";
 import { AMITIE_ROUND_CHOICES, BOAT_GOAL_CHOICES, PAIRES_TOUR_CHOICES, TRIOS_ROUND_CHOICES } from "./familyModes.ts";
 import { QUIZ_ROUND_CHOICES, WORD_BOMB_CHOICES } from "./partyModes.ts";
+import { CACHE_TOUR_CHOICES, CRIS_POINT_CHOICES, TICTAC_BOMB_CHOICES } from "./salonModes.ts";
 import { defaultCustomConfig, patchConfig } from "./boardConfig.ts";
 
 export function defaultSettings(): RoomSettings {
@@ -21,6 +22,9 @@ export function defaultSettings(): RoomSettings {
     bateau: { goal: 20 },
     paires: { tours: 10 },
     amitie: { rounds: 5 },
+    cris: { points: 3 },
+    cache: { tours: 1 },
+    tictac: { bombs: 5 },
     miniGames: [],
     board: { size: "moyen", custom: defaultCustomConfig() },
     survival: { rule: "vies", lives: 3, targetScore: 10 },
@@ -43,6 +47,9 @@ export interface SettingsPatch {
   bateau?: { goal?: number };
   paires?: { tours?: number };
   amitie?: { rounds?: number };
+  cris?: { points?: number };
+  cache?: { tours?: number };
+  tictac?: { bombs?: number };
 }
 
 /**
@@ -74,6 +81,9 @@ export function applySettingsPatch(current: RoomSettings, patch: unknown): RoomS
   if (p.bateau && (BOAT_GOAL_CHOICES as readonly number[]).includes(p.bateau.goal as number)) next.bateau.goal = p.bateau.goal as number;
   if (p.paires && (PAIRES_TOUR_CHOICES as readonly number[]).includes(p.paires.tours as number)) next.paires.tours = p.paires.tours as number;
   if (p.amitie && (AMITIE_ROUND_CHOICES as readonly number[]).includes(p.amitie.rounds as number)) next.amitie.rounds = p.amitie.rounds as number;
+  if (p.cris && (CRIS_POINT_CHOICES as readonly number[]).includes(p.cris.points as number)) next.cris.points = p.cris.points as number;
+  if (p.cache && (CACHE_TOUR_CHOICES as readonly number[]).includes(p.cache.tours as number)) next.cache.tours = p.cache.tours as number;
+  if (p.tictac && (TICTAC_BOMB_CHOICES as readonly number[]).includes(p.tictac.bombs as number)) next.tictac.bombs = p.tictac.bombs as number;
   if (Array.isArray(p.miniGames)) {
     // Les identifiants inconnus sont ignorés par le serveur au moment du tirage.
     next.miniGames = [...new Set(p.miniGames.filter((id): id is string => typeof id === "string" && /^[a-z0-9-]{1,32}$/.test(id)))].slice(0, 100);

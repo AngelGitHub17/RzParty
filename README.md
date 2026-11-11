@@ -224,6 +224,30 @@ Une catégorie s'affiche (fruits, pays, métiers…). Pour passer la bombe, son 
 la catégorie ou le dit à voix haute ; les autres peuvent le refuser à la majorité. Celui qui tient la
 bombe quand elle explose prend un BOUM. Après 3, 5 ou 8 bombes, le moins de BOUM gagne.
 
+### Tic-tac-boum
+
+La bombe passe de joueur en joueur autour de la table. Pour s'en débarrasser, son porteur réussit
+la consigne affichée sur son écran : couper le fil d'une couleur, toucher un symbole, appuyer le bon
+nombre de fois, maintenir un bouton 2 à 3 secondes, toucher des numéros dans l'ordre. Une erreur
+raccourcit la mèche (−4 s) et donne une nouvelle consigne. 3, 5 ou 8 bombes ; le moins de BOUM gagne.
+
+### Cris en folie
+
+Les téléphones sont posés au milieu de la table et chacun pousse le cri d'une bête (sons fabriqués
+par le navigateur : grenouille, chat, chien, vache, canard, hibou, souris, coq). Une bête s'affiche :
+le premier qui attrape le téléphone qui fait son cri touche « Je l'ai attrapé ! » puis son visage
+et marque un point. Une erreur bloque jusqu'à la manche suivante. Premier à 3, 5 ou 7 points.
+Il faut au moins 2 téléphones ; les bots jouent sans téléphone, avec un temps de réaction.
+
+### Cache-cache
+
+Chacun son tour, un joueur cache tous les téléphones dans la pièce pendant que les autres ferment
+les yeux (il touche « Caché ! » sur chacun). Pendant 80 secondes, chaque téléphone caché sonne
+toutes les 10 secondes ; celui qui en trouve un touche « Trouvé ! » puis son visage (+1). Tous
+trouvés : +1 pour chaque chercheur ; sinon le cacheur gagne 2 points par téléphone resté caché.
+1 ou 2 tours. Sans bots, au moins 2 téléphones. L'écran des téléphones cachés devient noir et ne
+se met pas en veille (si le navigateur le permet).
+
 ### Mini-jeux au choix
 
 Dans le salon, la liste « Mini-jeux » permet au chef de choisir ceux qui seront tirés (ou un seul,

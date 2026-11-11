@@ -5,6 +5,7 @@ import type { GlobeState } from "./globe.ts";
 import type { LotoState, MotsState, QuizState } from "./partyModes.ts";
 import type { AmitieState, BateauState, PairesState, TriosState } from "./familyModes.ts";
 import type { IleState } from "./ile.ts";
+import type { CacheState, CrisState, TictacState } from "./salonModes.ts";
 import type { PlayerColorIndex } from "./constants.ts";
 import type { Avatar } from "./avatar.ts";
 import type { Board, BoardSize, CellType } from "./board.ts";
@@ -17,7 +18,7 @@ import type { Board, BoardSize, CellType } from "./board.ts";
 export type DisplayMode = "commun" | "individuel";
 
 /** Identifiant d'un mode de jeu. Les modes s'enregistrent côté serveur dans le registre des modes. */
-export type GameModeId = "survie" | "plateau" | "roue" | "loto" | "quiz" | "mots" | "voyage" | "trios" | "bateau" | "paires" | "amitie" | "ile";
+export type GameModeId = "survie" | "plateau" | "roue" | "loto" | "quiz" | "mots" | "voyage" | "trios" | "bateau" | "paires" | "amitie" | "ile" | "cris" | "cache" | "tictac";
 
 export type BotPersonality = "equilibre" | "agressif" | "lent-precis" | "glitch";
 
@@ -46,6 +47,12 @@ export interface RoomSettings {
   paires: { tours: number };
   /** Test d'amitié : nombre de questions. */
   amitie: { rounds: number };
+  /** Cris en folie : points à atteindre. */
+  cris: { points: number };
+  /** Cache-cache : nombre de tours (chacun cache une fois par tour). */
+  cache: { tours: number };
+  /** Tic-tac-boum : nombre de bombes. */
+  tictac: { bombs: number };
   /** Mini-jeux autorisés (vide = tous). Le chef peut n'en garder qu'un seul. */
   miniGames: string[];
   /** Mode Plateau : nombre d'équipes (0 = chacun pour soi), réparties au hasard au lancement. */
@@ -81,7 +88,7 @@ export interface PublicPlayer {
 export type RoomPhase = "salon" | "partie";
 
 /** Étapes d'une manche, identiques pour tous les modes. */
-export type GameStage = "intro" | "countdown" | "play" | "results" | "board" | "wheel" | "loto" | "quiz" | "mots" | "globe" | "trios" | "bateau" | "paires" | "amitie" | "ile" | "podium";
+export type GameStage = "intro" | "countdown" | "play" | "results" | "board" | "wheel" | "loto" | "quiz" | "mots" | "globe" | "trios" | "bateau" | "paires" | "amitie" | "ile" | "cris" | "cache" | "tictac" | "podium";
 
 /** Pourquoi on joue ce mini-jeu : départager l'ordre de jeu, gagner des pièces, survivre. */
 export type MiniGamePurpose = "survie" | "ordre" | "pieces" | "duel" | "cagnotte" | "loto" | "duelroue" | "voyage" | "unvstous" | "bateau" | "paires" | "amitie" | "defi" | "ile" | "ile1v3" | "ileduel";
@@ -142,6 +149,9 @@ export interface GameSnapshot {
   paires?: PairesState | null;
   amitie?: AmitieState | null;
   ile?: IleState | null;
+  cris?: CrisState | null;
+  cache?: CacheState | null;
+  tictac?: TictacState | null;
 }
 
 export interface PawnState {
