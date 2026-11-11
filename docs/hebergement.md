@@ -129,7 +129,18 @@ Ajoute `RZ_SITE=1` dans `/etc/rzparty/rzparty.env`, puis `rzparty-maj --force`.
 
 ## Installeurs sur la page de présentation
 
-La page de présentation liste les installeurs (.msi, .deb, .pkg) publiés sur GitHub. Le serveur les
-demande à l'API GitHub ; si elle refuse (limite de 60 demandes par heure et par adresse, pare-feu…),
-le journal l'indique et la page les cherche directement depuis le navigateur du visiteur. Pour lever
-la limite côté serveur, ajoute un jeton GitHub en lecture seule : `RZ_GITHUB_TOKEN=…`.
+La page de présentation liste les installeurs (.msi, .deb, .pkg) que GitHub Actions publie sur les
+« releases » du dépôt.
+
+**Dépôt privé** : les visiteurs n'ont pas accès aux fichiers de GitHub. Donne alors au serveur un jeton
+GitHub en lecture seule ; il téléchargera les installeurs une fois (cache dans `data/cache/installeurs`)
+et les servira lui-même sur `/telecharger/installeur/…` :
+
+1. Sur GitHub : *Settings → Developer settings → Personal access tokens → Fine-grained tokens →
+   Generate new token* ; dépôt : seulement `RzParty` ; permission *Contents : Read-only*.
+2. Dans le conteneur : ajoute la ligne `RZ_GITHUB_TOKEN=le_jeton` au fichier `/etc/rzparty/rzparty.env`
+   (crée-le si besoin, droits `600`), puis `systemctl restart rzparty`.
+
+Sans jeton, le journal du serveur l'indique. Un jeton lève aussi la limite de 60 demandes par heure.
+**Dépôt public** : rien à faire, les liens pointent directement vers GitHub (la page interroge aussi
+GitHub elle-même si le serveur n'y arrive pas).

@@ -317,4 +317,6 @@ export interface InstallerInfo {
   url: string;
   /** Taille en octets. */
   size: number;
+  /** Adresse API GitHub du fichier (usage interne au serveur, jamais envoyée aux navigateurs). */
+  asset?: string;
 }

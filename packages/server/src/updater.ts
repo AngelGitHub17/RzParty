@@ -1,8 +1,10 @@
 import { execFile } from "node:child_process";
-import { chmodSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { chmodSync, createWriteStream, existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
 import { dirname, resolve, sep } from "node:path";
 import { promisify } from "node:util";
-import { findInstallers, installerOf, type ChangelogEntry, type InstallerList, type ReleaseInfo, type UpdateStatus } from "@rzparty/shared";
+import { findInstallers, installerOf, type ChangelogEntry, type InstallerInfo, type InstallerList, type ReleaseInfo, type UpdateStatus } from "@rzparty/shared";
 import { config, rootDir } from "./config.ts";
 import { log } from "./log.ts";
 import { readZip } from "./unzip.ts";
@@ -421,31 +423,75 @@ let installersCache: { at: number; list: InstallerList } | null = null;
 export { installerOf };
 
 let installersWarned = false;
+const GITHUB_TOKEN = process.env.RZ_GITHUB_TOKEN || process.env.GITHUB_TOKEN || "";
 
-/** Les installeurs de la version en ligne (ou de la dernière publiée), d'après les releases GitHub. */
+function githubHeaders(accept = "application/vnd.github+json"): Record<string, string> {
+  return {
+    "user-agent": `RzParty/${version}`,
+    accept,
+    // Un jeton GitHub (lecture seule) est indispensable si le dépôt est privé, et lève la limite de 60 demandes par heure.
+    ...(GITHUB_TOKEN ? { authorization: `Bearer ${GITHUB_TOKEN}` } : {}),
+  };
+}
+
+/** Installeurs connus du serveur (avec l'adresse API de chaque fichier). */
+let installerAssets = new Map<string, InstallerInfo>();
+
+/**
+ * Les installeurs de la version en ligne (ou de la dernière publiée), d'après les releases GitHub.
+ * Avec un jeton, ils sont servis par ce serveur (/telecharger/installeur/…) : ça marche aussi
+ * quand le dépôt GitHub est privé (les visiteurs n'ont alors pas accès aux fichiers de GitHub).
+ */
 export async function listInstallers(): Promise<InstallerList> {
   const fresh = installersCache && Date.now() - installersCache.at < (installersCache.list.files.length ? 15 * 60_000 : 2 * 60_000);
   if (fresh) return installersCache!.list;
   try {
-    const list = await findInstallers(
-      (url) => fetch(url, { signal: AbortSignal.timeout(8000), headers: {
-          "user-agent": `RzParty/${version}`,
-          accept: "application/vnd.github+json",
-          // Facultatif : un jeton GitHub évite la limite de 60 demandes par heure et par adresse.
-          ...(process.env.RZ_GITHUB_TOKEN ? { authorization: `Bearer ${process.env.RZ_GITHUB_TOKEN}` } : {}),
-        },
-      }),
-      version,
-      GITHUB_REPO,
-    );
-    installersCache = { at: Date.now(), list };
+    const found = await findInstallers((url) => fetch(url, { signal: AbortSignal.timeout(8000), headers: githubHeaders() }), version, GITHUB_REPO);
+    installerAssets = new Map(found.files.map((f) => [f.name, f]));
+    const files = found.files.map(({ asset, ...f }) => (GITHUB_TOKEN && asset ? { ...f, url: `/telecharger/installeur/${encodeURIComponent(f.name)}` } : f));
+    installersCache = { at: Date.now(), list: { release: found.release, files } };
+    if (!files.length && !installersWarned) {
+      installersWarned = true;
+      log("Installeurs : aucun trouvé sur GitHub. Si le dépôt est privé, ajoute un jeton en lecture seule : RZ_GITHUB_TOKEN=…");
+    }
   } catch (err) {
-    // Une seule alerte dans le journal : la page de présentation interrogera GitHub elle-même.
     if (!installersWarned) {
       installersWarned = true;
-      log(`Installeurs : impossible de joindre GitHub depuis le serveur (${err instanceof Error ? err.message : err}). La page de présentation les cherchera directement.`);
+      const why = err instanceof Error ? err.message : String(err);
+      log(
+        `Installeurs : GitHub ne répond pas (${why}).` +
+          (/404/.test(why) && !GITHUB_TOKEN ? " Le dépôt est sans doute privé : ajoute un jeton GitHub en lecture seule (RZ_GITHUB_TOKEN=…)." : " La page de présentation essaiera directement."),
+      );
     }
     installersCache = { at: Date.now(), list: installersCache?.list ?? { release: null, files: [] } };
   }
   return installersCache.list;
+}
+
+const installerDownloads = new Map<string, Promise<string>>();
+
+/** Télécharge (une fois, puis garde en cache) un installeur depuis GitHub, avec le jeton du serveur. */
+export async function installerFile(name: string): Promise<{ file: string; info: InstallerInfo }> {
+  if (!installerAssets.size) await listInstallers();
+  const info = installerAssets.get(name);
+  if (!info?.asset || !GITHUB_TOKEN) throw new Error("Installeur inconnu.");
+  const dir = resolve(cacheDir, "installeurs");
+  const file = resolve(dir, name);
+  if (existsSync(file) && statSync(file).size === info.size) return { file, info };
+  let pending = installerDownloads.get(name);
+  if (!pending) {
+    pending = (async () => {
+      mkdirSync(dir, { recursive: true });
+      // On ne garde que les installeurs actuels.
+      for (const old of readdirSync(dir)) if (!installerAssets.has(old)) rmSync(resolve(dir, old), { force: true });
+      const res = await fetch(info.asset!, { headers: githubHeaders("application/octet-stream"), signal: AbortSignal.timeout(10 * 60_000) });
+      if (!res.ok || !res.body) throw new Error(`GitHub a répondu ${res.status}`);
+      const tmp = `${file}.part`;
+      await pipeline(Readable.fromWeb(res.body as never), createWriteStream(tmp));
+      renameSync(tmp, file);
+      return file;
+    })().finally(() => installerDownloads.delete(name));
+    installerDownloads.set(name, pending);
+  }
+  return { file: await pending, info };
 }

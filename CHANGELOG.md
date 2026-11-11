@@ -3,6 +3,10 @@
 Chaque version commence par « ## numéro — date ». La page de présentation et les serveurs
 locaux lisent ce fichier : pense à augmenter la version dans package.json à chaque publication.
 
+## 0.13.1 — 11 novembre 2026
+- Installeurs avec un dépôt GitHub privé : avec un jeton en lecture seule (`RZ_GITHUB_TOKEN` dans `/etc/rzparty/rzparty.env`), le serveur télécharge les installeurs une fois et les sert lui-même (`/telecharger/installeur/…`) ; les visiteurs n'ont plus besoin d'accéder à GitHub.
+- Journal du serveur plus clair quand les installeurs sont introuvables (dépôt privé sans jeton).
+
 ## 0.13.0 — 11 novembre 2026
 - Mini-jeux en 3D, premier lot de 8 :
   - Tape-taupe : pelouse, trous, taupes qui sortent (les dorées brillent) et maillet ; les trous se touchent au premier contact, comme avant.

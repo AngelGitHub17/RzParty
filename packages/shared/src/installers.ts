@@ -35,8 +35,14 @@ export async function findInstallers(fetcher: Fetcher, version: string, repo = D
         lastError = `GitHub a répondu ${res.status}`;
         continue;
       }
-      const body = (await res.json()) as { tag_name?: string; assets?: { name: string; browser_download_url: string; size: number }[] };
-      const files = (body.assets ?? []).map((a) => installerOf(a.name, a.browser_download_url, a.size)).filter((f): f is InstallerInfo => f !== null);
+      const body = (await res.json()) as { tag_name?: string; assets?: { name: string; browser_download_url: string; size: number; url?: string }[] };
+      const files = (body.assets ?? [])
+        .map((a) => {
+          const f = installerOf(a.name, a.browser_download_url, a.size);
+          // Adresse de l'API du fichier : sert au serveur pour le télécharger depuis un dépôt privé.
+          return f && a.url ? { ...f, asset: a.url } : f;
+        })
+        .filter((f): f is InstallerInfo => f !== null);
       if (files.length) return { release: body.tag_name?.replace(/^v/, "") ?? null, files };
     } catch (err) {
       lastError = err instanceof Error ? err.message : String(err);

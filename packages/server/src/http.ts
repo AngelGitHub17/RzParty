@@ -6,7 +6,7 @@ import { GAME_NAME, type ServerInfo } from "@rzparty/shared";
 import { config, rootDir } from "./config.ts";
 import { lanAddresses } from "./network.ts";
 import { attachSockets } from "./socket.ts";
-import { availableUpdate, buildInfo, downloadArchive, downloadRelease, GITHUB_REPO, listInstallers, listReleases, readChangelog, version } from "./updater.ts";
+import { availableUpdate, buildInfo, downloadArchive, downloadRelease, GITHUB_REPO, installerFile, listInstallers, listReleases, readChangelog, version } from "./updater.ts";
 import type { ProfileStore } from "./profiles/ProfileStore.ts";
 import type { AdminStore } from "./profiles/AdminStore.ts";
 
@@ -62,6 +62,19 @@ export async function startServer(port: number, deps: { profiles: ProfileStore; 
     app.get("/api/versions", async (_req, reply) => {
       reply.header("access-control-allow-origin", "*").header("cache-control", "no-cache");
       return { current: version, releases: await listReleases().catch(() => []) };
+    });
+    // Installeurs servis par ce serveur (dépôt GitHub privé : les visiteurs n'y ont pas accès directement).
+    app.get<{ Params: { name: string } }>("/telecharger/installeur/:name", async (req, reply) => {
+      try {
+        const { file, info } = await installerFile(req.params.name);
+        return reply
+          .type(info.os === "windows" ? "application/x-msi" : info.os === "linux" ? "application/vnd.debian.binary-package" : "application/octet-stream")
+          .header("content-disposition", `attachment; filename="${info.name}"`)
+          .header("content-length", String(info.size))
+          .send(createReadStream(file));
+      } catch (err) {
+        return reply.code(404).type("text/plain; charset=utf-8").send(`Installeur indisponible. ${(err as Error).message}`);
+      }
     });
     app.get<{ Params: { version: string } }>("/telecharger/:version", async (req, reply) => {
       const wanted = req.params.version;
