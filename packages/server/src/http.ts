@@ -6,7 +6,7 @@ import { GAME_NAME, type ServerInfo } from "@rzparty/shared";
 import { config, rootDir } from "./config.ts";
 import { lanAddresses } from "./network.ts";
 import { attachSockets } from "./socket.ts";
-import { availableUpdate, buildInfo, downloadArchive, downloadRelease, listInstallers, listReleases, readChangelog, version } from "./updater.ts";
+import { availableUpdate, buildInfo, downloadArchive, downloadRelease, GITHUB_REPO, listInstallers, listReleases, readChangelog, version } from "./updater.ts";
 import type { ProfileStore } from "./profiles/ProfileStore.ts";
 import type { AdminStore } from "./profiles/AdminStore.ts";
 
@@ -56,7 +56,8 @@ export async function startServer(port: number, deps: { profiles: ProfileStore; 
   if (config.site) {
     app.get("/api/installeurs", async (_req, reply) => {
       reply.header("access-control-allow-origin", "*").header("cache-control", "no-cache");
-      return { version, files: await listInstallers() };
+      const list = await listInstallers();
+      return { version, repo: GITHUB_REPO, ...list };
     });
     app.get("/api/versions", async (_req, reply) => {
       reply.header("access-control-allow-origin", "*").header("cache-control", "no-cache");

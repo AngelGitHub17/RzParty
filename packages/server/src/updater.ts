@@ -2,7 +2,7 @@ import { execFile } from "node:child_process";
 import { chmodSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, resolve, sep } from "node:path";
 import { promisify } from "node:util";
-import type { ChangelogEntry, InstallerInfo, ReleaseInfo, UpdateStatus } from "@rzparty/shared";
+import { findInstallers, installerOf, type ChangelogEntry, type InstallerList, type ReleaseInfo, type UpdateStatus } from "@rzparty/shared";
 import { config, rootDir } from "./config.ts";
 import { log } from "./log.ts";
 import { readZip } from "./unzip.ts";
@@ -414,29 +414,38 @@ async function installFromArchive(onRestart: () => void): Promise<{ restarting: 
 // ─────────────────────────── Installeurs (publiés sur GitHub) ───────────────────────────
 
 /** Dépôt GitHub où GitHub Actions publie les installeurs de chaque version. */
-const GITHUB_REPO = process.env.RZ_GITHUB_REPO || "AngelGitHub17/RzParty";
-let installersCache: { at: number; files: InstallerInfo[] } | null = null;
+export const GITHUB_REPO = process.env.RZ_GITHUB_REPO || "AngelGitHub17/RzParty";
+let installersCache: { at: number; list: InstallerList } | null = null;
 
 /** Rangement d'un fichier publié : .msi → Windows, .deb → Linux, .pkg → Mac. */
-export function installerOf(name: string, url: string, size: number): InstallerInfo | null {
-  const os = name.endsWith(".msi") ? "windows" : name.endsWith(".deb") ? "linux" : name.endsWith(".pkg") ? "mac" : null;
-  return os ? { os, name, url, size } : null;
-}
+export { installerOf };
 
-/** Les installeurs de la version en ligne (vide tant que GitHub Actions ne les a pas publiés). */
-export async function listInstallers(): Promise<InstallerInfo[]> {
-  const fresh = installersCache && Date.now() - installersCache.at < (installersCache.files.length ? 15 * 60_000 : 2 * 60_000);
-  if (fresh) return installersCache!.files;
+let installersWarned = false;
+
+/** Les installeurs de la version en ligne (ou de la dernière publiée), d'après les releases GitHub. */
+export async function listInstallers(): Promise<InstallerList> {
+  const fresh = installersCache && Date.now() - installersCache.at < (installersCache.list.files.length ? 15 * 60_000 : 2 * 60_000);
+  if (fresh) return installersCache!.list;
   try {
-    const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/tags/v${version}`, {
-      signal: AbortSignal.timeout(8000),
-      headers: { "user-agent": `RzParty/${version}`, accept: "application/vnd.github+json" },
-    });
-    const body = res.ok ? ((await res.json()) as { assets?: { name: string; browser_download_url: string; size: number }[] }) : { assets: [] };
-    const files = (body.assets ?? []).map((a) => installerOf(a.name, a.browser_download_url, a.size)).filter((f): f is InstallerInfo => f !== null);
-    installersCache = { at: Date.now(), files };
-  } catch {
-    installersCache = { at: Date.now(), files: installersCache?.files ?? [] };
+    const list = await findInstallers(
+      (url) => fetch(url, { signal: AbortSignal.timeout(8000), headers: {
+          "user-agent": `RzParty/${version}`,
+          accept: "application/vnd.github+json",
+          // Facultatif : un jeton GitHub évite la limite de 60 demandes par heure et par adresse.
+          ...(process.env.RZ_GITHUB_TOKEN ? { authorization: `Bearer ${process.env.RZ_GITHUB_TOKEN}` } : {}),
+        },
+      }),
+      version,
+      GITHUB_REPO,
+    );
+    installersCache = { at: Date.now(), list };
+  } catch (err) {
+    // Une seule alerte dans le journal : la page de présentation interrogera GitHub elle-même.
+    if (!installersWarned) {
+      installersWarned = true;
+      log(`Installeurs : impossible de joindre GitHub depuis le serveur (${err instanceof Error ? err.message : err}). La page de présentation les cherchera directement.`);
+    }
+    installersCache = { at: Date.now(), list: installersCache?.list ?? { release: null, files: [] } };
   }
-  return installersCache.files;
+  return installersCache.list;
 }

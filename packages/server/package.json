@@ -1,6 +1,6 @@
 {
   "name": "@rzparty/server",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "private": true,
   "type": "module",
   "description": "Serveur RzParty : salons, moteur de partie, bots — servi sur le réseau local",

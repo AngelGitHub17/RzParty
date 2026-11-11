@@ -1,6 +1,6 @@
 {
   "name": "@rzparty/client",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "private": true,
   "type": "module",
   "description": "Client navigateur RzParty : écran commun, manette et écran individuel",

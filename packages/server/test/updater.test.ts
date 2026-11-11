@@ -106,3 +106,18 @@ describe("mises à jour", () => {
     expect(installerOf("notes.txt", "u", 5)).toBeNull();
   });
 });
+
+describe("recherche des installeurs", () => {
+  it("prend la dernière version publiée si celle du serveur n'a pas (encore) d'installeurs", async () => {
+    const { findInstallers } = await import("@rzparty/shared");
+    const seen: string[] = [];
+    const list = await findInstallers(async (url) => {
+      seen.push(url);
+      if (url.includes("/tags/")) return { ok: false, status: 404, json: async () => ({}) };
+      return { ok: true, status: 200, json: async () => ({ tag_name: "v1.2.0", assets: [{ name: "RzParty-1.2.0.msi", browser_download_url: "u", size: 3 }, { name: "notes.txt", browser_download_url: "n", size: 1 }] }) };
+    }, "1.3.0", "moi/depot");
+    expect(seen).toEqual(["https://api.github.com/repos/moi/depot/releases/tags/v1.3.0", "https://api.github.com/repos/moi/depot/releases/latest"]);
+    expect(list).toEqual({ release: "1.2.0", files: [{ os: "windows", name: "RzParty-1.2.0.msi", url: "u", size: 3 }] });
+    await expect(findInstallers(async () => { throw new Error("hors ligne"); }, "1.0.0")).rejects.toThrow("hors ligne");
+  });
+});

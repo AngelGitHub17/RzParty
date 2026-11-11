@@ -5,7 +5,7 @@
 import "@fontsource-variable/fredoka";
 import "../styles.css";
 import "./site.css";
-import { GAME_MODES, type ChangelogEntry, type GameModeId, type InstallerInfo, type ReleaseInfo } from "@rzparty/shared";
+import { DEFAULT_GITHUB_REPO, GAME_MODES, findInstallers, type ChangelogEntry, type GameModeId, type InstallerInfo, type InstallerList, type ReleaseInfo } from "@rzparty/shared";
 import { MINI_GAME_DEFINITIONS } from "@rzparty/minigames/catalog";
 import { h } from "../ui/dom.ts";
 import { wordmark } from "../ui/brand.ts";
@@ -188,9 +188,12 @@ function myOs(): InstallerInfo["os"] {
   return /Mac/i.test(ua) && !/iPhone|iPad/i.test(ua) ? "mac" : /Linux|X11/i.test(ua) && !/Android/i.test(ua) ? "linux" : "windows";
 }
 
-function renderInstallers(files: InstallerInfo[]): void {
+function renderInstallers(files: InstallerInfo[], release: string | null = null, current = ""): void {
   if (!files.length) {
-    installers.replaceChildren(h("p", { class: "muted", text: "Les installeurs de cette version sont en cours de fabrication : reviens dans quelques minutes, ou prends le .zip ci-dessous." }));
+    installers.replaceChildren(
+      h("p", { class: "muted", text: "Les installeurs de cette version sont en cours de fabrication : reviens dans quelques minutes, ou prends le .zip ci-dessous." }),
+      h("p", {}, h("a", { attrs: { href: `https://github.com/${DEFAULT_GITHUB_REPO}/releases`, target: "_blank", rel: "noopener" }, text: "Voir toutes les versions publiées sur GitHub" })),
+    );
     return;
   }
   const mine = myOs();
@@ -205,7 +208,7 @@ function renderInstallers(files: InstallerInfo[]): void {
       ),
     ),
   );
-  installerNote.textContent = "Node.js est inclus : rien d'autre à installer. Le jeu se met ensuite à jour tout seul, entre deux parties. Windows ou Mac peuvent avertir que l'éditeur est inconnu : choisis « Exécuter quand même » (Windows) ou clic droit puis « Ouvrir » (Mac).";
+  installerNote.textContent = (release && current && release !== current ? `Installeurs de la version ${release}. ` : "") + "Node.js est inclus : rien d'autre à installer. Le jeu se met ensuite à jour tout seul, entre deux parties. Windows ou Mac peuvent avertir que l'éditeur est inconnu : choisis « Exécuter quand même » (Windows) ou clic droit puis « Ouvrir » (Mac).";
 }
 
 const home = section(
@@ -307,10 +310,28 @@ const footer = h(
 root.append(header, h("main", { class: "site-main" }, hero, ways, modes, games, home, updates), footer);
 
 // Installeurs, version en ligne, anciennes versions et journal, servis par le serveur.
-void fetch("/api/installeurs")
-  .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-  .then((data: { files: InstallerInfo[] }) => renderInstallers(data.files))
-  .catch(() => renderInstallers([]));
+// Les installeurs : demandés au serveur ; s'il n'arrive pas à joindre GitHub, la page les cherche elle-même.
+void (async () => {
+  let version = "";
+  let repo = DEFAULT_GITHUB_REPO;
+  try {
+    const r = await fetch("/api/installeurs");
+    if (r.ok) {
+      const data = (await r.json()) as Partial<InstallerList> & { version?: string; repo?: string };
+      version = data.version ?? "";
+      repo = data.repo ?? repo;
+      if (data.files?.length) return renderInstallers(data.files, data.release ?? null, version);
+    }
+  } catch {
+    // On essaie GitHub directement.
+  }
+  try {
+    const list = await findInstallers((url) => fetch(url, { headers: { accept: "application/vnd.github+json" } }), version || "0", repo);
+    renderInstallers(list.files, list.release, version);
+  } catch {
+    renderInstallers([], null, version);
+  }
+})();
 const releasesReady = fetch("/api/versions")
   .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
   .then((data: { releases: ReleaseInfo[] }) => renderReleases(data.releases))

@@ -3,6 +3,11 @@
 Chaque version commence par « ## numéro — date ». La page de présentation et les serveurs
 locaux lisent ce fichier : pense à augmenter la version dans package.json à chaque publication.
 
+## 0.12.1 — 11 novembre 2026
+- Page de présentation : les installeurs s'affichent même quand le serveur n'arrive pas à joindre GitHub (refus, limite de demandes, pare-feu) : la page les cherche alors elle-même depuis le navigateur.
+- Si la version du serveur n'a pas encore d'installeurs, ceux de la dernière version publiée sont proposés (ils se mettent ensuite à jour tout seuls).
+- Lien vers toutes les versions publiées sur GitHub quand aucun installeur n'est trouvé ; message dans le journal du serveur si GitHub ne répond pas ; jeton facultatif `RZ_GITHUB_TOKEN`.
+
 ## 0.12.0 — 10 novembre 2026
 - Passage en 3D, deuxième étape : Bingo des copains (machine à boules qui tourne, boule tirée qui roule avec le personnage dedans, derniers tirés sur leurs socles, BINGO sous les confettis).
 - Trios en 3D : table ronde des personnages du centre et estrade de chaque joueur ; on touche directement un personnage du centre puis celui à remplacer ; trios marqués sous les confettis.

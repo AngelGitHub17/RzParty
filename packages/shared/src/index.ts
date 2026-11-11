@@ -15,3 +15,4 @@ export * from "./partyModes.ts";
 export * from "./familyModes.ts";
 export * from "./ile.ts";
 export * from "./names.ts";
+export * from "./installers.ts";

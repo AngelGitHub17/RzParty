@@ -126,3 +126,10 @@ Caddy obtient et renouvelle le certificat tout seul.
 ## Conteneur déjà installé avant la page de présentation ?
 
 Ajoute `RZ_SITE=1` dans `/etc/rzparty/rzparty.env`, puis `rzparty-maj --force`.
+
+## Installeurs sur la page de présentation
+
+La page de présentation liste les installeurs (.msi, .deb, .pkg) publiés sur GitHub. Le serveur les
+demande à l'API GitHub ; si elle refuse (limite de 60 demandes par heure et par adresse, pare-feu…),
+le journal l'indique et la page les cherche directement depuis le navigateur du visiteur. Pour lever
+la limite côté serveur, ajoute un jeton GitHub en lecture seule : `RZ_GITHUB_TOKEN=…`.
