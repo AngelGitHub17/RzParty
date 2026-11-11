@@ -1,6 +1,8 @@
 import "./style.css";
 import { PLAYER_COLORS } from "@rzparty/shared";
-import { clear, h, timeBar } from "../kit.ts";
+import { clear, h, mount3D, timeBar } from "../kit.ts";
+import { castPlayers } from "../three/players.ts";
+import type { LabyScene } from "./scene3d.ts";
 import type { MiniGameView, MiniGameViewContext } from "../client.ts";
 import { LABY_DURATION_MS, OPEN, type Dir, type LabyState } from "./types.ts";
 
@@ -70,8 +72,18 @@ export function labyrintheView(root: HTMLElement, ctx: MiniGameViewContext): Min
 
   // Glisser du doigt sur le labyrinthe.
   let touchStart: { x: number; y: number } | null = null;
-  board.addEventListener("pointerdown", (e) => (touchStart = { x: e.clientX, y: e.clientY }));
-  board.addEventListener("pointerup", (e) => {
+  // En 3D quand c'est possible (le plan 2D reste là sinon) ; on glisse sur l'un comme sur l'autre.
+  const box = h("div", { class: "mg3d-box laby__box" }, board);
+  let scene: LabyScene | null = null;
+  let gone = false;
+  mount3D(box, () => import("./scene3d.ts"), ({ LabyScene }, host) => {
+    if (gone) return false;
+    scene = new LabyScene(host, castPlayers(ctx), ctx.me);
+    if (state) scene.update(state);
+    return true;
+  });
+  box.addEventListener("pointerdown", (e) => (touchStart = { x: e.clientX, y: e.clientY }));
+  box.addEventListener("pointerup", (e) => {
     if (!touchStart || !interactive) return;
     const dx = e.clientX - touchStart.x, dy = e.clientY - touchStart.y;
     touchStart = null;
@@ -85,7 +97,7 @@ export function labyrintheView(root: HTMLElement, ctx: MiniGameViewContext): Min
       { class: `mg laby laby--${ctx.layout}` },
       bar.el,
       status,
-      h("div", { class: "laby__stage" }, board, pad),
+      h("div", { class: "laby__stage" }, box, pad),
       ctx.layout === "pad" ? null : podium,
     ),
   );
@@ -124,6 +136,7 @@ export function labyrintheView(root: HTMLElement, ctx: MiniGameViewContext): Min
     const s = state;
     bar.set(s.endsAt - LABY_DURATION_MS, s.endsAt);
     build(s);
+    scene?.update(s);
     // Mon pion par-dessus les autres.
     const order = [...ctx.players].sort((a, b) => Number(a.id === ctx.me) - Number(b.id === ctx.me));
     for (const p of order) {
@@ -163,6 +176,8 @@ export function labyrintheView(root: HTMLElement, ctx: MiniGameViewContext): Min
       render();
     },
     destroy() {
+      gone = true;
+      scene?.destroy();
       bar.destroy();
       window.removeEventListener("keydown", onKey);
     },

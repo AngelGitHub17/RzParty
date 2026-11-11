@@ -111,3 +111,9 @@
   border-radius: 999px;
   background: var(--paper);
 }
+.laby__box.has-3d {
+  width: min(620px, 92vw, 66vh);
+  height: auto;
+  aspect-ratio: 1;
+  background: radial-gradient(circle, #bff5c8, #7ed957);
+}

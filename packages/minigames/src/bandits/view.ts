@@ -1,5 +1,6 @@
 import "./style.css";
-import { h, scoreLanes, timeBar } from "../kit.ts";
+import { h, mount3D, scoreLanes, timeBar } from "../kit.ts";
+import type { BanditsScene } from "./scene3d.ts";
 import type { MiniGameView, MiniGameViewContext } from "../client.ts";
 import { BANDITS_DURATION_MS, WINDOWS, type BanditsState } from "./types.ts";
 
@@ -30,13 +31,24 @@ export function banditsView(root: HTMLElement, ctx: MiniGameViewContext): MiniGa
     );
   });
   const facade = h("div", { class: "west__facade" }, h("p", { class: "west__sign", text: "SALOON" }), h("div", { class: "west__windows" }, ...windows));
-  root.append(h("div", { class: `mg west west--${ctx.layout}` }, bar.el, interactive ? mine : null, h("div", { class: "west__stage" }, facade, ctx.layout === "pad" ? null : lanes)));
+  // En 3D quand c'est possible (la façade 2D reste là sinon).
+  const box = h("div", { class: "mg3d-box west__box" }, facade);
+  let scene: BanditsScene | null = null;
+  let gone = false;
+  mount3D(box, () => import("./scene3d.ts"), ({ BanditsScene }, host) => {
+    if (gone) return false;
+    scene = new BanditsScene(host, interactive, (i) => shoot(i));
+    render();
+    return true;
+  });
+  root.append(h("div", { class: `mg west west--${ctx.layout}` }, bar.el, interactive ? mine : null, h("div", { class: "west__stage" }, box, ctx.layout === "pad" ? null : lanes)));
 
   function shoot(i: number): void {
     if (!state || state.finished) return;
     const p = state.popups.find((x) => x.window === i);
     if (!p) return;
     ctx.send({ popup: p.id });
+    scene?.shot(i);
     const w = windows[i]!;
     w.classList.remove("is-shot");
     void w.offsetWidth;
@@ -54,6 +66,7 @@ export function banditsView(root: HTMLElement, ctx: MiniGameViewContext): MiniGa
       w.classList.toggle("is-up", up);
       w.dataset.kind = p?.kind ?? "";
     });
+    scene?.update(s, hit, ctx.serverNow());
     if (ctx.me) mine.textContent = `${s.scores[ctx.me] ?? 0} point${Math.abs(s.scores[ctx.me] ?? 0) > 1 ? "s" : ""}${s.finished ? " · Terminé !" : ""}`;
     if (ctx.layout !== "pad") scoreLanes(lanes, ctx.players, { score: (id) => s.scores[id] ?? 0, me: ctx.me, avatar: ctx.avatar });
   }
@@ -64,6 +77,8 @@ export function banditsView(root: HTMLElement, ctx: MiniGameViewContext): MiniGa
       render();
     },
     destroy() {
+      gone = true;
+      scene?.destroy();
       bar.destroy();
     },
   };

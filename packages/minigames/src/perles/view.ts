@@ -1,5 +1,6 @@
 import "./style.css";
-import { everyFrame, h, scoreLanes, timeBar } from "../kit.ts";
+import { everyFrame, h, mount3D, scoreLanes, timeBar } from "../kit.ts";
+import type { PerlesScene } from "./scene3d.ts";
 import type { MiniGameView, MiniGameViewContext } from "../client.ts";
 import { CLOSING_MS, OYSTERS, PERLES_MS, type PerlesState } from "./types.ts";
 
@@ -22,7 +23,16 @@ export function perlesView(root: HTMLElement, ctx: MiniGameViewContext): MiniGam
     ),
   );
   const sea = h("div", { class: "pearl__sea" }, ...shells);
-  root.append(h("div", { class: `mg pearl pearl--${ctx.layout}` }, bar.el, interactive ? mine : null, h("div", { class: "mole__stage" }, sea, ctx.layout === "pad" ? null : lanes)));
+  // En 3D quand c'est possible (la mer 2D reste là sinon).
+  const box = h("div", { class: "mg3d-box pearl__box" }, sea);
+  let scene: PerlesScene | null = null;
+  let gone = false;
+  mount3D(box, () => import("./scene3d.ts"), ({ PerlesScene }, host) => {
+    if (gone) return false;
+    scene = new PerlesScene(host, interactive, (i) => grab(i));
+    return true;
+  });
+  root.append(h("div", { class: `mg pearl pearl--${ctx.layout}` }, bar.el, interactive ? mine : null, h("div", { class: "mole__stage" }, box, ctx.layout === "pad" ? null : lanes)));
   const KEYS: Record<string, number> = { "1": 0, "2": 1, "3": 2, "4": 3, "5": 4, "6": 5 };
   const onKey = (e: KeyboardEvent) => {
     const i = KEYS[e.key];
@@ -54,6 +64,7 @@ export function perlesView(root: HTMLElement, ctx: MiniGameViewContext): MiniGam
       shell.classList.toggle("is-grabbed", Boolean(o && taken.has(o.id)));
     });
     if (ctx.me) sea.classList.toggle("is-pinched", (s.pinched[ctx.me] ?? 0) > now);
+    scene?.update(s, taken, now, Boolean(ctx.me && (s.pinched[ctx.me] ?? 0) > now));
   });
 
   function render(): void {
@@ -74,6 +85,8 @@ export function perlesView(root: HTMLElement, ctx: MiniGameViewContext): MiniGam
       render();
     },
     destroy() {
+      gone = true;
+      scene?.destroy();
       bar.destroy();
       stop();
       window.removeEventListener("keydown", onKey);

@@ -16,3 +16,15 @@
 .hai--solo .hai__lanes-box {
   width: min(680px, 96vw);
 }
+.hai__box.has-3d {
+  width: 100%;
+  height: clamp(240px, 46vh, 460px);
+  background: linear-gradient(#9fd8ff, #dff3ff);
+}
+.hai__box-wrap:not(:has(.has-3d)) {
+  display: none;
+}
+.hai.is-3d .hai__close-box,
+.hai.is-3d .hai__lanes-box {
+  display: none;
+}

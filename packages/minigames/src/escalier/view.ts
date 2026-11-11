@@ -1,6 +1,8 @@
 import "./style.css";
 import { PLAYER_COLORS } from "@rzparty/shared";
-import { clear, h, timeBar } from "../kit.ts";
+import { clear, h, mount3D, timeBar } from "../kit.ts";
+import { castPlayers } from "../three/players.ts";
+import type { EscalierScene } from "./scene3d.ts";
 import type { MiniGameView, MiniGameViewContext } from "../client.ts";
 import { STAIRS, STEP_CHOICE_MS, STEP_REVEAL_MS, type EscalierState } from "./types.ts";
 
@@ -28,7 +30,18 @@ export function escalierView(root: HTMLElement, ctx: MiniGameViewContext): MiniG
     if (["1", "2", "3"].includes(e.key) && interactive) pick(Number(e.key));
   };
   window.addEventListener("keydown", onKey);
-  root.append(h("div", { class: `mg stairs stairs--${ctx.layout}` }, bar.el, title, interactive ? buttons : null, ctx.layout === "pad" && interactive ? null : stairs));
+  // En 3D quand c'est possible (les escaliers 2D restent là sinon).
+  const box = h("div", { class: "mg3d-box stairs__box" }, stairs);
+  let scene: EscalierScene | null = null;
+  let gone = false;
+  if (!(ctx.layout === "pad" && interactive))
+    mount3D(box, () => import("./scene3d.ts"), ({ EscalierScene }, host) => {
+      if (gone) return false;
+      scene = new EscalierScene(host, castPlayers(ctx));
+      if (state) scene.update(state);
+      return true;
+    });
+  root.append(h("div", { class: `mg stairs stairs--${ctx.layout}` }, bar.el, title, interactive ? buttons : null, ctx.layout === "pad" && interactive ? null : box));
 
   function pick(n: number): void {
     if (!state || state.phase !== "choose") return;
@@ -62,6 +75,7 @@ export function escalierView(root: HTMLElement, ctx: MiniGameViewContext): MiniG
       title.textContent += ` · Tu es sur la marche ${s.heights[ctx.me]}/${STAIRS}`;
       return;
     }
+    scene?.update(s);
     clear(stairs);
     for (const p of ctx.players) {
       const height = s.heights[p.id] ?? 0;
@@ -100,6 +114,8 @@ export function escalierView(root: HTMLElement, ctx: MiniGameViewContext): MiniG
       render();
     },
     destroy() {
+      gone = true;
+      scene?.destroy();
       bar.destroy();
       window.removeEventListener("keydown", onKey);
     },

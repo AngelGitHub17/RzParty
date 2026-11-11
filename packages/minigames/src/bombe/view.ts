@@ -1,6 +1,8 @@
 import "./style.css";
 import { PLAYER_COLORS } from "@rzparty/shared";
-import { clear, h } from "../kit.ts";
+import { clear, h, mount3D } from "../kit.ts";
+import { castPlayers } from "../three/players.ts";
+import type { BombeScene } from "./scene3d.ts";
 import type { MiniGameView, MiniGameViewContext } from "../client.ts";
 import type { BombeState } from "./types.ts";
 
@@ -33,12 +35,23 @@ export function bombeView(root: HTMLElement, ctx: MiniGameViewContext): MiniGame
   };
   window.addEventListener("keydown", onKey);
 
+  // En 3D quand c'est possible (le cercle 2D reste là sinon).
+  const box = h("div", { class: "mg3d-box bomb__box" }, ring);
+  let scene: BombeScene | null = null;
+  let gone = false;
+  if (ctx.layout !== "pad")
+    mount3D(box, () => import("./scene3d.ts"), ({ BombeScene }, host) => {
+      if (gone) return false;
+      scene = new BombeScene(host, castPlayers(ctx).map((p) => ({ ...p, name: ctx.players.find((x) => x.id === p.id)?.name })));
+      if (state) scene.update(state);
+      return true;
+    });
   root.append(
     h(
       "div",
       { class: `mg bomb bomb--${ctx.layout}` },
       headline,
-      ctx.layout === "pad" ? null : ring,
+      ctx.layout === "pad" ? null : box,
       interactive ? h("div", { class: "bomb__work" }, word, keys) : null,
     ),
   );
@@ -109,6 +122,7 @@ export function bombeView(root: HTMLElement, ctx: MiniGameViewContext): MiniGame
     else if (ctx.me && s.out.includes(ctx.me)) headline.textContent = `Éliminé. ${name(s.holder)} a la bombe.`;
     else headline.textContent = `${name(s.holder)} a la bombe → ${name(s.target)}`;
     if (ctx.layout !== "pad") renderRing(s);
+    scene?.update(s);
     if (interactive) renderWork(s);
   }
 
@@ -118,6 +132,8 @@ export function bombeView(root: HTMLElement, ctx: MiniGameViewContext): MiniGame
       render();
     },
     destroy() {
+      gone = true;
+      scene?.destroy();
       window.removeEventListener("keydown", onKey);
     },
   };

@@ -76,3 +76,8 @@
 .pearl__oyster.is-grabbed .pearl__treasure {
   opacity: 0;
 }
+.pearl__box.has-3d {
+  flex: 1 1 440px;
+  max-width: 760px;
+  background: linear-gradient(#2f7bef, #7fd3ff);
+}

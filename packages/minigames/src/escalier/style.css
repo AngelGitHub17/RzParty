@@ -91,3 +91,8 @@
   color: var(--ink-soft);
   font-size: 0.9rem;
 }
+.stairs__box.has-3d {
+  width: min(1000px, 100%);
+  height: clamp(260px, 50vh, 520px);
+  background: linear-gradient(#9fd8ff, #dff3ff);
+}

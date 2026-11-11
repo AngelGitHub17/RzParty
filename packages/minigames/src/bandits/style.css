@@ -80,3 +80,8 @@
     background: #fff3c4;
   }
 }
+.west__box.has-3d {
+  flex: 1 1 440px;
+  max-width: 760px;
+  background: linear-gradient(#ffb36b, #ffe3b0);
+}

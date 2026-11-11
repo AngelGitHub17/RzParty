@@ -1,7 +1,9 @@
 import "../timing.css";
 import "./style.css";
 import { PLAYER_COLORS } from "@rzparty/shared";
-import { clear, everyFrame, h, svg } from "../kit.ts";
+import { clear, everyFrame, h, mount3D, svg } from "../kit.ts";
+import { castPlayers } from "../three/players.ts";
+import type { HaiesScene } from "./scene3d.ts";
 import type { MiniGameView, MiniGameViewContext } from "../client.ts";
 import { localStart } from "../timing.ts";
 import { JUMP_MS, RACE_LENGTH, STEP_MS, simulateRun, type HaiesState } from "./types.ts";
@@ -31,12 +33,23 @@ export function haiesView(root: HTMLElement, ctx: MiniGameViewContext): MiniGame
   const lanesSvg = svg(`<svg viewBox="0 0 640 ${Math.max(2, ctx.players.length) * 34 + 6}" class="hai__lanes" aria-hidden="true"></svg>`);
   const button = h("button", { class: "tm__btn", attrs: { type: "button" }, text: "SAUTER", on: { pointerdown: (e) => (e.preventDefault(), jump()) } });
   const results = h("ul", { class: "tm__results" });
+  // En 3D quand c'est possible : une seule scène (ma course de près + tous les couloirs).
+  const box = h("div", { class: "mg3d-box hai__box" });
+  let scene: HaiesScene | null = null;
+  let gone = false;
+  mount3D(box, () => import("./scene3d.ts"), ({ HaiesScene }, host) => {
+    if (gone) return false;
+    scene = new HaiesScene(host, castPlayers(ctx), interactive ? ctx.me : null);
+    root.querySelector(".hai")?.classList.add("is-3d");
+    return true;
+  });
   root.append(
     h(
       "div",
       { class: `mg tm hai hai--${ctx.layout}` },
       title,
-      interactive ? h("div", { class: "tm__stage" }, close) : null,
+      h("div", { class: "tm__stage hai__box-wrap" }, box),
+      interactive ? h("div", { class: "tm__stage hai__close-box" }, close) : null,
       ctx.layout === "pad" ? null : h("div", { class: "tm__stage hai__lanes-box" }, lanesSvg),
       interactive ? button : null,
       results,
@@ -86,6 +99,10 @@ export function haiesView(root: HTMLElement, ctx: MiniGameViewContext): MiniGame
     const s = state;
     if (!s) return;
     const t = s.phase === "run" || s.phase === "result" ? performance.now() - start : 0;
+    if (scene) {
+      scene.draw(s.hurdles, (id) => (id === ctx.me ? mine : (s.jumps[id] ?? [])), t);
+      return;
+    }
     if (interactive && ctx.me) {
       const run = simulateRun(s.hurdles, mine, t);
       // Le monde défile ; le coureur saute en arc.
@@ -152,6 +169,8 @@ export function haiesView(root: HTMLElement, ctx: MiniGameViewContext): MiniGame
       render();
     },
     destroy() {
+      gone = true;
+      scene?.destroy();
       stop();
       window.removeEventListener("keydown", onKey);
     },

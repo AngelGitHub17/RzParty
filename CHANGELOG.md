@@ -3,6 +3,19 @@
 Chaque version commence par « ## numéro — date ». La page de présentation et les serveurs
 locaux lisent ce fichier : pense à augmenter la version dans package.json à chaque publication.
 
+## 0.14.0 — 11 novembre 2026
+- Mini-jeux en 3D, deuxième lot :
+  - Patate explosive : les joueurs en cercle sur une petite île, la bombe au-dessus du porteur, une flèche vers le suivant, le BOUM ; les éliminés restent assis.
+  - Tour de cadeaux : de vrais paquets enrubannés qui s'empilent sur le socle de chacun, le cadeau qui se balance au bout de sa corde, la caméra qui monte avec la tour, et les tours ratées qui s'écroulent.
+  - Ruée vers l'Ouest : la façade d'un saloon, volets qui s'ouvrent sur des bandits (à viser) ou des habitants (à épargner).
+  - Chasse aux perles : six huîtres au fond de la mer, perles, perles dorées ou crabes qui pincent, algues et bulles.
+  - Course de haies : piste de stade avec un couloir par joueur, haies qui tombent, caméra qui suit ma course (ou le premier sur l'écran commun).
+  - Labyrinthe : un jardin de haies vu d'en haut, l'étoile de sortie qui tourne ; on glisse toujours du doigt dessus.
+  - Escalier secret : un grand escalier par joueur, les personnages grimpent marche par marche, « +n » au moment de la révélation.
+- Aiguillages reste en 2D pour l'instant : suivre les rails des yeux y est plus lisible à plat.
+- Mêmes règles, mêmes commandes qu'avant (boutons, clavier, glisser) ; sans WebGL, l'affichage 2D reste.
+- Page de présentation : nouvelles images de ces 7 mini-jeux.
+
 ## 0.13.1 — 11 novembre 2026
 - Installeurs avec un dépôt GitHub privé : avec un jeton en lecture seule (`RZ_GITHUB_TOKEN` dans `/etc/rzparty/rzparty.env`), le serveur télécharge les installeurs une fois et les sert lui-même (`/telecharger/installeur/…`) ; les visiteurs n'ont plus besoin d'accéder à GitHub.
 - Journal du serveur plus clair quand les installeurs sont introuvables (dépôt privé sans jeton).

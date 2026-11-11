@@ -34,3 +34,8 @@
   font-weight: 600;
   font-size: 0.9rem;
 }
+.gift__box.has-3d {
+  width: min(1000px, 100%);
+  height: clamp(280px, 54vh, 560px);
+  background: linear-gradient(#ffe3b0, #fff7e8);
+}

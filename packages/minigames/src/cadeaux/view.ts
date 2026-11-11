@@ -1,7 +1,8 @@
 import "../timing.css";
 import "./style.css";
 import { PLAYER_COLORS } from "@rzparty/shared";
-import { everyFrame, h, scoreLanes, timeBar } from "../kit.ts";
+import { everyFrame, h, mount3D, scoreLanes, timeBar } from "../kit.ts";
+import type { CadeauxScene } from "./scene3d.ts";
 import type { MiniGameView, MiniGameViewContext } from "../client.ts";
 import { FIELD, GIFTS_MS, giftCenter, type CadeauxState, type Tower } from "./types.ts";
 
@@ -52,9 +53,18 @@ export function cadeauxView(root: HTMLElement, ctx: MiniGameViewContext): MiniGa
     towers.set(p.id, s);
     grid.append(h("figure", { class: `gift__col${p.id === ctx.me ? " is-me" : ""}` }, s, h("figcaption", {}, ctx.avatar(p.id, 24), h("span", { text: p.name }))));
   }
+  // En 3D quand c'est possible (les tours 2D restent là sinon).
+  const box = h("div", { class: "mg3d-box gift__box" }, grid);
+  let scene: CadeauxScene | null = null;
+  let gone = false;
+  mount3D(box, () => import("./scene3d.ts"), ({ CadeauxScene }, host) => {
+    if (gone) return false;
+    scene = new CadeauxScene(host, shown.map((p) => p.id), new Map(shown.map((p) => [p.id, { name: p.name, color: PLAYER_COLORS[p.color]?.hex ?? "#56627f" }])));
+    return true;
+  });
   const button = h("button", { class: "tm__btn", attrs: { type: "button" }, text: "LÂCHER", on: { pointerdown: (e) => (e.preventDefault(), release()) } });
   const lanes = h("ol", {});
-  root.append(h("div", { class: `mg gift gift--${ctx.layout}` }, bar.el, interactive ? mine : null, grid, interactive ? button : null, ctx.layout === "tv" ? lanes : null));
+  root.append(h("div", { class: `mg gift gift--${ctx.layout}` }, bar.el, interactive ? mine : null, box, interactive ? button : null, ctx.layout === "tv" ? lanes : null));
   const onKey = (e: KeyboardEvent) => {
     if ((e.code === "Space" || e.key === "Enter" || e.key === "ArrowDown") && interactive) {
       e.preventDefault();
@@ -94,7 +104,9 @@ export function cadeauxView(root: HTMLElement, ctx: MiniGameViewContext): MiniGa
       const st = starts.get(p.id);
       const t = st && st.gift === tower.gift ? performance.now() - st.at : null;
       const waiting = p.id === ctx.me && sentGift === tower.gift;
-      drawTower(el, tower, t !== null && t >= 0 && !waiting ? t : null, PLAYER_COLORS[p.color]?.hex ?? "#56627f");
+      const swingT = t !== null && t >= 0 && !waiting ? t : null;
+      if (scene) scene.draw(p.id, tower, swingT);
+      else drawTower(el, tower, swingT, PLAYER_COLORS[p.color]?.hex ?? "#56627f");
     }
   });
 
@@ -121,6 +133,8 @@ export function cadeauxView(root: HTMLElement, ctx: MiniGameViewContext): MiniGa
       render();
     },
     destroy() {
+      gone = true;
+      scene?.destroy();
       bar.destroy();
       stop();
       window.removeEventListener("keydown", onKey);

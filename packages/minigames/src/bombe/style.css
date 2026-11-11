@@ -174,3 +174,8 @@
     margin-left: 6px;
   }
 }
+.bomb__box.has-3d {
+  width: min(900px, 100%);
+  height: clamp(260px, 50vh, 520px);
+  background: linear-gradient(#7fc8ff, #d9f1ff);
+}
