@@ -96,3 +96,7 @@
     opacity: 0.55;
   }
 }
+.land__box.has-3d {
+  width: 100%;
+  height: clamp(240px, 46vh, 460px);
+}

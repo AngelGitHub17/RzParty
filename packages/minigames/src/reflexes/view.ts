@@ -1,5 +1,5 @@
 import "./style.css";
-import { clear, h } from "../kit.ts";
+import { clear, h, reportScores } from "../kit.ts";
 import type { MiniGameView, MiniGameViewContext } from "../client.ts";
 import { REFLEX_ROUNDS, type ReflexOutcome, type ReflexState } from "./types.ts";
 
@@ -61,6 +61,7 @@ export function reflexesView(root: HTMLElement, ctx: MiniGameViewContext): MiniG
     if (!state) return;
     const s = state;
     turnLabel.textContent = `Manche ${s.turn} sur ${REFLEX_ROUNDS}`;
+    reportScores(root, s.totals);
     const mine = ctx.me ? s.outcomes[ctx.me]?.[s.turn - 1] : undefined;
 
     panel.classList.toggle("is-go", s.phase === "go" && !mine);

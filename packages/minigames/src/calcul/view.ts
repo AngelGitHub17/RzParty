@@ -1,6 +1,6 @@
 import "./style.css";
 import { PLAYER_COLORS } from "@rzparty/shared";
-import { clear, h, keypad, timeBar } from "../kit.ts";
+import { clear, h, keypad, timeBar, reportScores } from "../kit.ts";
 import type { MiniGameView, MiniGameViewContext } from "../client.ts";
 import { CALCUL_DURATION_MS, type CalculPrivate, type CalculState } from "./types.ts";
 
@@ -71,6 +71,7 @@ export function calculView(root: HTMLElement, ctx: MiniGameViewContext): MiniGam
     if (!state) return;
     const s = state;
     bar.set(s.endsAt - CALCUL_DURATION_MS, s.endsAt);
+    reportScores(root, Object.fromEntries(Object.entries(s.progress).map(([id, p]) => [id, p.score])));
     if (ctx.me && s.progress[ctx.me]) myScore.textContent = `${s.progress[ctx.me]!.score} bonne${s.progress[ctx.me]!.score > 1 ? "s" : ""} réponse${s.progress[ctx.me]!.score > 1 ? "s" : ""}`;
     if (s.finished && interactive) {
       question.textContent = "Temps écoulé !";

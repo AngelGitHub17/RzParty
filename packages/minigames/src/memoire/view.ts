@@ -1,5 +1,5 @@
 import "./style.css";
-import { clear, h, svg, timeBar } from "../kit.ts";
+import { clear, h, svg, timeBar, reportScores } from "../kit.ts";
 import type { MiniGameView, MiniGameViewContext } from "../client.ts";
 import { alphabet, inputDuration, showDuration, type MemoState } from "./types.ts";
 
@@ -146,6 +146,7 @@ export function memoireView(root: HTMLElement, ctx: MiniGameViewContext): MiniGa
       sendTimer = null;
     }
     const st = myStatus();
+    reportScores(root, Object.fromEntries(Object.entries(s.status).map(([id, st]) => [id, st === "elimine" ? 0 : s.level])));
 
     if (s.phase === "show") bar.set(s.phaseEndsAt - showDuration(s.length), s.phaseEndsAt);
     else if (s.phase === "input") bar.set(s.phaseEndsAt - inputDuration(s.length), s.phaseEndsAt);

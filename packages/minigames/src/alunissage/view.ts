@@ -1,7 +1,8 @@
 import "../timing.css";
 import "./style.css";
 import { PLAYER_COLORS } from "@rzparty/shared";
-import { clear, everyFrame, h, scoreLanes, svg } from "../kit.ts";
+import { clear, everyFrame, h, mount3D, scoreLanes, svg } from "../kit.ts";
+import type { AlunissageScene } from "./scene3d.ts";
 import type { MiniGameView, MiniGameViewContext } from "../client.ts";
 import { localStart } from "../timing.ts";
 import { FUEL, SAFE_SPEED, START_ALT, STEP_MS, advisedSpeed, simulate, type AlunissageState } from "./types.ts";
@@ -29,6 +30,16 @@ export function alunissageView(root: HTMLElement, ctx: MiniGameViewContext): Min
     <g class="land__ships"></g>
   </svg>`);
   const ships = scene.querySelector<SVGGElement>(".land__ships")!;
+  // En 3D quand c'est possible (le dessin 2D reste là sinon).
+  const box = h("div", { class: "mg3d-box land__box" }, scene);
+  let scene3d: AlunissageScene | null = null;
+  let gone = false;
+  mount3D(box, () => import("./scene3d.ts"), ({ AlunissageScene }, host) => {
+    if (gone) return false;
+    const shownPlayers = ctx.layout === "pad" && ctx.me ? ctx.players.filter((p) => p.id === ctx.me) : ctx.players;
+    scene3d = new AlunissageScene(host, shownPlayers.map((p) => ({ id: p.id, color: PLAYER_COLORS[p.color]?.hex ?? "#ffffff", me: p.id === ctx.me })));
+    return true;
+  });
   const hudAlt = h("span", {});
   const hudSpeed = h("span", {});
   const fuelFill = h("span", { class: "land__fuel-fill" });
@@ -60,7 +71,7 @@ export function alunissageView(root: HTMLElement, ctx: MiniGameViewContext): Min
   });
   const results = h("ul", { class: "tm__results" });
   const lanes = h("ol", {});
-  root.append(h("div", { class: `mg tm land land--${ctx.layout}` }, title, h("div", { class: "tm__stage" }, scene), interactive ? hud : null, interactive ? button : null, results, ctx.layout === "pad" ? null : lanes));
+  root.append(h("div", { class: `mg tm land land--${ctx.layout}` }, title, h("div", { class: "tm__stage" }, box), interactive ? hud : null, interactive ? button : null, results, ctx.layout === "pad" ? null : lanes));
 
   const onDown = (e: KeyboardEvent) => {
     if ((e.code === "Space" || e.key === "Enter") && interactive) {
@@ -120,6 +131,7 @@ export function alunissageView(root: HTMLElement, ctx: MiniGameViewContext): Min
       g.setAttribute("transform", `translate(${x} ${y}) rotate(${crashed && f.landedAt !== null ? 70 : 0})`);
       g.classList.toggle("is-thrust", f.thrust && f.landedAt === null);
       g.classList.toggle("is-me", p.id === ctx.me);
+      scene3d?.draw(p.id, f.alt, f.thrust, f.landedAt !== null, crashed);
       if (p.id === ctx.me) {
         hudAlt.textContent = `Altitude ${Math.ceil(f.alt)} m`;
         hudSpeed.textContent = f.speed >= 0 ? `Chute ${f.speed.toFixed(1)} m/s` : `Montée ${(-f.speed).toFixed(1)} m/s`;
@@ -173,6 +185,8 @@ export function alunissageView(root: HTMLElement, ctx: MiniGameViewContext): Min
       render();
     },
     destroy() {
+      gone = true;
+      scene3d?.destroy();
       stop();
       window.removeEventListener("keydown", onDown);
       window.removeEventListener("keyup", onUp);

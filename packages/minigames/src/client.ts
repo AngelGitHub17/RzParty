@@ -38,7 +38,28 @@ import { cadeauxView } from "./cadeaux/view.ts";
 
 import type { Avatar } from "@rzparty/shared";
 
-export { celebrate } from "./kit.ts";
+export { celebrate, decor3D } from "./kit.ts";
+
+/**
+ * Mini-jeux qui se jouent « à plat » (lire, compter, retenir…) : ils gardent leur affichage lisible
+ * et reçoivent un décor 3D (les joueurs sur des colonnes qui montent avec leur score).
+ */
+export const DECOR_3D: Record<string, { lowerIsBetter?: boolean; theme: number }> = {
+  reflexes: { lowerIsBetter: true, theme: 0xb3261e },
+  calcul: { theme: 0x2f7bef },
+  memoire: { theme: 0x9257e8 },
+  piratage: { theme: 0x1e2a4a },
+  stroop: { theme: 0xf0483e },
+  coupdoeil: { theme: 0x18bdbd },
+  tri: { theme: 0x2db866 },
+  vaetvient: { theme: 0xff8a1f },
+  paires: { theme: 0xf45fae },
+  visage: { theme: 0xf2b705 },
+  zappeur: { theme: 0x3c3c46 },
+  puzzle: { theme: 0x9257e8 },
+  aiguillages: { theme: 0x8a5530 },
+  chrono: { theme: 0x2f7bef },
+};
 
 export type ViewLayout = "tv" | "pad" | "solo";
 

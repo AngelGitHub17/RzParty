@@ -3,6 +3,13 @@
 Chaque version commence par « ## numéro — date ». La page de présentation et les serveurs
 locaux lisent ce fichier : pense à augmenter la version dans package.json à chaque publication.
 
+## 0.15.0 — 11 novembre 2026
+- Tous les mini-jeux ont maintenant leur 3D :
+  - Alunissage en vraie 3D : la Lune et ses cratères, la Terre au loin, une capsule par joueur avec son moteur en flammes, poussière (ou fumée) à l'atterrissage.
+  - Les mini-jeux qui se jouent « à plat » (Dégaine !, Calcul express, Mémo-flash, Piratage, Couleurs piégées, Coup d'œil, Tri éclair, Va-et-vient, Paires de fruits, Où est-il ?, Zappeur fou, Puzzle express, Aiguillages, Chrono à l'aveugle) gardent leur affichage lisible, avec en tête un décor 3D : chaque joueur sur une colonne qui monte avec son score, une couronne pour le premier, des sauts et des confettis à chaque point.
+- Sur la manette (téléphone), le décor est masqué pour laisser toute la place au jeu ; il est plus petit sur les petits écrans.
+- Page de présentation : nouvelles images de ces 15 mini-jeux.
+
 ## 0.14.0 — 11 novembre 2026
 - Mini-jeux en 3D, deuxième lot :
   - Patate explosive : les joueurs en cercle sur une petite île, la bombe au-dessus du porteur, une flèche vers le suivant, le BOUM ; les éliminés restent assis.

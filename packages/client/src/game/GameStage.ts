@@ -1,4 +1,4 @@
-import { MINI_GAME_VIEWS, celebrate, type MiniGameView, type ViewLayout } from "@rzparty/minigames/client";
+import { DECOR_3D, MINI_GAME_VIEWS, celebrate, decor3D, type MiniGameView, type ViewLayout } from "@rzparty/minigames/client";
 import { GAME_MODES, PLAYER_COLORS, TEAMS, normalizeAvatar, type GameSnapshot, type PublicPlayer, type RoomSnapshot } from "@rzparty/shared";
 import { request, socket, ServerError } from "../net/connection.ts";
 import { append, clear, everyFrame, h, svg } from "../ui/dom.ts";
@@ -351,7 +351,7 @@ export class GameStage {
       host.append(h("p", { class: "spectate", text: "Tu es éliminé. Suis la manche sur l'écran commun !" }));
     }
     const round = game.round;
-    this.view = factory(host, {
+    const ctx: Parameters<typeof factory>[1] = {
       // Un joueur éliminé regarde la manche comme sur l'écran commun.
       layout: amIn ? this.layout : this.layout === "pad" ? "pad" : "tv",
       me: amIn ? this.meId : null,
@@ -370,7 +370,18 @@ export class GameStage {
         const p = room.players.find((x) => x.id === playerId);
         return p ? { avatar: p.avatar, isBot: p.isBot } : null;
       },
-    });
+    };
+    this.view = factory(host, ctx);
+    // Décor 3D des mini-jeux « à plat ».
+    const decor = id && DECOR_3D[id] ? decor3D(host, ctx, DECOR_3D[id]) : null;
+    if (decor) {
+      const view = this.view;
+      const destroy = view.destroy.bind(view);
+      view.destroy = () => {
+        decor.destroy();
+        destroy();
+      };
+    }
     this.viewRound = round;
     const cached = this.latest.get(round);
     if (cached?.state !== undefined) this.view.update(cached.state);

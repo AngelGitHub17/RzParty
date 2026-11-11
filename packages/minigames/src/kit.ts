@@ -184,6 +184,7 @@ export function scoreLanes(
     if (r.fill.style.width !== width) requestAnimationFrame(() => (r!.fill.style.width = width));
     el.append(r.row);
   }
+  reportScores(el, Object.fromEntries(players.map((p) => [p.id, opts.score(p.id)])));
   // Déplacement en douceur des lignes qui ont changé de place.
   for (const [id, r] of rowsById) {
     const old = before.get(id);
@@ -256,4 +257,51 @@ export function mount3D<M>(box: HTMLElement, load: () => Promise<M>, create: (mo
       box.classList.remove("has-3d");
     }
   })();
+}
+
+/** Décors 3D attachés à la racine d'un mini-jeu (remplis par scoreLanes ou reportScores). */
+const decors = new WeakMap<Element, { setScores(scores: Record<string, number>): void }>();
+
+/** Envoie les scores au décor 3D du mini-jeu qui contient `el`, s'il y en a un. */
+export function reportScores(el: Element, scores: Record<string, number>): void {
+  for (let n: Element | null = el; n; n = n.parentElement) {
+    const d = decors.get(n);
+    if (d) return d.setScores(scores);
+  }
+}
+
+/**
+ * Décor 3D d'un mini-jeu « à plat » : les joueurs sur des colonnes qui montent avec leur score.
+ * Posé en tête du mini-jeu, sauf sur la manette (le téléphone garde toute la place pour jouer).
+ */
+export function decor3D(
+  root: HTMLElement,
+  ctx: { layout: string; players: { id: string; color: number; isBot: boolean }[]; avatarData?(id: string): { avatar: unknown; isBot: boolean } | null },
+  opts: { lowerIsBetter?: boolean; theme?: number } = {},
+): { destroy(): void } {
+  if (ctx.layout === "pad") return { destroy() {} };
+  const box = h("div", { class: "mg3d-box mg-decor" });
+  (root.querySelector(".mg") ?? root).prepend(box);
+  let scene: { setScores(s: Record<string, number>): void; destroy(): void } | null = null;
+  let pending: Record<string, number> | null = null;
+  let gone = false;
+  decors.set(root, { setScores: (s) => (scene ? scene.setScores(s) : (pending = s)) });
+  mount3D(
+    box,
+    async () => Promise.all([import("./three/podium3d.ts"), import("./three/players.ts")]),
+    ([{ PodiumScene }, { castPlayers }], host) => {
+      if (gone) return false;
+      scene = new PodiumScene(host, castPlayers(ctx as never), Boolean(opts.lowerIsBetter), opts.theme ?? 0x5b3aa8);
+      if (pending) scene.setScores(pending);
+      return true;
+    },
+  );
+  return {
+    destroy() {
+      gone = true;
+      scene?.destroy();
+      decors.delete(root);
+      box.remove();
+    },
+  };
 }

@@ -1,6 +1,6 @@
 import "./style.css";
 import { PLAYER_COLORS } from "@rzparty/shared";
-import { clear, h, keypad, timeBar } from "../kit.ts";
+import { clear, h, keypad, timeBar, reportScores } from "../kit.ts";
 import type { MiniGameView, MiniGameViewContext } from "../client.ts";
 import { CODE_LENGTH, MAX_TRIES, PIRATAGE_DURATION_MS, type Feedback, type PiratagePrivate, type PiratageState } from "./types.ts";
 
@@ -99,6 +99,7 @@ export function piratageView(root: HTMLElement, ctx: MiniGameViewContext): MiniG
     if (!state) return;
     const s = state;
     bar.set(s.endsAt - PIRATAGE_DURATION_MS, s.endsAt);
+    reportScores(root, Object.fromEntries(Object.entries(s.progress).map(([id, p]) => [id, (p.cracked ? 10 : 0) + p.best.exact * 2 + p.best.near])));
     reveal.hidden = !s.code;
     if (s.code) reveal.textContent = `Le code était ${s.code.split("").join(" ")}`;
     if (interactive && ctx.me) {

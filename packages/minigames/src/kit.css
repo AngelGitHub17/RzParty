@@ -139,3 +139,21 @@
 .mg3d-box.has-3d > :not(.mg3d) {
   display: none;
 }
+
+.mg-decor.has-3d {
+  grid-column: 1 / -1;
+  justify-self: center;
+  align-self: start;
+  width: min(900px, 100%);
+  height: clamp(150px, 24vh, 230px);
+  flex-shrink: 0;
+  background: radial-gradient(circle at 50% 20%, #8fd3ff, #4a7fd8);
+}
+.mg-decor:not(.has-3d) {
+  display: none;
+}
+@media (max-width: 600px) {
+  .mg-decor.has-3d {
+    height: 120px;
+  }
+}
