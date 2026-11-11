@@ -63,5 +63,6 @@ export function tremplinView(root: HTMLElement, ctx: MiniGameViewContext): MiniG
       place(x, y, 10 - 20 * flight);
     },
     totalLabel: (n) => `${n} m`,
+    scene3d: () => import("./scene3d.ts"),
   });
 }

@@ -1,5 +1,6 @@
 import "./style.css";
-import { h, scoreLanes, timeBar } from "../kit.ts";
+import { h, mount3D, scoreLanes, timeBar } from "../kit.ts";
+import type { TaupesScene } from "./scene3d.ts";
 import type { MiniGameView, MiniGameViewContext } from "../client.ts";
 import { HOLES, TAUPES_DURATION_MS, type TaupesState } from "./types.ts";
 
@@ -22,6 +23,16 @@ export function taupesView(root: HTMLElement, ctx: MiniGameViewContext): MiniGam
     ),
   );
   const grid = h("div", { class: "mole__grid" }, ...holes);
+  // En 3D quand c'est possible (la grille 2D reste là sinon).
+  const box = h("div", { class: "mg3d-box mole__box" }, grid);
+  let scene: TaupesScene | null = null;
+  let gone = false;
+  mount3D(box, () => import("./scene3d.ts"), ({ TaupesScene }, host) => {
+    if (gone) return false;
+    scene = new TaupesScene(host, interactive, (i) => whack(i));
+    render();
+    return true;
+  });
   // Clavier : pavé numérique (7 8 9 / 4 5 6 / 1 2 3) ou chiffres.
   const KEYS: Record<string, number> = { "7": 0, "8": 1, "9": 2, "4": 3, "5": 4, "6": 5, "1": 6, "2": 7, "3": 8 };
   const onKey = (e: KeyboardEvent) => {
@@ -32,7 +43,7 @@ export function taupesView(root: HTMLElement, ctx: MiniGameViewContext): MiniGam
   };
   window.addEventListener("keydown", onKey);
 
-  root.append(h("div", { class: `mg mole mole--${ctx.layout}` }, bar.el, interactive ? mine : null, h("div", { class: "mole__stage" }, grid, ctx.layout === "pad" ? null : lanes)));
+  root.append(h("div", { class: `mg mole mole--${ctx.layout}` }, bar.el, interactive ? mine : null, h("div", { class: "mole__stage" }, box, ctx.layout === "pad" ? null : lanes)));
 
   function whack(i: number): void {
     if (!state || state.finished) return;
@@ -41,6 +52,7 @@ export function taupesView(root: HTMLElement, ctx: MiniGameViewContext): MiniGam
     const already = ctx.me ? state.hits[ctx.me]?.includes(mole?.id ?? -1) : false;
     if (already) return;
     ctx.send(mole ? { hole: i, mole: mole.id } : { hole: i });
+    scene?.whack(i, Boolean(mole));
     const hole = holes[i]!;
     hole.classList.remove("is-bonk", "is-miss");
     void hole.offsetWidth;
@@ -57,6 +69,7 @@ export function taupesView(root: HTMLElement, ctx: MiniGameViewContext): MiniGam
       hole.classList.toggle("is-up", Boolean(mole) && !hit.has(mole!.id));
       hole.classList.toggle("is-golden", Boolean(mole?.golden));
     });
+    scene?.update(s, hit, ctx.serverNow());
     if (ctx.me) mine.textContent = `${s.scores[ctx.me] ?? 0} point${(s.scores[ctx.me] ?? 0) > 1 ? "s" : ""}${s.finished ? " · Terminé !" : ""}`;
     if (ctx.layout !== "pad") scoreLanes(lanes, ctx.players, { score: (id) => s.scores[id] ?? 0, me: ctx.me, avatar: ctx.avatar });
   }
@@ -67,6 +80,8 @@ export function taupesView(root: HTMLElement, ctx: MiniGameViewContext): MiniGam
       render();
     },
     destroy() {
+      gone = true;
+      scene?.destroy();
       bar.destroy();
       window.removeEventListener("keydown", onKey);
     },

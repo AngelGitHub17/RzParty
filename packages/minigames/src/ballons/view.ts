@@ -1,5 +1,6 @@
 import "./style.css";
-import { everyFrame, h, scoreLanes, timeBar } from "../kit.ts";
+import { everyFrame, h, mount3D, scoreLanes, timeBar } from "../kit.ts";
+import type { BallonsScene } from "./scene3d.ts";
 import type { MiniGameView, MiniGameViewContext } from "../client.ts";
 import { BALLOONS_MS, BALLOON_COLORS, RISE_MS, type BallonsState } from "./types.ts";
 
@@ -12,15 +13,26 @@ export function ballonsView(root: HTMLElement, ctx: MiniGameViewContext): MiniGa
   const mine = h("p", { class: "mole__mine" });
   const sky = h("div", { class: "bal__sky" });
   const lanes = h("ol", {});
-  root.append(h("div", { class: `mg bal bal--${ctx.layout}` }, bar.el, wanted, interactive ? mine : null, h("div", { class: "bal__stage" }, sky, ctx.layout === "pad" ? null : lanes)));
+  // En 3D quand c'est possible (le ciel 2D reste là sinon).
+  const box = h("div", { class: "mg3d-box bal__box" }, sky);
+  let scene: BallonsScene | null = null;
+  let gone = false;
+  mount3D(box, () => import("./scene3d.ts"), ({ BallonsScene }, host) => {
+    if (gone) return false;
+    scene = new BallonsScene(host, interactive, ctx.serverNow, (id) => pop(id));
+    render();
+    return true;
+  });
+  root.append(h("div", { class: `mg bal bal--${ctx.layout}` }, bar.el, wanted, interactive ? mine : null, h("div", { class: "bal__stage" }, box, ctx.layout === "pad" ? null : lanes)));
   const els = new Map<number, HTMLElement>();
   /** Ballons éclatés sur cet appareil avant la réponse du serveur. */
   const local = new Set<number>();
 
-  function pop(id: number, el: HTMLElement): void {
+  function pop(id: number): void {
     if (!state || state.finished || local.has(id)) return;
     local.add(id);
-    el.classList.add("is-popped");
+    els.get(id)?.classList.add("is-popped");
+    scene?.pop(id);
     ctx.send({ balloon: id });
   }
 
@@ -65,11 +77,12 @@ export function ballonsView(root: HTMLElement, ctx: MiniGameViewContext): MiniGa
         },
         h("span", { class: "bal__string", attrs: { "aria-hidden": "true" } }),
       );
-      if (interactive) el.addEventListener("pointerdown", (e) => (e.preventDefault(), pop(b.id, el)));
+      if (interactive) el.addEventListener("pointerdown", (e) => (e.preventDefault(), pop(b.id)));
       sky.append(el);
       els.set(b.id, el);
     }
     for (const [id, el] of els) if (mineSet.has(id)) el.classList.add("is-popped");
+    scene?.update(s, mineSet);
     if (ctx.me) mine.textContent = `${s.scores[ctx.me] ?? 0} point${(s.scores[ctx.me] ?? 0) > 1 ? "s" : ""}${s.finished ? " · Terminé !" : ""}`;
     if (ctx.layout !== "pad") scoreLanes(lanes, ctx.players, { score: (id) => s.scores[id] ?? 0, me: ctx.me, avatar: ctx.avatar });
   }
@@ -80,6 +93,8 @@ export function ballonsView(root: HTMLElement, ctx: MiniGameViewContext): MiniGa
       render();
     },
     destroy() {
+      gone = true;
+      scene?.destroy();
       bar.destroy();
       stop();
     },

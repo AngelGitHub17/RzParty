@@ -58,5 +58,6 @@ export function lianeView(root: HTMLElement, ctx: MiniGameViewContext): MiniGame
       hero.setAttribute("transform", `translate(${x} ${y + 15})`);
     },
     totalLabel: (n) => `${n} m`,
+    scene3d: () => import("./scene3d.ts"),
   });
 }

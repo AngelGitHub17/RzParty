@@ -46,5 +46,6 @@ export function pasView(root: HTMLElement, ctx: MiniGameViewContext): MiniGameVi
       fog.setAttribute("opacity", hidden ? "0.97" : "0");
       counter.textContent = phase === "ready" || t === null ? "" : hidden ? "?" : phase === "result" ? `${steps.toFixed(1).replace(".", ",")} pas` : `${whole} pas`;
     },
+    scene3d: () => import("./scene3d.ts"),
   });
 }

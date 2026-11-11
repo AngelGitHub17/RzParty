@@ -1,6 +1,7 @@
 import "./timing.css";
 import { PLAYER_COLORS } from "@rzparty/shared";
-import { clear, everyFrame, h, scoreLanes } from "./kit.ts";
+import { clear, everyFrame, h, mount3D, scoreLanes } from "./kit.ts";
+import type { Timing3D, Timing3DFactory } from "./three/timing3d.ts";
 import type { MiniGameView, MiniGameViewContext } from "./client.ts";
 import { localStart, type TimingState } from "./timing.ts";
 
@@ -18,6 +19,8 @@ export interface TimingViewOptions<P> {
   draw(t: number | null, params: P, pressedAt: number | null, phase: TimingState<P>["phase"], spectator: boolean): void;
   /** Étiquette du total dans le classement. */
   totalLabel?(n: number): string;
+  /** Version 3D du décor (chargée à la demande ; le dessin 2D reste si la 3D n'est pas disponible). */
+  scene3d?: () => Promise<{ default: Timing3DFactory<P> }>;
 }
 
 /** Vue commune des jeux « un appui au bon moment ». */
@@ -34,7 +37,19 @@ export function timingView<P>(root: HTMLElement, ctx: MiniGameViewContext, name:
   const button = h("button", { class: "tm__btn", attrs: { type: "button" }, text: opts.button, on: { pointerdown: (e) => (e.preventDefault(), press()) } });
   const results = h("ul", { class: "tm__results" });
   const lanes = h("ol", {});
-  root.append(h("div", { class: `mg tm tm--${name} tm--${ctx.layout}` }, title, h("div", { class: "tm__stage" }, opts.stage), interactive ? button : null, results, ctx.layout === "pad" ? null : lanes));
+  const box = h("div", { class: "mg3d-box tm__box" }, opts.stage);
+  let scene: Timing3D<P> | null = null;
+  let gone = false;
+  if (opts.scene3d) {
+    mount3D(box, opts.scene3d, (mod, host) => {
+      if (gone) return false;
+      scene = mod.default(host);
+      scene.setPlayer(ctx.me ? (ctx.avatarData?.(ctx.me) ?? null) : null);
+      return true;
+    });
+  }
+  const draw: TimingViewOptions<P>["draw"] = (...args) => (scene ? scene.draw(...args) : opts.draw(...args));
+  root.append(h("div", { class: `mg tm tm--${name} tm--${ctx.layout}` }, title, h("div", { class: "tm__stage" }, box), interactive ? button : null, results, ctx.layout === "pad" ? null : lanes));
   const onKey = (e: KeyboardEvent) => {
     if ((e.code === "Space" || e.key === "Enter") && interactive) {
       e.preventDefault();
@@ -56,13 +71,15 @@ export function timingView<P>(root: HTMLElement, ctx: MiniGameViewContext, name:
     const t = state.phase === "run" || state.phase === "result" ? performance.now() - start : null;
     if (!interactive) {
       // Écran commun : à la fin de la manche, on rejoue le meilleur essai.
-      const best = state.phase === "result" && state.results ? Object.values(state.results).filter((r) => r.t !== null).sort((a, b) => b.score - a.score)[0] : undefined;
-      const replay = best?.t ?? null;
-      if (replay !== null) opts.draw(replay + (performance.now() - resultShownAt), state.params, replay, state.phase, true);
-      else opts.draw(t, state.params, null, state.phase, true);
+      const best = state.phase === "result" && state.results ? Object.entries(state.results).filter(([, r]) => r.t !== null).sort(([, a], [, b]) => b.score - a.score)[0] : undefined;
+      const replay = best?.[1].t ?? null;
+      // En 3D, on montre le personnage de celui dont on rejoue l'essai.
+      scene?.setPlayer(best ? (ctx.avatarData?.(best[0]) ?? null) : null);
+      if (replay !== null) draw(replay + (performance.now() - resultShownAt), state.params, replay, state.phase, true);
+      else draw(t, state.params, null, state.phase, true);
       return;
     }
-    opts.draw(t, state.params, pressedRound === state.round ? pressedAt : null, state.phase, false);
+    draw(t, state.params, pressedRound === state.round ? pressedAt : null, state.phase, false);
   });
 
   function render(): void {
@@ -97,6 +114,8 @@ export function timingView<P>(root: HTMLElement, ctx: MiniGameViewContext, name:
       render();
     },
     destroy() {
+      gone = true;
+      scene?.destroy();
       stop();
       window.removeEventListener("keydown", onKey);
     },

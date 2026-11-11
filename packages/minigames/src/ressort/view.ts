@@ -57,5 +57,6 @@ export function ressortView(root: HTMLElement, ctx: MiniGameViewContext): MiniGa
       heightText.textContent = score ? `${score} m` : "Raté !";
     },
     totalLabel: (n) => `${n} m`,
+    scene3d: () => import("./scene3d.ts"),
   });
 }

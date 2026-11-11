@@ -75,3 +75,8 @@
   flex-basis: 64px;
   height: 46vh;
 }
+.pen__box.has-3d {
+  width: 100%;
+  height: clamp(240px, 44vh, 440px);
+  background: linear-gradient(#9fd8ff, #dff3ff);
+}

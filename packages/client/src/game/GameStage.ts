@@ -366,6 +366,10 @@ export class GameStage {
         return p ? playerAvatar(p, { size }) : avatarSvg(undefined, { size });
       },
       drawAvatar: (avatar, size) => avatarSvg(normalizeAvatar(avatar), { size }),
+      avatarData: (playerId) => {
+        const p = room.players.find((x) => x.id === playerId);
+        return p ? { avatar: p.avatar, isBot: p.isBot } : null;
+      },
     });
     this.viewRound = round;
     const cached = this.latest.get(round);

@@ -48,5 +48,6 @@ export function photoView(root: HTMLElement, ctx: MiniGameViewContext): MiniGame
       flash.setAttribute("opacity", String(since < 300 ? 1 - since / 300 : 0));
     },
     totalLabel: (n) => `${n} %`,
+    scene3d: () => import("./scene3d.ts"),
   });
 }

@@ -1,7 +1,8 @@
 import "../timing.css";
 import "./style.css";
 import { PLAYER_COLORS } from "@rzparty/shared";
-import { clear, everyFrame, h, scoreLanes, svg } from "../kit.ts";
+import { clear, everyFrame, h, mount3D, scoreLanes, svg } from "../kit.ts";
+import type { PenaltyScene } from "./scene3d.ts";
 import type { MiniGameView, MiniGameViewContext } from "../client.ts";
 import { localStart } from "../timing.ts";
 import { DIR_LABELS, GOLD, GREEN, gauge, type Dir, type PenaltyState, type ShotOutcome } from "./types.ts";
@@ -55,12 +56,23 @@ export function penaltyView(root: HTMLElement, ctx: MiniGameViewContext): MiniGa
   const pad = h("div", { class: "pen__pad" }, ...buttons);
   const results = h("ul", { class: "tm__results" });
   const lanes = h("ol", {});
+  // En 3D quand c'est possible (le dessin 2D reste là sinon).
+  const box = h("div", { class: "mg3d-box pen__box" }, scene);
+  let scene3d: PenaltyScene | null = null;
+  let gone = false;
+  mount3D(box, () => import("./scene3d.ts"), ({ PenaltyScene }, host) => {
+    if (gone) return false;
+    scene3d = new PenaltyScene(host);
+    scene3d.setShooter(ctx.me ? (ctx.avatarData?.(ctx.me) ?? null) : null);
+    render();
+    return true;
+  });
   root.append(
     h(
       "div",
       { class: `mg tm pen pen--${ctx.layout}` },
       title,
-      h("div", { class: "pen__row" }, h("div", { class: "tm__stage" }, scene), interactive || ctx.layout === "tv" ? meter : null),
+      h("div", { class: "pen__row" }, h("div", { class: "tm__stage" }, box), interactive || ctx.layout === "tv" ? meter : null),
       interactive ? pad : null,
       results,
       ctx.layout === "pad" ? null : lanes,
@@ -120,9 +132,15 @@ export function penaltyView(root: HTMLElement, ctx: MiniGameViewContext): MiniGa
     const shown = mine ?? (s.results ? Object.values(s.results).find((r) => r.outcome === "but") ?? Object.values(s.results)[0] : undefined);
     if (s.phase === "result" && shown) {
       place(shown.dir, shown.keeper, shown.outcome);
+      if (scene3d && !ctx.me && s.results) {
+        const who = Object.entries(s.results).find(([, r]) => r === shown)?.[0];
+        if (who) scene3d.setShooter(ctx.avatarData?.(who) ?? null);
+      }
+      scene3d?.show(shown.dir, shown.keeper, shown.outcome);
       say.textContent = mine ? OUTCOME[mine.outcome] : "";
     } else {
       place(null, null, null);
+      scene3d?.reset();
       say.textContent = s.phase === "aim" ? (fired ? "Tir parti !" : "") : "";
     }
     scene.classList.toggle("is-goal", s.phase === "result" && shown?.outcome === "but");
@@ -146,6 +164,8 @@ export function penaltyView(root: HTMLElement, ctx: MiniGameViewContext): MiniGa
       render();
     },
     destroy() {
+      gone = true;
+      scene3d?.destroy();
       stop();
       window.removeEventListener("keydown", onKey);
     },

@@ -234,3 +234,26 @@ export function celebrate(from: Element, opts: { count?: number; colors?: string
   }
   setTimeout(() => layer.remove(), 1500);
 }
+
+/**
+ * Passe un mini-jeu en 3D : charge sa scène à la demande (la 3D n'alourdit pas le chargement du jeu)
+ * et la pose dans `box`. Sans WebGL, ou si la scène échoue, l'affichage 2D reste en place.
+ * `create` reçoit le module chargé et l'élément hôte ; elle renvoie false pour abandonner.
+ */
+export function mount3D<M>(box: HTMLElement, load: () => Promise<M>, create: (mod: M, host: HTMLElement) => boolean): void {
+  void (async () => {
+    const { webglAvailable } = await import("./three/kit3d.ts");
+    if (!webglAvailable()) return;
+    const mod = await load();
+    const host = h("div", { class: "mg3d" });
+    box.classList.add("has-3d");
+    box.prepend(host);
+    try {
+      if (!create(mod, host)) throw new Error("abandon");
+    } catch (err) {
+      if (!(err instanceof Error && err.message === "abandon")) console.warn("3D indisponible", err);
+      host.remove();
+      box.classList.remove("has-3d");
+    }
+  })();
+}

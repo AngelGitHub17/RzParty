@@ -1,6 +1,6 @@
 {
   "name": "@rzparty/minigames",
-  "version": "0.12.1",
+  "version": "0.13.0",
   "private": true,
   "type": "module",
   "description": "Mini-jeux de RzParty : chaque dossier contient sa logique serveur, ses vues et son bot",
@@ -13,6 +13,10 @@
     "./catalog": "./src/catalog.ts"
   },
   "dependencies": {
-    "@rzparty/shared": "*"
+    "@rzparty/shared": "*",
+    "three": "^0.170.0"
+  },
+  "devDependencies": {
+    "@types/three": "^0.170.0"
   }
 }

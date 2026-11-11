@@ -13,7 +13,7 @@
   box-shadow: 0 6px 0 #1e2a4a1a;
 }
 
-.tm__stage > svg {
+.tm__stage svg {
   display: block;
   width: 100%;
   height: auto;
@@ -60,4 +60,10 @@
   border-radius: 999px;
   background: var(--paper);
   border: 3px solid var(--player);
+}
+
+.tm__box.has-3d {
+  width: 100%;
+  height: clamp(240px, 46vh, 460px);
+  background: linear-gradient(#9fd8ff, #dff3ff);
 }

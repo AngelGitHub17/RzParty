@@ -3,6 +3,21 @@
 Chaque version commence par « ## numéro — date ». La page de présentation et les serveurs
 locaux lisent ce fichier : pense à augmenter la version dans package.json à chaque publication.
 
+## 0.13.0 — 11 novembre 2026
+- Mini-jeux en 3D, premier lot de 8 :
+  - Tape-taupe : pelouse, trous, taupes qui sortent (les dorées brillent) et maillet ; les trous se touchent au premier contact, comme avant.
+  - Ballons volants : les ballons montent de la prairie en se balançant et éclatent en confettis de leur couleur.
+  - Grand tremplin : tremplin en bois, piste enneigée avec repères de distance, sapins, et ton personnage sur ses skis.
+  - Liane folle : branche, liane qui se balance, rivière et rives ; éclaboussures si l'on tombe à l'eau.
+  - Ressort : un vrai ressort qui se comprime, la jauge d'élan à côté, et ton personnage qui s'envole.
+  - Pas comptés : ton personnage marche, le décor défile, ses traces restent… puis le brouillard tombe.
+  - Photo souvenir : le modèle dans un petit studio photo, du rictus au grand sourire, et le flash.
+  - Tirs au but : vu de derrière le tireur, gardien qui plonge, ballon au fond (ou pas), public qui saute.
+- Ces mini-jeux montrent ton propre personnage ; sur l'écran commun, celui du meilleur essai rejoué.
+- Mêmes règles, mêmes trajectoires et mêmes commandes qu'avant (boutons, clavier) ; sans WebGL, l'affichage 2D reste.
+- La boîte à outils 3D est désormais partagée entre les modes et les mini-jeux, et chargée seulement quand il le faut.
+- Page de présentation : nouvelles images de ces 8 mini-jeux.
+
 ## 0.12.1 — 11 novembre 2026
 - Page de présentation : les installeurs s'affichent même quand le serveur n'arrive pas à joindre GitHub (refus, limite de demandes, pare-feu) : la page les cherche alors elle-même depuis le navigateur.
 - Si la version du serveur n'a pas encore d'installeurs, ceux de la dernière version publiée sont proposés (ils se mettent ensuite à jour tout seuls).

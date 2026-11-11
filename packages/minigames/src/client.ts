@@ -62,6 +62,8 @@ export interface MiniGameViewContext {
   avatar(playerId: string, size: number): SVGSVGElement;
   /** Dessine n'importe quel personnage (avatars générés par un mini-jeu). */
   drawAvatar(avatar: Avatar, size: number): SVGSVGElement;
+  /** Données de l'avatar d'un joueur (pour le dessiner en 3D), si on les a. */
+  avatarData?(playerId: string): { avatar: Avatar; isBot: boolean } | null;
 }
 
 export interface MiniGameView {

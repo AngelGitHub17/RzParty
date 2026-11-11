@@ -83,3 +83,8 @@ button.bal__balloon::before {
 .bal--tv .bal__sky {
   width: min(520px, 46vw);
 }
+.bal__box.has-3d {
+  flex: 1 1 420px;
+  max-width: 760px;
+  background: linear-gradient(#7fc8ff, #d9f1ff);
+}
